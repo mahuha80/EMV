@@ -8,6 +8,7 @@ NAV_HTML = '''<nav class="top-nav">
         <a href="{base}index.html" class="nav-logo">💳 EMV Academy</a>
         <div class="nav-menu">
             <a href="{base}index.html">Trang chủ</a>
+            <a href="{base}../automation/index.html">⚡ Automation</a>
             <a href="{lpath}lesson01.html"{a1}>01</a>
             <a href="{lpath}lesson02.html"{a2}>02</a>
             <a href="{lpath}lesson03.html"{a3}>03</a>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Test Automation — MCP-based Jira Pipeline</title>
+<meta name="description" content="Hệ thống automation tự động đọc ticket Jira, route qua MCP server, generate test case và push lên GitHub.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="#" class="nav-logo">⚡ AI Test Automation</a>
+        <div class="nav-links">
+            <a href="#concept">Concept</a>
+            <a href="#architecture">Architecture</a>
+            <a href="#flow">Flow</a>
+            <a href="#routing">Routing</a>
+            <a href="#stack">Stack</a>
+            <a href="../emv_course/" target="_blank">📘 EMV Course</a>
+            <a href="https://github.com/mahuha80/EMV" target="_blank" class="gh">GitHub →</a>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <span class="hero-badge">⚡ AI-driven automation</span>
+    <h1>Jira → AI → Test Cases<br><span class="grad">trong một pipeline duy nhất</span></h1>
+    <p>Hệ thống tự động: nhận ticket ID, route qua <b>MCP server</b> theo quy tắc chẵn/lẻ, AI phân tích description, sinh test cases và đẩy kết quả về Jira/GitHub — toàn bộ điều phối bằng <b>rule-based decision engine</b>.</p>
+    <div class="hero-cta">
+        <a href="#flow" class="btn btn-primary">Xem flow →</a>
+        <a href="https://github.com/mahuha80/EMV" target="_blank" class="btn btn-ghost">Source code</a>
+    </div>
+
+    <div class="hero-stats">
+        <div class="stat"><div class="stat-num">2</div><div class="stat-label">MCP Servers</div></div>
+        <div class="stat"><div class="stat-num">8</div><div class="stat-label">Pipeline steps</div></div>
+        <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Rule-driven</div></div>
+        <div class="stat"><div class="stat-num">JSON-RPC</div><div class="stat-label">Protocol</div></div>
+    </div>
+</section>
+
+<!-- CONCEPT -->
+<section class="section" id="concept">
+    <div class="section-head">
+        <div class="eyebrow">Concept</div>
+        <h2>Vì sao cần kiến trúc này?</h2>
+        <p>Tách bạch ba lớp: <b>tool/MCP</b> (làm 1 việc cụ thể), <b>decision engine</b> (rule-based, đọc <code>RULES.md</code>), <b>orchestrator</b> (gọi tool theo plan).</p>
+    </div>
+
+    <div class="grid-3">
+        <div class="card">
+            <div class="card-icon">🧱</div>
+            <h3>Modular MCP</h3>
+            <p>Mỗi MCP server làm <b>một việc</b> qua JSON-RPC over stdio. Plug thêm/bớt server không cần đổi orchestrator.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon">📜</div>
+            <h3>Rule-driven</h3>
+            <p>Logic chọn server, chọn bước tiếp theo nằm trong <code>RULES.md</code> — AI đọc và tự quyết định, không hard-code.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon">🔁</div>
+            <h3>Idempotent &amp; Loggable</h3>
+            <p>Mỗi bước log đầy đủ input/output → có thể replay từng step để debug hoặc audit.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon">🎫</div>
+            <h3>Jira-first</h3>
+            <p>Input là 1 ticket ID. Output là report + test cases được sinh và đẩy ngược lại Jira/GitHub.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon">🧪</div>
+            <h3>Test-as-Data</h3>
+            <p>Test cases sinh ra là JSON/YAML có thể chạy bằng Robot Framework hoặc Pytest — không phải prose.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon">🌐</div>
+            <h3>Stateless services</h3>
+            <p>MCP server không giữ state — dễ scale, dễ deploy độc lập, dễ test unit.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="section" id="architecture">
+    <div class="section-head">
+        <div class="eyebrow">Architecture</div>
+        <h2>3 lớp tách bạch</h2>
+        <p>Từ CLI command đến output, đi qua 3 lớp với trách nhiệm rõ ràng.</p>
+    </div>
+
+    <div class="arch">
+<pre>
+                    <span class="h1">┌─────────────────────────────────────────────────┐</span>
+                    <span class="h1">│             ./run.sh --ticket PROJ-1234         │</span>
+                    <span class="h1">└──────────────────────┬──────────────────────────┘</span>
+                                           │
+                    ┌──────────────────────▼──────────────────────────┐
+                    │   <span class="h2">LAYER 1 · Orchestrator (run_full_flow.py)</span>     │
+                    │   - Đọc RULES.md → build execution plan         │
+                    │   - Gọi tools theo thứ tự                       │
+                    │   - Log mọi step vào logs/jira_flow.log         │
+                    └──────────────────────┬──────────────────────────┘
+                                           │
+       <span class="h3">┌───────────────────────────────┼───────────────────────────────┐</span>
+       │                               │                               │
+       ▼                               ▼                               ▼
+┌──────────────┐               ┌──────────────┐                ┌──────────────┐
+│  <span class="acc">MCP Server</span>  │               │  <span class="acc">MCP Server</span>  │                │   Decision   │
+│  random-even │               │  random-odd  │                │   Engine     │
+│  (JSON-RPC)  │               │  (JSON-RPC)  │                │ (rule-based) │
+└──────────────┘               └──────────────┘                └──────────────┘
+       │                               │                               │
+       └───────────────────────────────┴───────────────────────────────┘
+                                           │
+                    ┌──────────────────────▼──────────────────────────┐
+                    │   <span class="h2">LAYER 2 · Domain Adapters</span>                      │
+                    │   - Jira fetcher (ADF → plain text)             │
+                    │   - GitHub pusher                               │
+                    │   - Appium / Robot test runner                  │
+                    └──────────────────────┬──────────────────────────┘
+                                           │
+                    ┌──────────────────────▼──────────────────────────┐
+                    │   <span class="h2">LAYER 3 · Output</span>                                │
+                    │   - reports/&lt;TICKET-ID&gt;/test_cases.json         │
+                    │   - reports/&lt;TICKET-ID&gt;/execution.log           │
+                    │   - PR/Comment ngược về Jira                    │
+                    └─────────────────────────────────────────────────┘
+</pre>
+    </div>
+</section>
+
+<!-- FLOW -->
+<section class="section" id="flow">
+    <div class="section-head">
+        <div class="eyebrow">Pipeline</div>
+        <h2>8 bước từ ticket → test cases</h2>
+        <p>Mỗi bước là 1 tool/function độc lập, được orchestrator gọi tuần tự dựa trên rule.</p>
+    </div>
+
+    <div class="flow">
+
+        <div class="flow-item">
+            <div class="flow-num">0</div>
+            <div class="flow-body">
+                <span class="tag">step_0_routing</span>
+                <h3>Ticket Number Routing</h3>
+                <p>Tách last digit từ <code>PROJ-1234</code> bằng regex <code>-(\d+)$</code> → modulo 10 → chia 2 nhánh <b>EVEN</b> / <b>ODD</b>.</p>
+                <div class="meta">
+                    <span>📥 Input: <code>ticket_id</code></span>
+                    <span>📤 Output: <code>mcp_server_name</code></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flow-item">
+            <div class="flow-num">1</div>
+            <div class="flow-body">
+                <span class="tag">step_1_mcp_call</span>
+                <h3>Gọi MCP server (JSON-RPC over stdio)</h3>
+                <p>Spawn process MCP, gửi request <code>{"method":"get_random_even", ...}</code>, parse response. Số random làm seed cho test data ở bước sau.</p>
+                <div class="meta">
+                    <span>⚙️ random-even-mcp / random-odd-mcp</span>
+                    <span>⏱ &lt; 200ms</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flow-item">
+            <div class="flow-num">2</div>
+            <div class="flow-body">
+                <span class="tag">step_2_fetch_ticket</span>
+                <h3>Fetch ticket từ Jira REST API</h3>
+                <p>Gọi <code>GET /rest/api/3/issue/{id}</code>, parse Atlassian Document Format (ADF) thành plain text cho LLM ăn được.</p>
+                <div class="meta">
+                    <span>🔑 Auth: API token</span>
+                    <span>📄 ADF → markdown</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flow-item">
+            <div class="flow-num">3</div>
+            <div class="flow-body">
+                <span class="tag">step_3_extract</span>
+                <h3>Extract: preconditions / steps / expected results</h3>
+                <p>Heuristic parser + LLM fallback. Bóc ra 3 mảng có cấu trúc, validate schema.</p>
+                <div class="meta">
+                    <span>📦 Output: <code>TicketModel</code> (Pydantic)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flow-item">
+            <div class="flow-num">4</div>
+            <div class="flow-body">
+                <span class="tag">step_4_analyze</span>
+                <h3>AI Analyzer — gom domain context</h3>
+                <p>Đọc <code>AI_DECISION_FLOW_RULES.md</code>, ghép với ticket model để chọn template test case phù hợp (smoke / regression / edge).</p>
+            </div>
+        </div>
+
+        <div class="flow-item">
+            <div class="flow-num">5</div>
+            <div class="flow-body">
+                <span class="tag">step_5_generate</span>
+                <h3>Generate test cases</h3>
+                <p>LLM sinh test cases theo template, có MCP value làm dynamic input (số tài khoản, giá trị, etc.).</p>
+                <div class="meta">
+                    <span>📂 reports/&lt;TICKET&gt;/test_cases.json</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flow-item">
+            <div class="flow-num">6</div>
+            <div class="flow-body">
+                <span class="tag">step_6_validate</span>
+                <h3>Validate &amp; lint</h3>
+                <p>Schema check, duplicate detection, coverage matrix. Fail-fast nếu thiếu acceptance criteria.</p>
+            </div>
+        </div>
+
+        <div class="flow-item">
+            <div class="flow-num">7</div>
+            <div class="flow-body">
+                <span class="tag">step_7_deliver</span>
+                <h3>Push lên Jira/GitHub</h3>
+                <p>Comment back Jira ticket với link report, hoặc open PR trên repo test với Robot/Pytest sinh kèm.</p>
+                <div class="meta">
+                    <span>🔁 Idempotent — chạy lại không tạo trùng</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ROUTING -->
+<section class="section" id="routing">
+    <div class="section-head">
+        <div class="eyebrow">Routing logic</div>
+        <h2>Even / Odd dispatcher</h2>
+        <p>Quy tắc đơn giản, kiểm chứng được, viết trong <code>RULES.md</code> mục Section 9.</p>
+    </div>
+
+    <div class="code"><span class="code-label">PYTHON</span><span class="cmt"># src/ticket_router.py</span>
+<span class="key">import</span> re
+
+<span class="key">def</span> <span class="fn">determine_mcp_server</span>(ticket_id: <span class="key">str</span>) -&gt; <span class="key">str</span>:
+    <span class="cmt">"""
+    R9.1 — Extract last numeric digit from ticket id.
+    R9.2 — even (0,2,4,6,8) → random-even-mcp
+    R9.3 — odd  (1,3,5,7,9) → random-odd-mcp
+    """</span>
+    m = re.search(<span class="str">r"-(\d+)$"</span>, ticket_id)
+    <span class="key">if not</span> m:
+        <span class="key">raise</span> ValueError(<span class="str">f"Invalid ticket id: </span>{ticket_id}<span class="str">"</span>)
+    last_digit = <span class="key">int</span>(m.group(<span class="num">1</span>)) % <span class="num">10</span>
+    <span class="key">return</span> <span class="str">"random-even-mcp"</span> <span class="key">if</span> last_digit % <span class="num">2</span> == <span class="num">0</span> <span class="key">else</span> <span class="str">"random-odd-mcp"</span>
+</div>
+
+    <div class="routing-demo">
+        <div class="route-card even">
+            <h3>EVEN branch</h3>
+            <p>Last digit ∈</p>
+            <div class="digits">
+                <div class="digit">0</div><div class="digit">2</div><div class="digit">4</div><div class="digit">6</div><div class="digit">8</div>
+            </div>
+            <div class="mcp">→ random-even-mcp</div>
+            <p style="margin-top:14px;color:var(--text-dim);font-size:.85rem;">Ví dụ: <code>PROJ-1234</code>, <code>KAN-8</code></p>
+        </div>
+        <div class="route-card odd">
+            <h3>ODD branch</h3>
+            <p>Last digit ∈</p>
+            <div class="digits">
+                <div class="digit">1</div><div class="digit">3</div><div class="digit">5</div><div class="digit">7</div><div class="digit">9</div>
+            </div>
+            <div class="mcp">→ random-odd-mcp</div>
+            <p style="margin-top:14px;color:var(--text-dim);font-size:.85rem;">Ví dụ: <code>PROJ-5675</code>, <code>KAN-9</code></p>
+        </div>
+    </div>
+</section>
+
+<!-- MCP DETAIL -->
+<section class="section">
+    <div class="section-head">
+        <div class="eyebrow">MCP Protocol</div>
+        <h2>Mỗi tool nói chuyện qua JSON-RPC 2.0</h2>
+        <p>Stdio in/out — tương thích với Claude Desktop, IDE, hoặc bất kỳ host nào hỗ trợ Model Context Protocol.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+        <div>
+            <h3 style="color:var(--accent);margin-bottom:12px;">📤 Request</h3>
+            <div class="code"><span class="code-label">JSON-RPC</span>{
+  <span class="key">"jsonrpc"</span>: <span class="str">"2.0"</span>,
+  <span class="key">"method"</span>: <span class="str">"get_random_even"</span>,
+  <span class="key">"params"</span>: {},
+  <span class="key">"id"</span>: <span class="num">1</span>
+}</div>
+        </div>
+
+        <div>
+            <h3 style="color:var(--accent-2);margin-bottom:12px;">📥 Response</h3>
+            <div class="code"><span class="code-label">JSON-RPC</span>{
+  <span class="key">"jsonrpc"</span>: <span class="str">"2.0"</span>,
+  <span class="key">"result"</span>: { <span class="key">"number"</span>: <span class="num">18</span> },
+  <span class="key">"id"</span>: <span class="num">1</span>
+}</div>
+        </div>
+
+    </div>
+
+    <div class="code" style="margin-top:24px;"><span class="code-label">SHELL</span><span class="cmt"># Chạy thủ công kiểm tra MCP server</span>
+$ echo <span class="str">'{"jsonrpc":"2.0","method":"get_random_even","params":{},"id":1}'</span> \\
+  | python3 -m random_even_mcp
+
+<span class="cmt"># Server xử lý từ stdin, trả về stdout — không cần network, không cần port.</span>
+</div>
+</section>
+
+<!-- TECH STACK -->
+<section class="section" id="stack">
+    <div class="section-head">
+        <div class="eyebrow">Tech stack</div>
+        <h2>Built with</h2>
+    </div>
+
+    <div class="stack-grid">
+        <div class="stack-item"><div class="icon">🐍</div><div class="name">Python 3.11</div><div class="role">Orchestrator</div></div>
+        <div class="stack-item"><div class="icon">⚙️</div><div class="name">MCP SDK</div><div class="role">Tool protocol</div></div>
+        <div class="stack-item"><div class="icon">🎫</div><div class="name">Jira API v3</div><div class="role">Ticket source</div></div>
+        <div class="stack-item"><div class="icon">🧪</div><div class="name">Robot FW</div><div class="role">Test runner</div></div>
+        <div class="stack-item"><div class="icon">📱</div><div class="name">Appium</div><div class="role">Mobile e2e</div></div>
+        <div class="stack-item"><div class="icon">🤖</div><div class="name">Claude API</div><div class="role">LLM analyzer</div></div>
+        <div class="stack-item"><div class="icon">📦</div><div class="name">Pydantic</div><div class="role">Schema</div></div>
+        <div class="stack-item"><div class="icon">🐙</div><div class="name">GitHub Pages</div><div class="role">Hosting</div></div>
+    </div>
+</section>
+
+<!-- QUICK START -->
+<section class="section">
+    <div class="section-head">
+        <div class="eyebrow">Quick start</div>
+        <h2>Chạy thử trong 30 giây</h2>
+    </div>
+
+    <div class="code"><span class="code-label">BASH</span><span class="cmt"># 1. Clone</span>
+git clone https://github.com/mahuha80/EMV.git
+cd EMV
+
+<span class="cmt"># 2. Cài dependencies</span>
+pip install -r requirements.txt
+
+<span class="cmt"># 3. Config Jira credentials</span>
+cp config/jira_config.yaml.example config/jira_config.yaml
+<span class="cmt"># → điền URL, email, API token</span>
+
+<span class="cmt"># 4. Chạy pipeline với 1 ticket</span>
+./run.sh --ticket PROJ-1234
+
+<span class="cmt"># Output:</span>
+<span class="cmt"># [STEP-0] Routing: EVEN → random-even-mcp</span>
+<span class="cmt"># [STEP-1] MCP value: 18</span>
+<span class="cmt"># [STEP-2] Fetched ticket PROJ-1234</span>
+<span class="cmt"># [STEP-5] Generated 12 test cases</span>
+<span class="cmt"># [STEP-7] Posted to Jira comment</span>
+<span class="cmt"># ✅ Report: reports/PROJ-1234/</span>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <p>⚡ AI Test Automation — Built with MCP &amp; Claude · <a href="https://github.com/mahuha80/EMV" target="_blank">GitHub</a> · <a href="../emv_course/">📘 EMV Course</a></p>
+</footer>
+
+</body>
+</html>
+
