@@ -1,0 +1,27 @@
+{
+  "ticket_id": "KAN-6",
+  "preconditions": [
+    "User has a valid account in the system",
+    "Device has biometric authentication enabled (Face ID or Fingerprint)",
+    "User is not logged in (on the Login screen)"
+  ],
+  "test_steps": [
+    "Launch the app and navigate to Login screen",
+    "Tap \"Login with Biometric\" button (Face ID / Touch ID)",
+    "Perform biometric authentication when prompted",
+    "Observe the result"
+  ],
+  "expected_results": [
+    "\"Login with Biometric\" button visible on Login screen",
+    "System prompts biometric scan (Face ID or Fingerprint)",
+    "On success: auto login and navigate to Home screen",
+    "On failure/cancel: error message shown, remain on Login screen",
+    "Biometric login works on Android (Fingerprint) and iOS (Face ID/Touch ID)"
+  ],
+  "test_type": "smoke",
+  "platforms": [
+    "android",
+    "ios"
+  ],
+  "components": []
+}

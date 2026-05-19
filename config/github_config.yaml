@@ -1,0 +1,22 @@
+# GitHub Configuration
+
+repository:
+  name: "${GITHUB_REPO}"
+  base_branch: "${GITHUB_BASE_BRANCH}"
+  token: "${GITHUB_TOKEN}"
+
+pull_request:
+  draft: false
+  labels:
+    - auto-fix
+    - qa-pipeline
+  reviewers: []  # Override bằng GITHUB_REVIEWERS env
+
+branch:
+  prefix: "fix"
+  max_length: 60
+
+commit:
+  max_subject_length: 72
+  include_ai_stats: true
+

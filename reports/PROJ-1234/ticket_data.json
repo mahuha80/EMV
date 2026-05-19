@@ -1,0 +1,22 @@
+{
+  "ticket_id": "PROJ-1234",
+  "title": "App crashes when submitting login with empty password",
+  "description": "\nPreconditions:\n- App is installed on device\n- User is on the Login screen\n- User has a valid account\n\nSteps:\n1. Launch the app\n2. Navigate to Login screen\n3. Enter a valid email address\n4. Leave the Password field EMPTY\n5. Tap the \"Login\" button\n\nExpected Results:\n- App should display validation message: \"Password cannot be empty\"\n- App must NOT crash or force close\n- User should remain on the Login screen\n- Error message should be clearly visible below the password field\n        ",
+  "priority": "High",
+  "status": "In Progress",
+  "components": [
+    "authentication",
+    "login"
+  ],
+  "labels": [
+    "bug",
+    "android",
+    "ios",
+    "regression"
+  ],
+  "assignee": "dev@company.com",
+  "reporter": "qa@company.com",
+  "acceptance_criteria": [],
+  "attachments": [],
+  "fetched_at": "2026-05-18T10:00:00Z"
+}

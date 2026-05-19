@@ -1,0 +1,31 @@
+{
+  "ticket_id": "PROJ-5678",
+  "platform": "android",
+  "test_cases": [
+    {
+      "id": "TC_001",
+      "name": "Upload Progress Indicator Should Be Shown",
+      "expected": "Upload progress indicator should be shown"
+    },
+    {
+      "id": "TC_002",
+      "name": "App Should Not Timeout Without Feedback",
+      "expected": "App should NOT timeout without feedback"
+    },
+    {
+      "id": "TC_003",
+      "name": "On Success Show Toast Photo Updated Successfully",
+      "expected": "On success: show toast \"Photo updated successfully\""
+    },
+    {
+      "id": "TC_004",
+      "name": "On Failure Show Retry Option With Error Message",
+      "expected": "On failure: show retry option with error message"
+    },
+    {
+      "id": "TC_005",
+      "name": "App Must Stay Responsive During Upload",
+      "expected": "App must stay responsive during upload"
+    }
+  ]
+}

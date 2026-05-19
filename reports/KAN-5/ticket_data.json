@@ -1,0 +1,20 @@
+{
+  "ticket_id": "KAN-5",
+  "title": "[iOS] Profile photo upload shows no progress indicator on slow network",
+  "description": "Preconditions\nUser is logged in successfully\n\nUser is on the Profile screen\n\nDevice is on slow network (3G or throttled)\n\n\nSteps to Reproduce\nTap on the avatar icon on the Profile screen\n\nSelect \"Change Photo\" from the bottom sheet menu\n\nChoose a photo from the gallery (size > 2MB)\n\nTap \"Confirm\" to start the upload\n\nObserve the UI during the upload process\n\n\nExpected Result\nA progress bar/spinner is displayed during upload\n\nApp does NOT freeze or timeout without user feedback\n\nOn success: toast message \"Photo updated successfully\"\n\nOn failure: Retry button displayed with clear error message\n\nApp remains responsive throughout the upload\n\n\nActual Result\nNo progress indicator shown\n\nApp freezes ~30 seconds then returns to Profile screen silently\n\nNo success or error message shown to user\n\n\n",
+  "priority": "Medium",
+  "status": "To Do",
+  "issuetype": "Bug",
+  "components": [],
+  "labels": [
+    "P2",
+    "android",
+    "ios",
+    "regression"
+  ],
+  "assignee": "",
+  "reporter": "xuanhieu0423@gmail.com",
+  "acceptance_criteria": [],
+  "attachments": [],
+  "fetched_at": ""
+}

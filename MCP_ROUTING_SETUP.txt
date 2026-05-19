@@ -1,0 +1,202 @@
+✅ MCP ROUTING RULES - SETUP COMPLETE
+
+═══════════════════════════════════════════════════════════════════════════
+
+📋 WHAT WAS CREATED:
+
+1. Rules File (RULES.md) - Section 9
+   Location: /Users/vinhnt0111/Desktop/MCP/RULES.md
+   Status: ✅ UPDATED
+   Content: Complete MCP Integration Rules (R9.1 - R9.7)
+
+   Includes:
+   • R9.1: Ticket Number Routing Rule
+   • R9.2: MCP Calling Flow (determine_mcp_server, call_mcp_server)
+   • R9.3: Available MCP Methods
+   • R9.4: Integration Examples
+   • R9.5: Updated Pipeline Flow Diagram
+   • R9.6: Error Handling for MCP
+   • R9.7: Logging Format for MCP
+
+2. Python Implementation - ticket_router.py
+   Location: /Users/vinhnt0111/Desktop/MCP/src/ticket_router.py
+   Status: ✅ CREATED & TESTED
+   Features:
+   • TicketRouter class with static methods
+   • extract_last_digit() - Parse ticket ID
+   • determine_mcp_server() - Route to even/odd MCP
+   • call_mcp_server() - Call MCP via JSON-RPC
+   • route_and_generate() - Complete routing + MCP call
+   • CLI support for direct usage
+
+3. Flow Documentation - MCP_ROUTING_FLOW.md
+   Location: /Users/vinhnt0111/Desktop/MCP/MCP_ROUTING_FLOW.md
+   Status: ✅ CREATED
+   Content:
+   • Complete flow diagram
+   • Detailed step-by-step process
+   • Routing examples (even/odd/edge cases)
+   • Python implementation examples
+   • Routing table with all digit combos
+   • Error handling scenarios
+   • Log format examples
+   • Integration guide
+
+═══════════════════════════════════════════════════════════════════════════
+
+🎯 HOW IT WORKS:
+
+┌─ Ticket ID: PROJ-1234
+│
+├─ STEP 0A: Extract last digit → 4
+│
+├─ STEP 0B: Check even/odd → EVEN (4 % 2 == 0)
+│
+├─ STEP 0C: Route to MCP → random-even-mcp
+│
+└─ STEP 0D: Call MCP → Generate random even number → 18
+
+Then continue with normal pipeline:
+  STEP 1: Fetch ticket
+  STEP 2: Analyze
+  STEP 3: Generate tests
+  STEP 4: Run tests
+
+═══════════════════════════════════════════════════════════════════════════
+
+✅ ROUTING TABLE:
+
+| Last Digit | Number Type | MCP Server |
+|-----------|------------|-----------|
+| 0, 2, 4, 6, 8 | EVEN | random-even-mcp |
+| 1, 3, 5, 7, 9 | ODD | random-odd-mcp |
+
+Examples:
+• PROJ-1234 (4) → EVEN → random-even-mcp
+• KAN-5 (5) → ODD → random-odd-mcp
+• PROJ-1000 (0) → EVEN → random-even-mcp
+
+═══════════════════════════════════════════════════════════════════════════
+
+🚀 USAGE:
+
+1. Direct Python Import:
+   from src.ticket_router import TicketRouter
+
+   mcp_server = TicketRouter.determine_mcp_server('PROJ-1234')
+   result = TicketRouter.route_and_generate('PROJ-1234', 'get_random_even')
+
+2. Command Line:
+   python3 src/ticket_router.py PROJ-1234
+
+3. Integration:
+   # In your flow runner
+   routing_result = TicketRouter.route_and_generate(ticket_id)
+   mcp_value = routing_result['mcp_value']
+   # Use mcp_value in test generation
+
+═══════════════════════════════════════════════════════════════════════════
+
+📊 TEST RESULTS:
+
+✅ Test 1: Even ticket (PROJ-1234)
+   Last Digit: 4 → Type: EVEN → MCP: random-even-mcp
+
+✅ Test 2: Odd ticket (KAN-5)
+   Last Digit: 5 → Type: ODD → MCP: random-odd-mcp
+
+✅ Test 3: Even with zero (PROJ-1000)
+   Last Digit: 0 → Type: EVEN → MCP: random-even-mcp
+
+✅ Test 4: Odd (PROJ-1111)
+   Last Digit: 1 → Type: ODD → MCP: random-odd-mcp
+
+═══════════════════════════════════════════════════════════════════════════
+
+📁 FILES CREATED/UPDATED:
+
+✅ /Users/vinhnt0111/Desktop/MCP/RULES.md
+   Added: Section 9 - MCP Integration Rules
+
+✅ /Users/vinhnt0111/Desktop/MCP/src/ticket_router.py
+   Created: Complete ticket routing implementation
+
+✅ /Users/vinhnt0111/Desktop/MCP/MCP_ROUTING_FLOW.md
+   Created: Flow documentation & examples
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔄 FLOW STEPS:
+
+BEFORE (Old Flow):
+  STEP 1: Fetch Ticket
+  STEP 2: Analyze
+  STEP 3: Generate Tests
+  STEP 4: Run Tests
+
+AFTER (New Flow with MCP Routing):
+  STEP 0: Ticket Routing (Check digit → Call MCP)
+  STEP 1: Fetch Ticket (with MCP value available)
+  STEP 2: Analyze
+  STEP 3: Generate Tests (can use MCP value)
+  STEP 4: Run Tests
+
+═══════════════════════════════════════════════════════════════════════════
+
+💡 USE CASES:
+
+1. Input Validation Tests
+   Use MCP value as test input (even/odd numbers)
+
+2. Dynamic Test Data
+   Generate different test scenarios based on ticket number
+
+3. Balanced Test Execution
+   Even tickets get one MCP logic, odd get another
+
+4. Audit Trail
+   Log which MCP was called for each ticket
+
+═══════════════════════════════════════════════════════════════════════════
+
+📝 INTEGRATION WITH EXISTING CODE:
+
+The ticket_router.py module integrates seamlessly:
+
+• Can be imported into existing flow_runner.py
+• Follows project naming conventions (snake_case, type hints, docstrings)
+• Uses project's logging pattern [STEP-X]
+• Supports JSON-RPC 2.0 MCP protocol
+• Error handling matches project standards
+• No external dependencies (only subprocess, json, re)
+
+═══════════════════════════════════════════════════════════════════════════
+
+✅ VERIFICATION:
+
+✓ RULES.md updated with complete MCP rules
+✓ ticket_router.py created and tested
+✓ All routing logic verified
+✓ Error handling implemented
+✓ MCP calls working correctly
+✓ Documentation complete
+✓ Examples provided
+✓ Integration ready
+
+═══════════════════════════════════════════════════════════════════════════
+
+🎉 READY TO USE!
+
+The system is now ready to:
+1. Accept a ticket ID
+2. Check the last digit
+3. Route to appropriate MCP (even/odd)
+4. Generate random value
+5. Continue with normal pipeline
+
+Status: ✅ COMPLETE
+Version: 1.0.0
+Date: May 18, 2026
+
+═══════════════════════════════════════════════════════════════════════════
+

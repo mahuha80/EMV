@@ -1,0 +1,136 @@
+{
+  "_comment": "Đây là cấu trúc JSON mẫu từ Jira API v3 – dùng để test và reference",
+  "_usage": "Khi có MCP token thật, JiraMCPAgent sẽ tự fetch format này",
+
+  "id": "10001",
+  "key": "PROJ-1234",
+  "self": "https://your-company.atlassian.net/rest/api/3/issue/10001",
+
+  "fields": {
+    "summary": "[Android] Login screen crashes when tapping Login with empty password field",
+
+    "description": {
+      "type": "doc",
+      "version": 1,
+      "content": [
+        {
+          "type": "heading",
+          "attrs": { "level": 3 },
+          "content": [{ "type": "text", "text": "Preconditions" }]
+        },
+        {
+          "type": "bulletList",
+          "content": [
+            { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "App đã được cài đặt trên thiết bị Android (API 31+)" }] }] },
+            { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "User đang ở màn hình Login (chưa đăng nhập)" }] }] },
+            { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "App đang ở trạng thái fresh install (chưa có session)" }] }] }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": { "level": 3 },
+          "content": [{ "type": "text", "text": "Steps to Reproduce" }]
+        },
+        {
+          "type": "orderedList",
+          "content": [
+            { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Mở ứng dụng" }] }] },
+            { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Chờ màn hình Login hiển thị" }] }] },
+            { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Nhập email hợp lệ vào field Email: testuser@company.com" }] }] },
+            { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Để trống field Password (không nhập gì)" }] }] },
+            { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Tap vào nút Login" }] }] }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": { "level": 3 },
+          "content": [{ "type": "text", "text": "Expected Result" }]
+        },
+        {
+          "type": "bulletList",
+          "content": [
+            { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "App hiển thị thông báo validation: Password cannot be empty" }] }] },
+            { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "App KHÔNG bị crash hoặc force close" }] }] },
+            { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "User vẫn ở lại màn hình Login" }] }] },
+            { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Error message hiển thị màu đỏ phía dưới field Password" }] }] }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": { "level": 3 },
+          "content": [{ "type": "text", "text": "Actual Result" }]
+        },
+        {
+          "type": "bulletList",
+          "content": [
+            { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "App bị crash ngay lập tức (force close)" }] }] },
+            { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Xuất hiện dialog App has stopped" }] }] }
+          ]
+        }
+      ]
+    },
+
+    "priority": {
+      "id": "2",
+      "name": "High",
+      "iconUrl": "https://your-company.atlassian.net/images/icons/priorities/high.svg"
+    },
+
+    "status": {
+      "id": "3",
+      "name": "In Progress",
+      "statusCategory": { "name": "In Progress" }
+    },
+
+    "issuetype": {
+      "id": "1",
+      "name": "Bug",
+      "iconUrl": "https://your-company.atlassian.net/images/icons/issuetypes/bug.svg"
+    },
+
+    "assignee": {
+      "accountId": "abc123",
+      "displayName": "Nguyen Van Dev",
+      "emailAddress": "dev@company.com"
+    },
+
+    "reporter": {
+      "accountId": "xyz789",
+      "displayName": "Tran Thi QA",
+      "emailAddress": "qa@company.com"
+    },
+
+    "components": [
+      { "id": "10000", "name": "authentication" },
+      { "id": "10001", "name": "login-screen" }
+    ],
+
+    "labels": ["android", "regression", "P1"],
+
+    "fixVersions": [{ "name": "1.0.1" }],
+
+    "attachment": [
+      {
+        "id": "10100",
+        "filename": "crash_screenshot.png",
+        "content": "https://your-company.atlassian.net/secure/attachment/10100/crash_screenshot.png"
+      }
+    ],
+
+    "comment": {
+      "total": 1,
+      "comments": [
+        {
+          "id": "10200",
+          "author": { "displayName": "Nguyen Van Dev" },
+          "body": "Đã reproduce được lỗi. Root cause: NullPointerException tại AuthViewModel line 145",
+          "created": "2026-05-17T09:00:00.000+0700"
+        }
+      ]
+    },
+
+    "created": "2026-05-17T08:00:00.000+0700",
+    "updated": "2026-05-17T10:00:00.000+0700"
+  }
+}
+

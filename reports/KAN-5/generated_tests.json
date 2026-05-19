@@ -1,0 +1,31 @@
+{
+  "ticket_id": "KAN-5",
+  "platform": "android",
+  "test_cases": [
+    {
+      "id": "TC_001",
+      "name": "A Progress Barspinner Is Displayed During Upload",
+      "expected": "A progress bar/spinner is displayed during upload"
+    },
+    {
+      "id": "TC_002",
+      "name": "App Does Not Freeze Or Timeout Without User Feedback",
+      "expected": "App does NOT freeze or timeout without user feedback"
+    },
+    {
+      "id": "TC_003",
+      "name": "On Success Toast Message Photo Updated Successfully",
+      "expected": "On success: toast message \"Photo updated successfully\""
+    },
+    {
+      "id": "TC_004",
+      "name": "On Failure Retry Button Displayed With Clear Error Message",
+      "expected": "On failure: Retry button displayed with clear error message"
+    },
+    {
+      "id": "TC_005",
+      "name": "App Remains Responsive Throughout The Upload",
+      "expected": "App remains responsive throughout the upload"
+    }
+  ]
+}

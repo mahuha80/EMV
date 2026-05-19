@@ -1,0 +1,19 @@
+{
+  "ticket_id": "KAN-4",
+  "title": "[Android] Login screen crashes when tapping Login with empty password field",
+  "description": "Preconditions\nApp is installed on Android device (API 31+)\n\nUser is on the Login screen (not logged in)\n\nApp is in fresh install state (no active session)\n\n\nSteps to Reproduce\nLaunch the application\n\nWait for Login screen to appear\n\nEnter a valid email address: testuser@company.com\n\nLeave the Password field EMPTY (do not type anything)\n\nTap the Login button\n\n\nExpected Result\nApp displays validation message: \"Password cannot be empty\"\n\nApp must NOT crash or force close\n\nUser remains on the Login screen\n\nError message is clearly visible below the Password field\n\n\nActual Result\nApp crashes immediately with force close dialog\n\nDialog shows: \"App has stopped\"\n\nUser is forced back to the device home screen\n\n\n",
+  "priority": "High",
+  "status": "To Do",
+  "issuetype": "Bug",
+  "components": [],
+  "labels": [
+    "P1",
+    "android",
+    "regression"
+  ],
+  "assignee": "",
+  "reporter": "xuanhieu0423@gmail.com",
+  "acceptance_criteria": [],
+  "attachments": [],
+  "fetched_at": ""
+}

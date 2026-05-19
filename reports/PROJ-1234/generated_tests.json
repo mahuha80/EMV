@@ -1,0 +1,26 @@
+{
+  "ticket_id": "PROJ-1234",
+  "platform": "android",
+  "test_cases": [
+    {
+      "id": "TC_001",
+      "name": "App Should Display Validation Message Password Cannot Be Empty",
+      "expected": "App should display validation message: \"Password cannot be empty\""
+    },
+    {
+      "id": "TC_002",
+      "name": "App Must Not Crash Or Force Close",
+      "expected": "App must NOT crash or force close"
+    },
+    {
+      "id": "TC_003",
+      "name": "User Should Remain On The Login Screen",
+      "expected": "User should remain on the Login screen"
+    },
+    {
+      "id": "TC_004",
+      "name": "Error Message Should Be Clearly Visible Below The Password Field",
+      "expected": "Error message should be clearly visible below the password field"
+    }
+  ]
+}

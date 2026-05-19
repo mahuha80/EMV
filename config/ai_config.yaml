@@ -1,0 +1,21 @@
+# AI Model Configuration
+
+provider: "${AI_PROVIDER}"  # openai | anthropic
+
+openai:
+  model: "${AI_MODEL}"
+  max_tokens: 4096
+  temperature: 0.2
+  response_format: json_object
+
+anthropic:
+  model: claude-3-5-sonnet-20241022
+  max_tokens: 4096
+  temperature: 0.2
+
+analysis:
+  confidence_threshold: 0.7    # Minimum confidence để auto-apply fix
+  max_fixes_per_file: 5        # Max số fixes trên 1 file
+  code_context_lines: 25       # Số dòng context xung quanh lỗi
+  max_prompt_length: 8000      # Max chars cho prompt
+

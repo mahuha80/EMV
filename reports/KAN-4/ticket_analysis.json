@@ -1,0 +1,26 @@
+{
+  "ticket_id": "KAN-4",
+  "preconditions": [
+    "App is installed on Android device (API 31+)",
+    "User is on the Login screen (not logged in)",
+    "App is in fresh install state (no active session)"
+  ],
+  "test_steps": [
+    "Launch the application",
+    "Wait for Login screen to appear",
+    "Enter a valid email address: testuser@company.com",
+    "Leave the Password field EMPTY (do not type anything)",
+    "Tap the Login button"
+  ],
+  "expected_results": [
+    "App displays validation message: \"Password cannot be empty\"",
+    "App must NOT crash or force close",
+    "User remains on the Login screen",
+    "Error message is clearly visible below the Password field"
+  ],
+  "test_type": "regression",
+  "platforms": [
+    "android"
+  ],
+  "components": []
+}

@@ -1,0 +1,30 @@
+{
+  "ticket_id": "PROJ-1234",
+  "preconditions": [
+    "App is installed on device",
+    "User is on the Login screen",
+    "User has a valid account"
+  ],
+  "test_steps": [
+    "Launch the app",
+    "Navigate to Login screen",
+    "Enter a valid email address",
+    "Leave the Password field EMPTY",
+    "Tap the \"Login\" button"
+  ],
+  "expected_results": [
+    "App should display validation message: \"Password cannot be empty\"",
+    "App must NOT crash or force close",
+    "User should remain on the Login screen",
+    "Error message should be clearly visible below the password field"
+  ],
+  "test_type": "regression",
+  "platforms": [
+    "android",
+    "ios"
+  ],
+  "components": [
+    "authentication",
+    "login"
+  ]
+}

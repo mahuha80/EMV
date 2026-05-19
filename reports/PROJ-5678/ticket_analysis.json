@@ -1,0 +1,30 @@
+{
+  "ticket_id": "PROJ-5678",
+  "preconditions": [
+    "User is logged in",
+    "User is on Profile screen",
+    "Network speed is throttled (3G/slow)"
+  ],
+  "test_steps": [
+    "Tap on the profile avatar",
+    "Select \"Change Photo\" option",
+    "Choose a photo from gallery (size > 2MB)",
+    "Wait for upload to complete"
+  ],
+  "expected_results": [
+    "Upload progress indicator should be shown",
+    "App should NOT timeout without feedback",
+    "On success: show toast \"Photo updated successfully\"",
+    "On failure: show retry option with error message",
+    "App must stay responsive during upload"
+  ],
+  "test_type": "functional",
+  "platforms": [
+    "android"
+  ],
+  "components": [
+    "profile",
+    "media-upload",
+    "network"
+  ]
+}

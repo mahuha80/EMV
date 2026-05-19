@@ -1,0 +1,184 @@
+✅ AI DECISION FLOW - COMPLETE SETUP
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 ÝỀ TƯỞNG:
+
+AI không gọi 1 function làm hết
+Cũng không gọi từng tool riêng lẻ kiểu tool A → tool B → tool C
+
+Thay vào đó:
+AI đọc file .md (rules) → Gọi function → Check kết quả → Quyết định function tiếp theo
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📋 FILES CREATED:
+
+1️⃣  AI_DECISION_FLOW_RULES.md
+    ├─ Rule R1: Priority decision (based on mcp_value)
+    ├─ Rule R2: Test type decision (regression, e2e, functional)
+    ├─ Rule R3: Batch processing decision
+    ├─ Rule R4: Error handling
+    └─ Rule R5: Completion
+
+    → Tất cả rules AI cần để quyết định!
+
+2️⃣  AI_EXECUTION_GUIDE.md
+    ├─ How AI should use
+    ├─ Pseudo-code for AI
+    ├─ Example execution flows
+    └─ Step-by-step instruction
+
+    → Hướng dẫn AI cách thực thi!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🚀 CÁCH HOẠT ĐỘNG:
+
+STEP 1: AI reads rules file
+  → AI_DECISION_FLOW_RULES.md
+  ↓
+
+STEP 2: AI calls first function
+  → process_ticket_with_mcp(ticket_id)
+  ↓
+
+STEP 3: AI checks result
+  → success? error? value?
+  ↓
+
+STEP 4: AI reads rules to decide
+  → "mcp_value >= 16 → Rule R3 → batch_process_tickets()"
+  → "test_type == 'regression' → Rule R2 → regression testing"
+  ↓
+
+STEP 5: AI calls next function
+  → batch_process_tickets() OR analyze_and_generate_tests()
+  ↓
+
+STEP 6: AI repeat từ STEP 3 cho tới STEP 5 until Rule R5 (completion)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 EXECUTION FLOW:
+
+AI reads rules:
+  Rule R1: Priority classification
+  Rule R2: Test type decision
+  Rule R3: Batch vs single
+  Rule R4: Error handling
+  Rule R5: Completion
+
+Then executes:
+  [STEP 1] process_ticket_with_mcp()
+    ↓ (check result, read Rule R1)
+  [STEP 2] batch_process_tickets() OR analyze_and_generate_tests()
+    ↓ (check result, read Rule R2)
+  [STEP 3] Execute testing (regression/e2e/basic)
+    ↓ (Rule R5 done)
+  [COMPLETE]
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 KEY RULES:
+
+Rule R1 (Priority):
+  IF mcp_value >= 16:    Priority = HIGH → batch
+  IF mcp_value <= 15:    Priority = LOW  → single
+
+Rule R2 (Test Type):
+  IF test_type == 'regression':  → regression testing
+  IF test_type == 'e2e':         → E2E testing
+  IF test_type == 'functional':  → basic tests
+
+Rule R3 (Batch):
+  IF priority == HIGH:   → batch_process_tickets()
+  IF priority <= MID:    → Single processing
+
+Rule R4 (Error):
+  IF success == false:   → Handle error + Retry/Fallback
+  IF success == true:    → Continue
+
+Rule R5 (Completion):
+  IF all_steps_done:     → Generate report → DONE
+
+═══════════════════════════════════════════════════════════════════════════════
+
+💡 EXAMPLE:
+
+Ticket: KAN-7 (mcp_value could be 3 to 19)
+
+Scenario 1: mcp_value = 3 (LOW)
+  [STEP 1] process_ticket_with_mcp('KAN-7')
+    → mcp_value = 3
+  [DECISION] Rule R1: 3 <= 15 → LOW priority
+  [STEP 2] analyze_and_generate_tests('KAN-7')
+    → test_type = 'functional'
+  [DECISION] Rule R2: functional → basic tests
+  [STEP 3] Execute basic tests
+  [COMPLETION] Done!
+
+Scenario 2: mcp_value = 18 (HIGH)
+  [STEP 1] process_ticket_with_mcp('KAN-7')
+    → mcp_value = 18
+  [DECISION] Rule R1: 18 >= 16 → HIGH priority
+  [DECISION] Rule R3: HIGH → batch
+  [STEP 2] batch_process_tickets(['KAN-7', 'KAN-8', 'KAN-9'])
+  [DECISION] Rule R2: check test_type
+  [STEP 3] Execute testing
+  [COMPLETION] Done!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📌 AI SHOULD:
+
+1. Read: AI_DECISION_FLOW_RULES.md
+2. Remember: 5 rules (R1-R5)
+3. Execute: Functions từ src/ai_processor.py
+4. Check: Result after each call
+5. Decide: Next function based on rules
+6. Repeat: Until Rule R5 completion
+7. Return: Final result with decision trail
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔑 ADVANTAGE:
+
+✅ Not hardcoded - follows rules in .md file
+✅ Flexible - rules can be updated without changing code
+✅ Intelligent - decides next step based on results
+✅ Traceable - decision trail is logged
+✅ Maintainable - all logic in readable .md file
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 SUMMARY:
+
+File 1: AI_DECISION_FLOW_RULES.md
+  ├─ Defines all decision rules
+  └─ AI reads this to know what to do
+
+File 2: AI_EXECUTION_GUIDE.md
+  ├─ Shows how to use rules
+  └─ Provides examples & pseudo-code
+
+Functions: From src/ai_processor.py
+  ├─ process_ticket_with_mcp()
+  ├─ analyze_and_generate_tests()
+  └─ batch_process_tickets()
+
+Flow:
+  AI reads rules → Execute function → Check result → Read rule for next → Repeat
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Status: ✅ READY FOR AI EXECUTION
+
+AI có thể bắt đầu:
+1. Đọc AI_DECISION_FLOW_RULES.md
+2. Đọc AI_EXECUTION_GUIDE.md
+3. Gọi functions theo rules
+4. Tự quyết định gọi gì tiếp!
+
+═══════════════════════════════════════════════════════════════════════════════
+

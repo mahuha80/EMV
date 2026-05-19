@@ -1,0 +1,31 @@
+{
+  "ticket_id": "KAN-6",
+  "platform": "android",
+  "test_cases": [
+    {
+      "id": "TC_001",
+      "name": "Login With Biometric Button Visible On Login Screen",
+      "expected": "\"Login with Biometric\" button visible on Login screen"
+    },
+    {
+      "id": "TC_002",
+      "name": "System Prompts Biometric Scan Face Id Or Fingerprint",
+      "expected": "System prompts biometric scan (Face ID or Fingerprint)"
+    },
+    {
+      "id": "TC_003",
+      "name": "On Success Auto Login And Navigate To Home Screen",
+      "expected": "On success: auto login and navigate to Home screen"
+    },
+    {
+      "id": "TC_004",
+      "name": "On Failurecancel Error Message Shown Remain On Login Screen",
+      "expected": "On failure/cancel: error message shown, remain on Login screen"
+    },
+    {
+      "id": "TC_005",
+      "name": "Biometric Login Works On Android Fingerprint And Ios Face Idtouch Id",
+      "expected": "Biometric login works on Android (Fingerprint) and iOS (Face ID/Touch ID)"
+    }
+  ]
+}

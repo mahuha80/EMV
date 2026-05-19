@@ -1,0 +1,20 @@
+{
+  "ticket_id": "KAN-7",
+  "title": "[TEST] MCP Router Test - 20260518_231634",
+  "description": "Purpose\nTest ticket for MCP Router - verifies Jira integration and MCP routing (even/odd by last digit).\nRouting Info\nCreated by MCP Router test script\n\nLast digit of ticket determines which MCP to use\n\nEven = random-even-mcp, Odd = random-odd-mcp\n\n",
+  "acceptance_criteria": [
+    "Verify feature works as described in ticket"
+  ],
+  "priority": "Medium",
+  "status": "To Do",
+  "components": [],
+  "labels": [
+    "automated",
+    "mcp-router",
+    "test"
+  ],
+  "assignee": "",
+  "reporter": "xuanhieu0423@gmail.com",
+  "attachments": [],
+  "fetched_at": "2026-05-18T16:36:29.951088+00:00"
+}

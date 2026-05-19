@@ -1,0 +1,26 @@
+{
+  "ticket_id": "KAN-4",
+  "platform": "android",
+  "test_cases": [
+    {
+      "id": "TC_001",
+      "name": "App Displays Validation Message Password Cannot Be Empty",
+      "expected": "App displays validation message: \"Password cannot be empty\""
+    },
+    {
+      "id": "TC_002",
+      "name": "App Must Not Crash Or Force Close",
+      "expected": "App must NOT crash or force close"
+    },
+    {
+      "id": "TC_003",
+      "name": "User Remains On The Login Screen",
+      "expected": "User remains on the Login screen"
+    },
+    {
+      "id": "TC_004",
+      "name": "Error Message Is Clearly Visible Below The Password Field",
+      "expected": "Error message is clearly visible below the Password field"
+    }
+  ]
+}

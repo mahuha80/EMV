@@ -1,0 +1,23 @@
+{
+  "ticket_id": "PROJ-9999",
+  "title": "Add biometric login support",
+  "description": "\nGiven user has biometric authentication set up on device\nAnd user is on the Login screen\n\nWhen user taps \"Login with Biometric\" button\nThen system should prompt biometric scan (fingerprint/face)\n\nWhen biometric scan succeeds\nThen user should be logged in and navigate to Home screen\n\nWhen biometric scan fails or is cancelled\nThen user should see error message and remain on Login screen\n        ",
+  "priority": "High",
+  "status": "In Development",
+  "components": [
+    "authentication",
+    "biometric",
+    "security"
+  ],
+  "labels": [
+    "feature",
+    "android",
+    "ios",
+    "smoke"
+  ],
+  "assignee": "dev3@company.com",
+  "reporter": "pm@company.com",
+  "acceptance_criteria": [],
+  "attachments": [],
+  "fetched_at": "2026-05-18T10:00:00Z"
+}

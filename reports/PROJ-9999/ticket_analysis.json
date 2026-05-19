@@ -1,0 +1,27 @@
+{
+  "ticket_id": "PROJ-9999",
+  "preconditions": [
+    "user has biometric authentication set up on device",
+    "And user is on the Login screen"
+  ],
+  "test_steps": [
+    "user taps \"Login with Biometric\" button",
+    "biometric scan succeeds",
+    "biometric scan fails or is cancelled"
+  ],
+  "expected_results": [
+    "system should prompt biometric scan (fingerprint/face)",
+    "user should be logged in and navigate to Home screen",
+    "user should see error message and remain on Login screen"
+  ],
+  "test_type": "smoke",
+  "platforms": [
+    "android",
+    "ios"
+  ],
+  "components": [
+    "authentication",
+    "biometric",
+    "security"
+  ]
+}

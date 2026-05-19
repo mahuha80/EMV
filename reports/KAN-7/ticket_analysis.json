@@ -1,0 +1,14 @@
+{
+  "ticket_id": "KAN-7",
+  "preconditions": [],
+  "test_steps": [
+    "Verify feature works as described in ticket"
+  ],
+  "expected_results": [],
+  "test_type": "functional",
+  "platforms": [
+    "android",
+    "ios"
+  ],
+  "components": []
+}

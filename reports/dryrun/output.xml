@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.4.2 (Python 3.13.13 on darwin)" generated="2026-05-18T21:48:08.916847" rpa="false" schemaversion="5">
+<suite id="s1" name="PROJ-1234 android" source="/Users/vinhnt0111/Desktop/MCP/robot_tests/suites/generated/PROJ-1234_android.robot">
+<kw name="Suite Setup For PROJ-1234" type="SETUP">
+<kw name="Log" owner="BuiltIn">
+<arg>===== START: PROJ-1234 on ${PLATFORM} =====</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.170026" elapsed="0.000189"/>
+</kw>
+<kw name="Open App On Platform" owner="appium_base">
+<kw name="Run Keyword If" owner="BuiltIn">
+<kw name="Open Android App" owner="appium_base">
+<kw name="Open Application" owner="AppiumLibrary">
+<arg>${APPIUM_URL}</arg>
+<arg>platformName=${ANDROID_PLATFORM_NAME}</arg>
+<arg>automationName=${ANDROID_AUTOMATION}</arg>
+<arg>deviceName=${ANDROID_DEVICE_NAME}</arg>
+<arg>appPackage=${ANDROID_APP_PACKAGE}</arg>
+<arg>appActivity=${ANDROID_APP_ACTIVITY}</arg>
+<arg>noReset=${ANDROID_NO_RESET}</arg>
+<arg>autoGrantPermissions=${TRUE}</arg>
+<arg>newCommandTimeout=300</arg>
+<doc>Opens a new application to the given Appium server.
+Capabilities of appium server, Android and iOS,
+Please check https://appium.io/docs/en/2.19/guides/caps/
+| *Option*            | *Man.* | *Description*     |
+| remote_url          | Yes    | Appium server url |
+| alias               | No     | alias             |</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.170665" elapsed="0.000095"/>
+</kw>
+<doc>Khởi động app Android với UiAutomator2</doc>
+<status status="PASS" start="2026-05-18T21:48:09.170601" elapsed="0.000197"/>
+</kw>
+<kw name="Open iOS App" owner="appium_base">
+<kw name="Open Application" owner="AppiumLibrary">
+<arg>${APPIUM_URL}</arg>
+<arg>platformName=${IOS_PLATFORM_NAME}</arg>
+<arg>automationName=${IOS_AUTOMATION}</arg>
+<arg>udid=${IOS_UDID}</arg>
+<arg>bundleId=${IOS_BUNDLE_ID}</arg>
+<arg>noReset=${IOS_NO_RESET}</arg>
+<arg>newCommandTimeout=300</arg>
+<arg>wdaLaunchTimeout=120000</arg>
+<doc>Opens a new application to the given Appium server.
+Capabilities of appium server, Android and iOS,
+Please check https://appium.io/docs/en/2.19/guides/caps/
+| *Option*            | *Man.* | *Description*     |
+| remote_url          | Yes    | Appium server url |
+| alias               | No     | alias             |</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.170898" elapsed="0.000068"/>
+</kw>
+<doc>Khởi động app iOS với XCUITest</doc>
+<status status="PASS" start="2026-05-18T21:48:09.170849" elapsed="0.000144"/>
+</kw>
+<kw name="Fail" owner="BuiltIn">
+<arg>Unsupported platform: ${platform}</arg>
+<doc>Fails the test with the given message and optionally alters its tags.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.171031" elapsed="0.000060"/>
+</kw>
+<arg>'${platform}' == 'android'</arg>
+<arg>Open Android App</arg>
+<arg>ELSE IF</arg>
+<arg>'${platform}' == 'ios'</arg>
+<arg>Open iOS App</arg>
+<arg>ELSE</arg>
+<arg>Fail</arg>
+<arg>Unsupported platform: ${platform}</arg>
+<doc>Runs the given keyword with the given arguments, if ``condition`` is true.</doc>
+<status status="PASS" start="2026-05-18T21:48:09.170420" elapsed="0.000685"/>
+</kw>
+<kw name="Log" owner="BuiltIn">
+<arg>✅ App opened on ${platform}</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.171149" elapsed="0.000116"/>
+</kw>
+<arg>${PLATFORM}</arg>
+<doc>Mở app tương ứng với platform (android/ios)</doc>
+<status status="PASS" start="2026-05-18T21:48:09.170332" elapsed="0.000962"/>
+</kw>
+<kw name="Precondition: App is installed on device">
+<kw name="Log" owner="BuiltIn">
+<arg>PRECONDITION: App is installed on device</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.171423" elapsed="0.000089"/>
+</kw>
+<doc>Precondition: App is installed on device</doc>
+<status status="PASS" start="2026-05-18T21:48:09.171358" elapsed="0.000174"/>
+</kw>
+<kw name="Precondition: User is on the Login screen">
+<kw name="Log" owner="BuiltIn">
+<arg>PRECONDITION: User is on the Login screen</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.171627" elapsed="0.000066"/>
+</kw>
+<doc>Precondition: User is on the Login screen</doc>
+<status status="PASS" start="2026-05-18T21:48:09.171576" elapsed="0.000135"/>
+</kw>
+<kw name="Precondition: User has a valid account">
+<kw name="Log" owner="BuiltIn">
+<arg>PRECONDITION: User has a valid account</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.171793" elapsed="0.000061"/>
+</kw>
+<doc>Precondition: User has a valid account</doc>
+<status status="PASS" start="2026-05-18T21:48:09.171749" elapsed="0.000120"/>
+</kw>
+<doc>Khởi động app và thực hiện preconditions</doc>
+<status status="PASS" start="2026-05-18T21:48:09.169477" elapsed="0.002403"/>
+</kw>
+<test id="s1-t1" name="TC_001 App Should Display Validation Message Password Cannot Be Empty" line="23">
+<kw name="Log" owner="BuiltIn">
+<arg>Running: TC_001</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.172165" elapsed="0.000073"/>
+</kw>
+<kw name="Execute Step: Launch the app">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Launch the app</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.172390" elapsed="0.000064"/>
+</kw>
+<doc>Step: Launch the app</doc>
+<status status="PASS" start="2026-05-18T21:48:09.172320" elapsed="0.000152"/>
+</kw>
+<kw name="Execute Step: Navigate to Login screen">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Navigate to Login screen</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.172595" elapsed="0.000175"/>
+</kw>
+<doc>Step: Navigate to Login screen</doc>
+<status status="PASS" start="2026-05-18T21:48:09.172528" elapsed="0.000270"/>
+</kw>
+<kw name="Execute Step: Enter a valid email address">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Enter a valid email address</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.172956" elapsed="0.000079"/>
+</kw>
+<doc>Step: Enter a valid email address</doc>
+<status status="PASS" start="2026-05-18T21:48:09.172871" elapsed="0.000184"/>
+</kw>
+<kw name="Execute Step: Leave the Password field EMPTY">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Leave the Password field EMPTY</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.173216" elapsed="0.000070"/>
+</kw>
+<doc>Step: Leave the Password field EMPTY</doc>
+<status status="PASS" start="2026-05-18T21:48:09.173112" elapsed="0.000192"/>
+</kw>
+<kw name="Execute Step: Tap the Login button">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Tap the "Login" button</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.173421" elapsed="0.000063"/>
+</kw>
+<doc>Step: Tap the "Login" button</doc>
+<status status="PASS" start="2026-05-18T21:48:09.173356" elapsed="0.000146"/>
+</kw>
+<kw name="Verify: App should display validation message: Password cannot be empty">
+<kw name="Log" owner="BuiltIn">
+<arg>VERIFY: App should display validation message: "Password cannot be empty"</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.173615" elapsed="0.000063"/>
+</kw>
+<doc>Verify: App should display validation message: "Password cannot be empty"</doc>
+<status status="PASS" start="2026-05-18T21:48:09.173551" elapsed="0.000143"/>
+</kw>
+<kw name="Capture Screenshot On Failure" owner="appium_base" type="TEARDOWN">
+<kw name="Run Keyword If Test Failed" owner="BuiltIn">
+<kw name="Capture Page Screenshot" owner="AppiumLibrary">
+<doc>Takes a screenshot of the current page and embeds it into the log.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.174020" elapsed="0.000018"/>
+</kw>
+<arg>Capture Page Screenshot</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<status status="PASS" start="2026-05-18T21:48:09.173867" elapsed="0.000184"/>
+</kw>
+<doc>Chụp screenshot khi test case FAIL (dùng cho Test Teardown)</doc>
+<status status="PASS" start="2026-05-18T21:48:09.173784" elapsed="0.000477"/>
+</kw>
+<doc>Expected: App should display validation message: "Password cannot be empty"</doc>
+<tag>android</tag>
+<tag>P1</tag>
+<tag>PROJ-1234</tag>
+<tag>regression</tag>
+<status status="PASS" start="2026-05-18T21:48:09.171914" elapsed="0.002455"/>
+</test>
+<test id="s1-t2" name="TC_002 App Must Not Crash Or Force Close" line="34">
+<kw name="Log" owner="BuiltIn">
+<arg>Running: TC_002</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.174841" elapsed="0.000085"/>
+</kw>
+<kw name="Execute Step: Launch the app">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Launch the app</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.175132" elapsed="0.000072"/>
+</kw>
+<doc>Step: Launch the app</doc>
+<status status="PASS" start="2026-05-18T21:48:09.175053" elapsed="0.000171"/>
+</kw>
+<kw name="Execute Step: Navigate to Login screen">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Navigate to Login screen</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.175527" elapsed="0.000128"/>
+</kw>
+<doc>Step: Navigate to Login screen</doc>
+<status status="PASS" start="2026-05-18T21:48:09.175416" elapsed="0.000270"/>
+</kw>
+<kw name="Execute Step: Enter a valid email address">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Enter a valid email address</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.175855" elapsed="0.000077"/>
+</kw>
+<doc>Step: Enter a valid email address</doc>
+<status status="PASS" start="2026-05-18T21:48:09.175770" elapsed="0.000182"/>
+</kw>
+<kw name="Execute Step: Leave the Password field EMPTY">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Leave the Password field EMPTY</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.176085" elapsed="0.000129"/>
+</kw>
+<doc>Step: Leave the Password field EMPTY</doc>
+<status status="PASS" start="2026-05-18T21:48:09.176010" elapsed="0.000258"/>
+</kw>
+<kw name="Execute Step: Tap the Login button">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Tap the "Login" button</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.176401" elapsed="0.000065"/>
+</kw>
+<doc>Step: Tap the "Login" button</doc>
+<status status="PASS" start="2026-05-18T21:48:09.176328" elapsed="0.000156"/>
+</kw>
+<kw name="Verify: App must NOT crash or force close">
+<kw name="Log" owner="BuiltIn">
+<arg>VERIFY: App must NOT crash or force close</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.176602" elapsed="0.000064"/>
+</kw>
+<doc>Verify: App must NOT crash or force close</doc>
+<status status="PASS" start="2026-05-18T21:48:09.176535" elapsed="0.000148"/>
+</kw>
+<kw name="Capture Screenshot On Failure" owner="appium_base" type="TEARDOWN">
+<kw name="Run Keyword If Test Failed" owner="BuiltIn">
+<kw name="Capture Page Screenshot" owner="AppiumLibrary">
+<doc>Takes a screenshot of the current page and embeds it into the log.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.177019" elapsed="0.000017"/>
+</kw>
+<arg>Capture Page Screenshot</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<status status="PASS" start="2026-05-18T21:48:09.176920" elapsed="0.000142"/>
+</kw>
+<doc>Chụp screenshot khi test case FAIL (dùng cho Test Teardown)</doc>
+<status status="PASS" start="2026-05-18T21:48:09.176770" elapsed="0.000310"/>
+</kw>
+<doc>Expected: App must NOT crash or force close</doc>
+<tag>android</tag>
+<tag>P1</tag>
+<tag>PROJ-1234</tag>
+<tag>regression</tag>
+<status status="PASS" start="2026-05-18T21:48:09.174484" elapsed="0.002633"/>
+</test>
+<test id="s1-t3" name="TC_003 User Should Remain On The Login Screen" line="45">
+<kw name="Log" owner="BuiltIn">
+<arg>Running: TC_003</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.177462" elapsed="0.000067"/>
+</kw>
+<kw name="Execute Step: Launch the app">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Launch the app</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.177733" elapsed="0.000087"/>
+</kw>
+<doc>Step: Launch the app</doc>
+<status status="PASS" start="2026-05-18T21:48:09.177643" elapsed="0.000199"/>
+</kw>
+<kw name="Execute Step: Navigate to Login screen">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Navigate to Login screen</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.177977" elapsed="0.000072"/>
+</kw>
+<doc>Step: Navigate to Login screen</doc>
+<status status="PASS" start="2026-05-18T21:48:09.177906" elapsed="0.000162"/>
+</kw>
+<kw name="Execute Step: Enter a valid email address">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Enter a valid email address</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.178187" elapsed="0.000067"/>
+</kw>
+<doc>Step: Enter a valid email address</doc>
+<status status="PASS" start="2026-05-18T21:48:09.178121" elapsed="0.000149"/>
+</kw>
+<kw name="Execute Step: Leave the Password field EMPTY">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Leave the Password field EMPTY</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.178384" elapsed="0.000063"/>
+</kw>
+<doc>Step: Leave the Password field EMPTY</doc>
+<status status="PASS" start="2026-05-18T21:48:09.178321" elapsed="0.000143"/>
+</kw>
+<kw name="Execute Step: Tap the Login button">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Tap the "Login" button</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.178575" elapsed="0.000062"/>
+</kw>
+<doc>Step: Tap the "Login" button</doc>
+<status status="PASS" start="2026-05-18T21:48:09.178511" elapsed="0.000164"/>
+</kw>
+<kw name="Verify: User should remain on the Login screen">
+<kw name="Log" owner="BuiltIn">
+<arg>VERIFY: User should remain on the Login screen</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.178793" elapsed="0.000061"/>
+</kw>
+<doc>Verify: User should remain on the Login screen</doc>
+<status status="PASS" start="2026-05-18T21:48:09.178726" elapsed="0.000145"/>
+</kw>
+<kw name="Capture Screenshot On Failure" owner="appium_base" type="TEARDOWN">
+<kw name="Run Keyword If Test Failed" owner="BuiltIn">
+<kw name="Capture Page Screenshot" owner="AppiumLibrary">
+<doc>Takes a screenshot of the current page and embeds it into the log.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.179116" elapsed="0.000016"/>
+</kw>
+<arg>Capture Page Screenshot</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<status status="PASS" start="2026-05-18T21:48:09.179024" elapsed="0.000120"/>
+</kw>
+<doc>Chụp screenshot khi test case FAIL (dùng cho Test Teardown)</doc>
+<status status="PASS" start="2026-05-18T21:48:09.178950" elapsed="0.000206"/>
+</kw>
+<doc>Expected: User should remain on the Login screen</doc>
+<tag>android</tag>
+<tag>P1</tag>
+<tag>PROJ-1234</tag>
+<tag>regression</tag>
+<status status="PASS" start="2026-05-18T21:48:09.177288" elapsed="0.001892"/>
+</test>
+<test id="s1-t4" name="TC_004 Error Message Should Be Clearly Visible Below The Password Field" line="56">
+<kw name="Log" owner="BuiltIn">
+<arg>Running: TC_004</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.179462" elapsed="0.000069"/>
+</kw>
+<kw name="Execute Step: Launch the app">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Launch the app</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.179672" elapsed="0.000075"/>
+</kw>
+<doc>Step: Launch the app</doc>
+<status status="PASS" start="2026-05-18T21:48:09.179588" elapsed="0.000177"/>
+</kw>
+<kw name="Execute Step: Navigate to Login screen">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Navigate to Login screen</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.179887" elapsed="0.000066"/>
+</kw>
+<doc>Step: Navigate to Login screen</doc>
+<status status="PASS" start="2026-05-18T21:48:09.179821" elapsed="0.000150"/>
+</kw>
+<kw name="Execute Step: Enter a valid email address">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Enter a valid email address</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.180151" elapsed="0.000083"/>
+</kw>
+<doc>Step: Enter a valid email address</doc>
+<status status="PASS" start="2026-05-18T21:48:09.180020" elapsed="0.000236"/>
+</kw>
+<kw name="Execute Step: Leave the Password field EMPTY">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Leave the Password field EMPTY</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.180388" elapsed="0.000072"/>
+</kw>
+<doc>Step: Leave the Password field EMPTY</doc>
+<status status="PASS" start="2026-05-18T21:48:09.180317" elapsed="0.000161"/>
+</kw>
+<kw name="Execute Step: Tap the Login button">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Tap the "Login" button</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.180596" elapsed="0.000064"/>
+</kw>
+<doc>Step: Tap the "Login" button</doc>
+<status status="PASS" start="2026-05-18T21:48:09.180530" elapsed="0.000147"/>
+</kw>
+<kw name="Verify: Error message should be clearly visible below the password field">
+<kw name="Log" owner="BuiltIn">
+<arg>VERIFY: Error message should be clearly visible below the password field</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.180791" elapsed="0.000357"/>
+</kw>
+<doc>Verify: Error message should be clearly visible below the password field</doc>
+<status status="PASS" start="2026-05-18T21:48:09.180728" elapsed="0.000440"/>
+</kw>
+<kw name="Capture Screenshot On Failure" owner="appium_base" type="TEARDOWN">
+<kw name="Run Keyword If Test Failed" owner="BuiltIn">
+<kw name="Capture Page Screenshot" owner="AppiumLibrary">
+<doc>Takes a screenshot of the current page and embeds it into the log.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.181501" elapsed="0.000177"/>
+</kw>
+<arg>Capture Page Screenshot</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<status status="PASS" start="2026-05-18T21:48:09.181346" elapsed="0.000347"/>
+</kw>
+<doc>Chụp screenshot khi test case FAIL (dùng cho Test Teardown)</doc>
+<status status="PASS" start="2026-05-18T21:48:09.181262" elapsed="0.000446"/>
+</kw>
+<doc>Expected: Error message should be clearly visible below the password field</doc>
+<tag>android</tag>
+<tag>P1</tag>
+<tag>PROJ-1234</tag>
+<tag>regression</tag>
+<status status="PASS" start="2026-05-18T21:48:09.179321" elapsed="0.002412"/>
+</test>
+<kw name="Suite Teardown For PROJ-1234" type="TEARDOWN">
+<kw name="Log" owner="BuiltIn">
+<arg>===== END: PROJ-1234 =====</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.182156" elapsed="0.000119"/>
+</kw>
+<kw name="Close App On Platform" owner="appium_base">
+<kw name="Run Keyword And Ignore Error" owner="BuiltIn">
+<kw name="Close Application" owner="AppiumLibrary">
+<doc>Closes the current application and the webdriver session.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.182522" elapsed="0.000015"/>
+</kw>
+<arg>Close Application</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="PASS" start="2026-05-18T21:48:09.182389" elapsed="0.000159"/>
+</kw>
+<kw name="Log" owner="BuiltIn">
+<arg>App session closed</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-18T21:48:09.182583" elapsed="0.000063"/>
+</kw>
+<doc>Đóng Appium session</doc>
+<status status="PASS" start="2026-05-18T21:48:09.182334" elapsed="0.000329"/>
+</kw>
+<doc>Dọn dẹp sau khi chạy xong</doc>
+<status status="PASS" start="2026-05-18T21:48:09.182093" elapsed="0.000581"/>
+</kw>
+<doc>Auto-generated suite for PROJ-1234: App crashes when submitting login with empty password
+Generated: 2026-05-18 21:47
+Platform : android</doc>
+<status status="PASS" start="2026-05-18T21:48:08.917696" elapsed="0.264988"/>
+</suite>
+<statistics>
+<total>
+<stat pass="4" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+<stat pass="4" fail="0" skip="0">android</stat>
+<stat pass="4" fail="0" skip="0">P1</stat>
+<stat pass="4" fail="0" skip="0">PROJ-1234</stat>
+<stat pass="4" fail="0" skip="0">regression</stat>
+</tag>
+<suite>
+<stat name="PROJ-1234 android" id="s1" pass="4" fail="0" skip="0">PROJ-1234 android</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>

@@ -1,0 +1,28 @@
+{
+  "ticket_id": "KAN-5",
+  "preconditions": [
+    "User is logged in successfully",
+    "User is on the Profile screen",
+    "Device is on slow network (3G or throttled)"
+  ],
+  "test_steps": [
+    "Tap on the avatar icon on the Profile screen",
+    "Select \"Change Photo\" from the bottom sheet menu",
+    "Choose a photo from the gallery (size > 2MB)",
+    "Tap \"Confirm\" to start the upload",
+    "Observe the UI during the upload process"
+  ],
+  "expected_results": [
+    "A progress bar/spinner is displayed during upload",
+    "App does NOT freeze or timeout without user feedback",
+    "On success: toast message \"Photo updated successfully\"",
+    "On failure: Retry button displayed with clear error message",
+    "App remains responsive throughout the upload"
+  ],
+  "test_type": "regression",
+  "platforms": [
+    "android",
+    "ios"
+  ],
+  "components": []
+}

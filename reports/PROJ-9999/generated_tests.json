@@ -1,0 +1,21 @@
+{
+  "ticket_id": "PROJ-9999",
+  "platform": "android",
+  "test_cases": [
+    {
+      "id": "TC_001",
+      "name": "System Should Prompt Biometric Scan Fingerprintface",
+      "expected": "system should prompt biometric scan (fingerprint/face)"
+    },
+    {
+      "id": "TC_002",
+      "name": "User Should Be Logged In And Navigate To Home Screen",
+      "expected": "user should be logged in and navigate to Home screen"
+    },
+    {
+      "id": "TC_003",
+      "name": "User Should See Error Message And Remain On Login Screen",
+      "expected": "user should see error message and remain on Login screen"
+    }
+  ]
+}

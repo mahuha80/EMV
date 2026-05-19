@@ -1,0 +1,35 @@
+# Appium Server & Device Configuration
+
+server:
+  url: "${APPIUM_SERVER_URL}"
+  connection_timeout: 60
+  command_timeout: 300
+
+android:
+  platformName: Android
+  automationName: UiAutomator2
+  deviceName: "${ANDROID_DEVICE_NAME}"
+  platformVersion: "${ANDROID_PLATFORM_VERSION}"
+  appPackage: "${ANDROID_APP_PACKAGE}"
+  appActivity: "${ANDROID_APP_ACTIVITY}"
+  noReset: false
+  fullReset: false
+  newCommandTimeout: 300
+  autoGrantPermissions: true
+  isHeadless: false
+
+ios:
+  platformName: iOS
+  automationName: XCUITest
+  udid: "${IOS_DEVICE_UDID}"
+  platformVersion: "${IOS_PLATFORM_VERSION}"
+  bundleId: "${IOS_BUNDLE_ID}"
+  noReset: false
+  newCommandTimeout: 300
+  isHeadless: false
+
+screenshot:
+  on_failure: true
+  format: png
+  save_dir: "reports/{ticket_id}/screenshots"
+

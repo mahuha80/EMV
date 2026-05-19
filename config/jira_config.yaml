@@ -1,0 +1,20 @@
+# Jira MCP Settings
+jira:
+  base_url: "${JIRA_MCP_URL}"
+  email: "${JIRA_EMAIL}"
+  api_token: "${JIRA_API_TOKEN}"
+  max_retries: 3
+  retry_delay_seconds: 2
+  timeout_seconds: 30
+  fields:
+    - summary
+    - description
+    - priority
+    - status
+    - assignee
+    - reporter
+    - components
+    - labels
+    - attachment
+    - comment
+

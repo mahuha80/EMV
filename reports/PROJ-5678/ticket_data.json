@@ -1,0 +1,22 @@
+{
+  "ticket_id": "PROJ-5678",
+  "title": "Profile photo upload fails on slow network",
+  "description": "\nPreconditions:\n- User is logged in\n- User is on Profile screen\n- Network speed is throttled (3G/slow)\n\nSteps:\n1. Tap on the profile avatar\n2. Select \"Change Photo\" option\n3. Choose a photo from gallery (size > 2MB)\n4. Wait for upload to complete\n\nExpected Results:\n- Upload progress indicator should be shown\n- App should NOT timeout without feedback\n- On success: show toast \"Photo updated successfully\"\n- On failure: show retry option with error message\n- App must stay responsive during upload\n        ",
+  "priority": "Medium",
+  "status": "Open",
+  "components": [
+    "profile",
+    "media-upload",
+    "network"
+  ],
+  "labels": [
+    "bug",
+    "android",
+    "performance"
+  ],
+  "assignee": "dev2@company.com",
+  "reporter": "qa@company.com",
+  "acceptance_criteria": [],
+  "attachments": [],
+  "fetched_at": "2026-05-18T10:00:00Z"
+}
