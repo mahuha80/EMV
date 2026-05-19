@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bài 10: Bảo mật & PCI DSS — EMV Academy</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<nav class="top-nav">
+    <div class="nav-container">
+        <a href="../index.html" class="nav-logo">💳 EMV Academy</a>
+        <div class="nav-menu">
+            <a href="../index.html">Trang chủ</a>
+            <a href="lesson01.html">01</a>
+            <a href="lesson02.html">02</a>
+            <a href="lesson03.html">03</a>
+            <a href="lesson04.html">04</a>
+            <a href="lesson05.html">05</a>
+            <a href="lesson06.html">06</a>
+            <a href="lesson07.html">07</a>
+            <a href="lesson08.html">08</a>
+            <a href="lesson09.html">09</a>
+            <a href="lesson10.html" class="active">10</a>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="lesson-header">
+        <h1>Bài 10 · Bảo mật & PCI DSS</h1>
+        <p class="subtitle">PCI DSS v4.0.1, tokenization, P2PE và best practice cho Android</p>
+    </div>
+    <div class="breadcrumb">
+        <a href="../index.html">Trang chủ</a> &rsaquo; Bài 10: Bảo mật & PCI DSS
+    </div>
+    <div class="lesson-content">
+
+<div class="section">
+    <h2>🎯 Mục tiêu bài học</h2>
+    <ul>
+        <li>Hiểu PCI DSS là gì và áp dụng cho ai.</li>
+        <li>Phân biệt 3 nhóm dữ liệu: PAN, SAD, và dữ liệu được phép lưu.</li>
+        <li>Biết khái niệm tokenization và P2PE.</li>
+        <li>Áp dụng best practice bảo mật cho Android app đọc thẻ.</li>
+    </ul>
+</div>
+
+<div class="section">
+    <h2>📜 PCI DSS là gì?</h2>
+    <p><strong>PCI DSS</strong> (Payment Card Industry Data Security Standard) là chuẩn bảo mật do <strong>PCI Security Standards Council</strong> (PCI SSC) duy trì — tổ chức do Amex, Discover, JCB, Mastercard, Visa sáng lập 2006. Phiên bản hiện hành là <strong>PCI DSS v4.0.1</strong> (06/2024).</p>
+
+    <p>Chuẩn quy định <strong>12 yêu cầu</strong>, chia thành 6 nhóm:</p>
+    <table>
+        <tr><th>Nhóm</th><th>Yêu cầu</th></tr>
+        <tr><td>Build &amp; Maintain Secure Network</td><td>1. Firewall &nbsp;·&nbsp; 2. Không dùng vendor default</td></tr>
+        <tr><td>Protect Cardholder Data</td><td>3. Bảo vệ stored CHD &nbsp;·&nbsp; 4. Mã hóa khi truyền</td></tr>
+        <tr><td>Vulnerability Management</td><td>5. Anti-malware &nbsp;·&nbsp; 6. Secure dev practices</td></tr>
+        <tr><td>Strong Access Control</td><td>7. Least privilege &nbsp;·&nbsp; 8. Unique ID &nbsp;·&nbsp; 9. Physical access</td></tr>
+        <tr><td>Monitor &amp; Test Networks</td><td>10. Log all access &nbsp;·&nbsp; 11. Pen-test định kỳ</td></tr>
+        <tr><td>Information Security Policy</td><td>12. Policy chính thức</td></tr>
+    </table>
+
+    <div class="info-box">
+        <h3>👤 Ai phải tuân thủ?</h3>
+        <p>Mọi tổ chức <strong>store / process / transmit cardholder data</strong>. Tùy số lượng giao dịch/năm, được chia level 1 đến 4 với mức độ audit khác nhau. Là Android dev đọc thẻ → bạn (hoặc công ty bạn) thuộc <em>scope</em> PCI DSS dù chỉ "lướt qua" PAN trong RAM.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>📊 Dữ liệu — gì lưu được, gì không</h2>
+
+    <h3>Cardholder Data (CHD)</h3>
+    <table>
+        <tr><th>Trường</th><th>Lưu được?</th><th>Bắt buộc mã hóa khi lưu</th></tr>
+        <tr><td>PAN</td><td>✅ (nhưng phải mã hóa)</td><td>✅ Strong cryptography (AES-256, RSA-2048…)</td></tr>
+        <tr><td>Cardholder Name</td><td>✅</td><td>Tuỳ chính sách</td></tr>
+        <tr><td>Service Code</td><td>✅</td><td>Tuỳ</td></tr>
+        <tr><td>Expiration Date</td><td>✅</td><td>Tuỳ</td></tr>
+    </table>
+
+    <h3>Sensitive Authentication Data (SAD) — TUYỆT ĐỐI KHÔNG LƯU SAU AUTH</h3>
+    <table>
+        <tr><th>Trường</th><th>Lưu được?</th></tr>
+        <tr><td>Full Track 1 / Track 2 / equivalent chip data</td><td>❌</td></tr>
+        <tr><td>CAV2 / CVC2 / CVV2 / CID (3-4 số sau thẻ)</td><td>❌</td></tr>
+        <tr><td>PIN / PIN Block</td><td>❌</td></tr>
+    </table>
+
+    <div class="danger-box">
+        <h3>🚨 Bao gồm cả "tạm" trong RAM</h3>
+        <p>PCI DSS Requirement 3.3.1: SAD <em>không được lưu sau khi authorization hoàn tất</em>, kể cả encrypted. Trong Android: bạn có thể đọc Track 2 từ tag 57 để display, nhưng <strong>không được</strong> ghi vào file/preferences/database/log.</p>
+    </div>
+
+    <h3>PAN masking — Requirement 3.4</h3>
+    <p>Khi hiển thị PAN: tối đa <strong>6 số đầu + 4 số cuối</strong> (BIN + last4). Lý tưởng là <em>chỉ last4</em>.</p>
+    <div class="code-block">PAN gốc:    4532 1234 5678 9010
+Hiển thị:   4532 12•• •••• 9010   ✅
+Hiển thị:   •••• •••• •••• 9010   ✅ (better)
+Hiển thị:   4532 1234 5678 9010   ❌ (full)</div>
+</div>
+
+<div class="section">
+    <h2>🪙 Tokenization — đỡ phải đối mặt với PCI</h2>
+    <p>Thay vì lưu PAN, gửi PAN cho <strong>Token Service Provider</strong> (TSP) → nhận lại <strong>token</strong> (cũng 16 số, có thể qua Luhn check) — token được lưu thay PAN.</p>
+
+    <ul>
+        <li>Visa: <strong>Visa Token Service (VTS)</strong></li>
+        <li>Mastercard: <strong>MDES (Mastercard Digital Enablement Service)</strong></li>
+        <li>Spec: <strong>EMV Payment Tokenisation Specification — Technical Framework v2.3</strong></li>
+    </ul>
+
+    <p>Token chỉ map ngược về PAN bên trong TSP. Token đi qua cả pipeline merchant/acquirer/network mà PAN thật không bao giờ rời TSP. Đây là cơ chế đằng sau Apple Pay, Google Pay, Samsung Pay.</p>
+
+    <div class="info-box">
+        <h3>💡 Token vs surrogate PAN trong merchant DB</h3>
+        <p>Một số merchant lớn dùng "internal tokenization": tự sinh token nội bộ (UUID) thay PAN. Vẫn phải mã hóa map bảng theo PCI DSS Requirement 3.5/3.6, nhưng <em>scope</em> nhỏ hơn nhiều so với lưu PAN trực tiếp.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>🔐 P2PE — Point-to-Point Encryption</h2>
+    <p>Với POS chấp nhận thẻ, dữ liệu PAN được encrypt <em>ngay tại reader</em> bằng key của payment processor, đi end-to-end về backend processor mà merchant không bao giờ "thấy" plaintext PAN. Đây là validated solution của PCI SSC → giảm cực nhiều scope audit.</p>
+</div>
+
+<div class="section">
+    <h2>📱 Best practices cho Android app đọc thẻ</h2>
+
+    <div class="success-box">
+        <h3>✅ DO</h3>
+        <ul>
+            <li>Dùng <code>ByteArray</code>/<code>CharArray</code> rồi <code>Arrays.fill(0)</code> sau khi xong. Tránh String (immutable, GC không xóa ngay).</li>
+            <li>Disable backup: <code>android:allowBackup="false"</code> trong manifest.</li>
+            <li><code>FLAG_SECURE</code> cho Activity hiển thị data.</li>
+            <li>Yêu cầu Android 11+ (<code>minSdk = 30</code>): scoped storage, không có legacy external storage rủi ro.</li>
+            <li>Verify SSL pinning khi gọi backend.</li>
+            <li>Obfuscate (R8 / ProGuard) — ít nhất là kebab tên class crypto.</li>
+            <li>Test trên thẻ thật + RFID-blocking sleeve để verify khoảng cách đọc.</li>
+        </ul>
+    </div>
+
+    <div class="danger-box">
+        <h3>❌ DON'T</h3>
+        <ul>
+            <li>KHÔNG lưu PAN/CVV/Track/PIN ở <code>SharedPreferences</code>, <code>Room</code>, file, log.</li>
+            <li>KHÔNG ghi APDU response thô vào Logcat ở build release.</li>
+            <li>KHÔNG gửi PAN qua HTTP plaintext — chỉ TLS 1.2+, ưu tiên TLS 1.3.</li>
+            <li>KHÔNG dùng RSA-1024 / SHA-1 cho key mới sinh ở backend.</li>
+            <li>KHÔNG chạy app trên thiết bị rooted/emulator ở môi trường production (sử dụng SafetyNet/Play Integrity).</li>
+            <li>KHÔNG cố giải mã offline PIN — không thể, và là vi phạm pháp luật.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="section">
+    <h2>⚖️ Pháp lý ở Việt Nam</h2>
+    <ul>
+        <li><strong>Nghị định 13/2023/NĐ-CP</strong> (Bảo vệ dữ liệu cá nhân) — PAN, thông tin tài khoản thuộc dữ liệu cá nhân nhạy cảm.</li>
+        <li><strong>Thông tư 47/2014/TT-NHNN</strong> và các thông tư sửa đổi — quy định an toàn bảo mật trong cung ứng dịch vụ thanh toán.</li>
+        <li><strong>Luật An ninh mạng 2018</strong> — áp dụng cho mọi hệ thống xử lý thông tin thanh toán.</li>
+    </ul>
+    <p>Khi triển khai app production, làm việc cùng đội pháp chế là bắt buộc.</p>
+</div>
+
+<div class="section">
+    <h2>📚 Tài liệu chính thức bạn nên đọc</h2>
+    <ol>
+        <li><strong>EMV Integrated Circuit Card Specifications for Payment Systems v4.4</strong> — emvco.com, free.</li>
+        <li><strong>EMV Contactless Specifications</strong> (Book A, B, C-1..C-8) — emvco.com.</li>
+        <li><strong>EMV Payment Tokenisation Specification — Technical Framework v2.3</strong>.</li>
+        <li><strong>PCI DSS v4.0.1</strong> — pcisecuritystandards.org, free download.</li>
+        <li><strong>ISO/IEC 7816-3, 7816-4, 7816-5</strong> — mua trên iso.org, hoặc đọc tóm tắt ở các vendor doc.</li>
+        <li><strong>ISO/IEC 14443-1..4</strong> — chuẩn RF cho contactless.</li>
+        <li><strong>ISO/IEC 9796-2</strong> — RSA signature scheme dùng trong EMV.</li>
+        <li><strong>ISO/IEC 9797-1</strong> — MAC algorithm 3 dùng cho AC.</li>
+    </ol>
+</div>
+
+<div class="term-box">
+    <h3>📘 Thuật ngữ bài này</h3>
+    <dl>
+        <dt>PCI DSS</dt><dd>Payment Card Industry Data Security Standard, v4.0.1 (2024), do PCI SSC duy trì.</dd>
+        <dt>CHD</dt><dd>Cardholder Data — gồm PAN, Cardholder Name, Service Code, Expiration Date.</dd>
+        <dt>SAD</dt><dd>Sensitive Authentication Data — Track data, CVV2/CVC2/CID, PIN/PIN Block. KHÔNG được lưu sau auth.</dd>
+        <dt>Tokenization</dt><dd>Thay PAN bằng token (16 số) thông qua Token Service Provider (Visa VTS, Mastercard MDES).</dd>
+        <dt>P2PE</dt><dd>Point-to-Point Encryption — encrypt PAN ngay từ reader đến backend processor.</dd>
+        <dt>BIN</dt><dd>Bank Identification Number — 6 số đầu PAN (đang được mở rộng thành 8 số). Cho biết issuer.</dd>
+        <dt>Scope</dt><dd>Tập các hệ thống nằm trong phạm vi PCI DSS audit.</dd>
+    </dl>
+</div>
+
+<div class="exercise">
+    <h3>🧪 Bài tập cuối khóa</h3>
+    <ol>
+        <li>Review code Android của bạn từ bài 8-9. Tìm và sửa: log PAN, lưu vào SharedPreferences, thiếu FLAG_SECURE.</li>
+        <li>Đọc PCI DSS v4.0.1 Requirement 3 (download free). List 5 yêu cầu cụ thể áp dụng cho code Android của bạn.</li>
+        <li>Demo tokenization "mini": app gửi PAN qua TLS đến backend → backend trả về token UUID → app chỉ lưu token.</li>
+        <li>Viết security checklist 20 mục cho app payment Android, dùng cho mọi project sau này.</li>
+    </ol>
+</div>
+
+<div class="success-box">
+    <h3>🎓 Hoàn tất khóa học</h3>
+    <p>Bạn đã đi qua:</p>
+    <ul>
+        <li>Khái niệm EMV, kiến trúc thẻ, file system.</li>
+        <li>Toàn bộ transaction flow theo EMV Book 3.</li>
+        <li>APDU theo ISO 7816-4, BER-TLV và mọi tag EMV phổ biến.</li>
+        <li>Cryptography (RSA, 3DES/AES, SHA, MAC) và key hierarchy CA/Issuer/ICC.</li>
+        <li>Offline Data Authentication: SDA / DDA / CDA.</li>
+        <li>Code Android dùng NfcAdapter Reader Mode + IsoDep để đọc thẻ thật.</li>
+        <li>PCI DSS, tokenization, P2PE và best practice bảo mật.</li>
+    </ul>
+    <p>Tiếp theo: đọc spec gốc EMVCo. Mọi thứ trong khóa học này đều bắt nguồn từ đó — và spec là <em>nguồn chân lý</em> duy nhất.</p>
+</div>
+
+    </div>
+    <div class="navigation">
+        <a href="lesson09.html" class="nav-button">&larr; Bài 09</a>
+        <a href="../index.html" class="nav-button primary">Hoàn tất khóa học &rarr;</a>
+    </div>
+</div>
+</body>
+</html>

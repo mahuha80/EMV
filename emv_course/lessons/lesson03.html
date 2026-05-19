@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bài 03: Transaction Flow — EMV Academy</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<nav class="top-nav">
+    <div class="nav-container">
+        <a href="../index.html" class="nav-logo">💳 EMV Academy</a>
+        <div class="nav-menu">
+            <a href="../index.html">Trang chủ</a>
+            <a href="lesson01.html">01</a>
+            <a href="lesson02.html">02</a>
+            <a href="lesson03.html" class="active">03</a>
+            <a href="lesson04.html">04</a>
+            <a href="lesson05.html">05</a>
+            <a href="lesson06.html">06</a>
+            <a href="lesson07.html">07</a>
+            <a href="lesson08.html">08</a>
+            <a href="lesson09.html">09</a>
+            <a href="lesson10.html">10</a>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="lesson-header">
+        <h1>Bài 03 · Transaction Flow</h1>
+        <p class="subtitle">8 bước theo EMV Book 3, online vs offline, cryptogram TC/ARQC/AAC</p>
+    </div>
+    <div class="breadcrumb">
+        <a href="../index.html">Trang chủ</a> &rsaquo; Bài 03: Transaction Flow
+    </div>
+    <div class="lesson-content">
+
+<div class="section">
+    <h2>🎯 Mục tiêu bài học</h2>
+    <ul>
+        <li>Hiểu 8 bước của một giao dịch EMV theo EMV Book 3.</li>
+        <li>Phân biệt được hai nhánh: online authorization vs offline approval.</li>
+        <li>Hiểu vai trò của các cryptogram TC, ARQC, AAC.</li>
+        <li>Đọc được TVR, TSI, CVM Results để debug giao dịch.</li>
+    </ul>
+</div>
+
+<div class="section">
+    <h2>📊 Tổng quan — 8 bước theo EMV Book 3</h2>
+    <p>EMV Book 3 (“Application Specification”) định nghĩa thứ tự xử lý một giao dịch contact. Contactless rút gọn flow này (kernel-specific) nhưng tinh thần không đổi:</p>
+
+    <div class="flow-step"><div class="step-number">1</div>
+        <div class="step-content"><h4>Application Selection</h4>
+        <p>Terminal chọn application: SELECT PPSE/PSE → SELECT AID. Kết quả: terminal biết AID, có FCI và PDOL.</p></div>
+    </div>
+    <div class="flow-step"><div class="step-number">2</div>
+        <div class="step-content"><h4>Initiate Application Processing</h4>
+        <p>Terminal gửi GET PROCESSING OPTIONS (GPO) với dữ liệu PDOL. Card trả về AIP + AFL.</p></div>
+    </div>
+    <div class="flow-step"><div class="step-number">3</div>
+        <div class="step-content"><h4>Read Application Data</h4>
+        <p>Terminal đọc các record theo AFL bằng READ RECORD. Kết quả: PAN, expiry, CVM list, certificate, public key…</p></div>
+    </div>
+    <div class="flow-step"><div class="step-number">4</div>
+        <div class="step-content"><h4>Offline Data Authentication (ODA)</h4>
+        <p>SDA, DDA hoặc CDA — terminal verify chữ ký RSA để chắc rằng thẻ thật. Bài 7 đi sâu phần này.</p></div>
+    </div>
+    <div class="flow-step"><div class="step-number">5</div>
+        <div class="step-content"><h4>Processing Restrictions</h4>
+        <p>Check version, usage control, country code, expiry date. Nếu fail thì set bit tương ứng trong TVR.</p></div>
+    </div>
+    <div class="flow-step"><div class="step-number">6</div>
+        <div class="step-content"><h4>Cardholder Verification (CVM)</h4>
+        <p>Verify chủ thẻ theo CVM List của thẻ: Offline PIN, Online PIN, Signature, CDCVM, hoặc No CVM.</p></div>
+    </div>
+    <div class="flow-step"><div class="step-number">7</div>
+        <div class="step-content"><h4>Terminal Risk Management + Terminal Action Analysis</h4>
+        <p>Terminal kiểm tra floor limit, velocity, random selection, log. Sau đó quyết định: chấp nhận offline (TC), gửi online (ARQC), hay từ chối (AAC).</p></div>
+    </div>
+    <div class="flow-step"><div class="step-number">8</div>
+        <div class="step-content"><h4>Card Action Analysis + Online + Completion</h4>
+        <p>Terminal gọi GENERATE AC. Card phản hồi cryptogram. Nếu ARQC → online authorization với issuer, sau đó terminal gọi GENERATE AC lần 2 để completion.</p></div>
+    </div>
+</div>
+
+<div class="section">
+    <h2>🔍 Bước 1 — Application Selection</h2>
+    <p>Bài 2 đã giới thiệu PPSE. Ở đây ta xem dữ liệu thật:</p>
+
+    <div class="code-block"><span class="comment">// 1. SELECT PPSE (contactless entry point)</span>
+&gt;&gt; <span class="hex">00 A4 04 00 0E 32 50 41 59 2E 53 59 53 2E 44 44 46 30 31 00</span>
+
+<span class="comment">// Card response — FCI Template</span>
+&lt;&lt; <span class="hex">6F 23
+      84 0E 32 50 41 59 2E 53 59 53 2E 44 44 46 30 31
+      A5 11
+         BF 0C 0E
+            61 0C
+               4F 07 A0 00 00 00 03 10 10
+               87 01 01
+   90 00</span>
+
+<span class="comment">// Phân rã:</span>
+<span class="hex">6F</span>  FCI Template
+  <span class="hex">84</span>  DF Name = "2PAY.SYS.DDF01"
+  <span class="hex">A5</span>  FCI Proprietary Template
+    <span class="hex">BF 0C</span>  FCI Issuer Discretionary Data
+      <span class="hex">61</span>  Application Template (lặp lại theo số AID)
+        <span class="hex">4F</span>  AID = A0000000031010 (Visa)
+        <span class="hex">87</span>  Priority = 01</div>
+
+    <p>Nếu thẻ trả về nhiều <code>61</code>, terminal chọn AID có priority thấp nhất (1 là ưu tiên cao nhất). Sau đó SELECT trực tiếp AID đó:</p>
+
+    <div class="code-block"><span class="comment">// 2. SELECT AID</span>
+&gt;&gt; <span class="hex">00 A4 04 00 07 A0 00 00 00 03 10 10 00</span>
+
+&lt;&lt; <span class="hex">6F 35
+      84 07 A0 00 00 00 03 10 10
+      A5 2A
+         50 0B 56 49 53 41 20 43 52 45 44 49 54   <span class="comment">// "VISA CREDIT"</span>
+         87 01 01
+         5F 2D 02 65 6E                            <span class="comment">// Language "en"</span>
+         9F 38 0F 9F 66 04 9F 02 06 9F 03 06 9F 1A 02 95 05 5F 2A 02 9A 03 9C 01 9F 37 04
+   90 00</span>
+
+<span class="hex">9F 38</span> là <strong>PDOL</strong> — danh sách tag mà terminal phải nhồi dữ liệu để gửi vào lệnh GPO ở bước sau.</div>
+</div>
+
+<div class="section">
+    <h2>🔍 Bước 2 — GET PROCESSING OPTIONS (GPO)</h2>
+    <p>Terminal build PDOL data theo đúng thứ tự tag-length trong <code>9F38</code>, đóng gói trong template <code>83</code>:</p>
+
+    <div class="code-block"><span class="comment">// PDOL yêu cầu các tag (đã trả về ở bước SELECT AID):</span>
+<span class="comment">// 9F66 (4)   - TTQ (Terminal Transaction Qualifiers)</span>
+<span class="comment">// 9F02 (6)   - Amount Authorized</span>
+<span class="comment">// 9F03 (6)   - Amount Other</span>
+<span class="comment">// 9F1A (2)   - Terminal Country Code</span>
+<span class="comment">// 95   (5)   - TVR</span>
+<span class="comment">// 5F2A (2)   - Transaction Currency Code</span>
+<span class="comment">// 9A   (3)   - Transaction Date</span>
+<span class="comment">// 9C   (1)   - Transaction Type</span>
+<span class="comment">// 9F37 (4)   - Unpredictable Number</span>
+
+<span class="comment">// Tổng độ dài data = 4+6+6+2+5+2+3+1+4 = 33 byte</span>
+
+&gt;&gt; <span class="hex">80 A8 00 00 23 83 21
+      36 00 40 80                  <span class="comment">// TTQ - supports VSDC, online PIN</span>
+      00 00 00 10 00 00            <span class="comment">// 100,000 đồng = 100000 minor units</span>
+      00 00 00 00 00 00            <span class="comment">// No "amount other"</span>
+      07 04                         <span class="comment">// 0704 = Vietnam (ISO 3166-1 numeric)</span>
+      00 00 00 00 00               <span class="comment">// TVR all zero (chưa check gì)</span>
+      07 04                         <span class="comment">// Currency VND (ISO 4217 numeric)</span>
+      26 05 19                      <span class="comment">// Date YYMMDD = 2026-05-19</span>
+      00                            <span class="comment">// 00 = Purchase</span>
+      11 22 33 44                   <span class="comment">// Random UN</span>
+      00</span>
+
+<span class="comment">// Card response (định dạng 2 - template 77)</span>
+&lt;&lt; <span class="hex">77 16
+      82 02 1980                   <span class="comment">// AIP</span>
+      94 10 08 01 01 00  10 01 04 01  18 01 01 00  20 01 02 00
+   90 00</span></div>
+
+    <h3>AIP — Application Interchange Profile (tag <code>82</code>)</h3>
+    <p>2 byte bitmap, mô tả khả năng của application:</p>
+    <table>
+        <tr><th>Byte 1 bit</th><th>Ý nghĩa</th></tr>
+        <tr><td>b7</td><td>SDA supported</td></tr>
+        <tr><td>b6</td><td>DDA supported</td></tr>
+        <tr><td>b5</td><td>Cardholder verification supported</td></tr>
+        <tr><td>b4</td><td>Terminal risk management to be performed</td></tr>
+        <tr><td>b3</td><td>Issuer authentication supported</td></tr>
+        <tr><td>b1</td><td>CDA supported</td></tr>
+    </table>
+    <p>Ví dụ AIP = <code>19 80</code> = <code>0001 1001 1000 0000</code>: DDA + CVM + Issuer Auth + CDA.</p>
+
+    <h3>AFL — Application File Locator (tag <code>94</code>)</h3>
+    <p>Danh sách record cần đọc. Mỗi mục 4 byte:</p>
+    <div class="code-block"><span class="hex">08 01 01 00</span>  →  SFI=1, record 1 đến 1, 0 record nằm trong phạm vi offline data auth
+<span class="hex">10 01 04 01</span>  →  SFI=2, record 1 đến 4, record đầu nằm trong ODA
+<span class="hex">18 01 01 00</span>  →  SFI=3, record 1 đến 1, 0 trong ODA
+<span class="hex">20 01 02 00</span>  →  SFI=4, record 1 đến 2, 0 trong ODA
+
+<span class="comment">// Byte 1: SFI dịch trái 3 bit (vì SFI nằm ở 5 bit cao)
+// Byte 2: first record
+// Byte 3: last record
+// Byte 4: số record đầu tiên thuộc Offline Data Authentication</span></div>
+</div>
+
+<div class="section">
+    <h2>🔍 Bước 3 — READ RECORD</h2>
+    <p>Terminal duyệt từng mục AFL, gọi READ RECORD:</p>
+
+    <div class="code-block"><span class="comment">// P2 = (SFI << 3) | 0x04  → cho biết "đọc bằng SFI"</span>
+<span class="comment">// SFI=1 → P2 = 0x0C; SFI=2 → P2=0x14; SFI=3 → P2=0x1C; SFI=4 → P2=0x24</span>
+
+&gt;&gt; <span class="hex">00 B2 01 0C 00</span>     <span class="comment">// READ RECORD 1 của SFI 1</span>
+
+&lt;&lt; <span class="hex">70 5C
+      5A 08 45 32 12 34 56 78 90 10
+      5F 24 03 27 12 31                                  <span class="comment">// Expiry 2027-12-31</span>
+      5F 25 03 22 01 01                                  <span class="comment">// Effective 2022-01-01</span>
+      5F 28 02 07 04                                     <span class="comment">// Issuer country = VN</span>
+      5F 34 01 01                                        <span class="comment">// PAN Sequence Number</span>
+      5F 20 14 4E 47 55 59 45 4E 2F 56 41 4E 20 41 20 20 20 20 20 20 20 20  <span class="comment">// "NGUYEN/VAN A"</span>
+      8C 1B ... (CDOL1) ...
+      8D 0C ... (CDOL2) ...
+      8E 0E 00 00 00 00 00 00 00 00 42 03 1E 03 1F 00     <span class="comment">// CVM List</span>
+   90 00</span></div>
+
+    <p><strong>Template <code>70</code></strong> là "Record Template" — luôn bọc dữ liệu của một record.</p>
+</div>
+
+<div class="section">
+    <h2>🔍 Bước 6 — Cardholder Verification (CVM)</h2>
+    <p>Tag <code>8E</code> là <strong>CVM List</strong>: 8 byte header (Amount X, Amount Y) + danh sách CV Rules, mỗi rule 2 byte.</p>
+
+    <table>
+        <tr><th>CVM Code (byte 1, lower 6 bits)</th><th>Method</th></tr>
+        <tr><td><code>00</code></td><td>Fail CVM processing</td></tr>
+        <tr><td><code>01</code></td><td>Plaintext PIN verification — offline</td></tr>
+        <tr><td><code>02</code></td><td>Enciphered PIN — online</td></tr>
+        <tr><td><code>03</code></td><td>Plaintext PIN + signature — offline</td></tr>
+        <tr><td><code>04</code></td><td>Enciphered PIN — offline</td></tr>
+        <tr><td><code>05</code></td><td>Enciphered PIN + signature — offline</td></tr>
+        <tr><td><code>1E</code></td><td>Signature (paper)</td></tr>
+        <tr><td><code>1F</code></td><td>No CVM required</td></tr>
+    </table>
+
+    <div class="info-box">
+        <h3>📱 CDCVM là gì?</h3>
+        <p><strong>CDCVM</strong> = Consumer Device CVM. Khi bạn unlock điện thoại bằng FaceID/vân tay để tap Apple Pay/Google Pay, kernel hiểu rằng cardholder đã được verify <em>trên thiết bị</em>, không cần PIN trên POS. Được biểu thị qua bit trong TTQ và Card Transaction Qualifiers (CTQ).</p>
+    </div>
+
+    <h3>Offline PIN verification</h3>
+    <div class="code-block"><span class="comment">// VERIFY APDU — gửi PIN trực tiếp cho chip để check offline</span>
+&gt;&gt; <span class="hex">00 20 00 80 08 24 12 34 FF FF FF FF FF</span>
+                    └─ PIN block format 2 (ISO 9564-1):
+                       2 = format, 4 = length, 1234 = digits, padding 'F'
+
+&lt;&lt; <span class="hex">90 00</span>   <span class="comment">// PIN đúng</span>
+&lt;&lt; <span class="hex">63 C2</span>   <span class="comment">// Sai — còn 2 lần thử (C = counter prefix)</span>
+&lt;&lt; <span class="hex">69 83</span>   <span class="comment">// PIN bị khóa</span></div>
+</div>
+
+<div class="section">
+    <h2>🔍 Bước 7-8 — Cryptogram (GENERATE AC)</h2>
+    <p>Đây là trái tim bảo mật của EMV. Terminal gọi <strong>GENERATE AC</strong> với CDOL1 data, yêu cầu một trong ba loại cryptogram:</p>
+
+    <table>
+        <tr><th>Cryptogram</th><th>CID byte</th><th>Ý nghĩa</th></tr>
+        <tr><td><strong>AAC</strong></td><td>00xx xxxx</td><td>Application Authentication Cryptogram — Decline</td></tr>
+        <tr><td><strong>TC</strong></td><td>01xx xxxx</td><td>Transaction Certificate — Approve offline</td></tr>
+        <tr><td><strong>ARQC</strong></td><td>10xx xxxx</td><td>Authorization Request Cryptogram — Go online</td></tr>
+    </table>
+
+    <h3>Reference Control Parameter (P1 của GENERATE AC)</h3>
+    <table>
+        <tr><th>P1</th><th>Terminal yêu cầu</th></tr>
+        <tr><td><code>00</code></td><td>AAC</td></tr>
+        <tr><td><code>40</code></td><td>TC</td></tr>
+        <tr><td><code>80</code></td><td>ARQC</td></tr>
+        <tr><td><code>50</code></td><td>TC + request CDA signature</td></tr>
+        <tr><td><code>90</code></td><td>ARQC + CDA</td></tr>
+    </table>
+
+    <div class="warning-box">
+        <h3>⚠️ Card có quyền “down-grade”</h3>
+        <p>Terminal yêu cầu TC, nhưng nếu card áp dụng risk management thấy bất thường (offline counter quá cao chẳng hạn), card có thể trả về ARQC ép online — hoặc AAC để decline. Terminal <strong>không có quyền</strong> override.</p>
+    </div>
+
+    <h3>Cách cryptogram được tạo</h3>
+    <div class="code-block"><span class="comment">// 1. Derive một Application Cryptogram Key (AC Key) duy nhất cho card</span>
+<span class="comment">//    từ Issuer Master Key (IMK) và PAN + PAN Sequence Number</span>
+UDK = 3DES_Encrypt(IMK, PAN || PSN)
+
+<span class="comment">// 2. Derive Session Key từ UDK và ATC (Application Transaction Counter)</span>
+SK_AC = SessionKeyDerive(UDK, ATC)   <span class="comment">// EMV Common Session Key Derivation</span>
+
+<span class="comment">// 3. Build input data từ CDOL1 (amount, country, TVR, currency, date,
+//    type, UN, AIP, ATC, CVR, ...)</span>
+data = CDOL1_data || AIP || ATC || IAD_internal
+
+<span class="comment">// 4. Tính cryptogram (MAC theo ISO/IEC 9797-1 Algorithm 3)</span>
+cryptogram = MAC(SK_AC, data)[0..8]   <span class="comment">// 8 byte đầu</span></div>
+
+    <p>Cryptogram được trả về tag <code>9F26</code>, CID ở <code>9F27</code>, ATC ở <code>9F36</code>:</p>
+
+    <div class="code-block">&lt;&lt; <span class="hex">77 47
+      9F 27 01 80                                     <span class="comment">// CID = 80 → ARQC</span>
+      9F 36 02 00 1A                                  <span class="comment">// ATC = 26</span>
+      9F 26 08 A1 B2 C3 D4 E5 F6 07 18                <span class="comment">// Cryptogram</span>
+      9F 10 12 06 01 0A 03 A4 00 00 00 00 00 00 00 00 00 FF
+   90 00</span></div>
+
+    <h3>Online authorization</h3>
+    <p>Khi nhận ARQC, terminal gửi message ISO 8583 (DE 55 chứa ARQC + các tag liên quan) qua acquirer → network → issuer. Issuer dùng IMK + ATC + PAN để tái tạo SK_AC, verify cryptogram, sau đó trả về:</p>
+    <ul>
+        <li><strong>Authorization Response Code (ARC)</strong> — 2 byte ASCII: "00" = approved, "05" = declined…</li>
+        <li><strong>ARPC</strong> — Authorization Response Cryptogram, do issuer ký, để chứng minh response thật sự từ issuer.</li>
+        <li>Optional: <strong>Issuer Scripts</strong> để update card từ xa (đổi key, unlock PIN…).</li>
+    </ul>
+    <p>Terminal gọi GENERATE AC lần 2 với ARPC để card verify và return TC nếu OK.</p>
+</div>
+
+<div class="section">
+    <h2>📊 TVR & TSI — Hai bitmap bạn sẽ gặp hằng ngày</h2>
+    <p><strong>TVR</strong> (Terminal Verification Results, tag <code>95</code>, 5 byte) — Terminal đánh bit lên TVR khi có vấn đề: offline auth fail, expired card, exceeds floor limit, PIN try limit exceeded… 5 byte tổng cộng 40 bit.</p>
+    <p><strong>TSI</strong> (Transaction Status Information, tag <code>9B</code>, 2 byte) — đánh dấu các bước nào <em>đã được thực hiện</em>: ODA performed, CVM performed, Risk Management performed…</p>
+
+    <div class="info-box">
+        <h3>🔧 Debug bằng TVR</h3>
+        <p>Khi giao dịch bị decline mà không rõ lý do, dán TVR vào một tool decode (như emvlab.org/tlvutils) sẽ thấy ngay bit nào được set, ví dụ <code>95 = 00 00 00 80 00</code> → bit "Exceeds floor limit".</p>
+    </div>
+</div>
+
+<div class="term-box">
+    <h3>📘 Thuật ngữ bài này</h3>
+    <dl>
+        <dt>GPO</dt>
+        <dd>GET PROCESSING OPTIONS (INS = A8) — lệnh khởi động application processing.</dd>
+
+        <dt>AIP</dt>
+        <dd>Application Interchange Profile, tag <code>82</code>, 2 byte. Mô tả khả năng app (SDA/DDA/CDA, CVM, issuer auth).</dd>
+
+        <dt>AFL</dt>
+        <dd>Application File Locator, tag <code>94</code>. Danh sách record cần đọc.</dd>
+
+        <dt>CDOL1 / CDOL2</dt>
+        <dd>Card Risk Management Data Object List 1 và 2 — danh sách tag mà terminal phải gửi trong GENERATE AC lần 1 và lần 2.</dd>
+
+        <dt>TC / ARQC / AAC</dt>
+        <dd>Transaction Certificate / Authorization Request Cryptogram / Application Authentication Cryptogram — 3 loại cryptogram do card sinh, phân biệt qua CID (tag <code>9F27</code>).</dd>
+
+        <dt>ATC</dt>
+        <dd>Application Transaction Counter, tag <code>9F36</code> — biến đếm 2 byte, mỗi giao dịch tăng 1. Đảm bảo session key luôn khác nhau.</dd>
+
+        <dt>UN</dt>
+        <dd>Unpredictable Number, tag <code>9F37</code>, 4 byte. Terminal random mỗi giao dịch, đảm bảo cryptogram khác nhau cả khi cùng amount.</dd>
+
+        <dt>TVR</dt>
+        <dd>Terminal Verification Results, tag <code>95</code>, 5 byte bitmap — terminal đánh dấu các bất thường.</dd>
+
+        <dt>TSI</dt>
+        <dd>Transaction Status Information, tag <code>9B</code>, 2 byte — đánh dấu các bước nào đã thực hiện.</dd>
+
+        <dt>ARC</dt>
+        <dd>Authorization Response Code — 2 ký tự ASCII trả về từ issuer.</dd>
+
+        <dt>ARPC</dt>
+        <dd>Authorization Response Cryptogram — chữ ký của issuer trên ARQC + ARC, để card verify.</dd>
+
+        <dt>Issuer Script</dt>
+        <dd>Lệnh đặc biệt do issuer gửi xuống thẻ qua kênh online (tag <code>71</code> = pre-GAC, <code>72</code> = post-GAC). Dùng để update key, reset PIN counter, block app.</dd>
+    </dl>
+</div>
+
+<div class="exercise">
+    <h3>🧪 Bài tập</h3>
+    <ol>
+        <li>AIP = <code>5C 00</code> — app này hỗ trợ SDA/DDA/CDA gì?</li>
+        <li>AFL = <code>10 01 03 01 18 01 01 00</code> — terminal phải gửi mấy lệnh READ RECORD?</li>
+        <li>CID = <code>40</code> — card trả lời gì?</li>
+        <li>Tìm hiểu sự khác nhau giữa response format 1 (template <code>80</code>) và format 2 (template <code>77</code>) của GPO.</li>
+    </ol>
+</div>
+
+<div class="success-box">
+    <h3>✅ Tóm tắt</h3>
+    <ul>
+        <li>EMV Book 3 chuẩn hóa 8 bước: SELECT → GPO → READ RECORD → ODA → restrictions → CVM → risk → GENERATE AC.</li>
+        <li>3 loại cryptogram: TC (approve offline), ARQC (go online), AAC (decline). Phân biệt qua CID.</li>
+        <li>ARQC được issuer verify; issuer trả ARC + ARPC; terminal gọi GENERATE AC lần 2 để completion.</li>
+        <li>TVR và TSI là 2 bitmap không thể thiếu khi debug giao dịch.</li>
+    </ul>
+</div>
+
+    </div>
+    <div class="navigation">
+        <a href="lesson02.html" class="nav-button">&larr; Bài 02</a>
+        <a href="lesson04.html" class="nav-button primary">Bài 04 &rarr;</a>
+    </div>
+</div>
+</body>
+</html>

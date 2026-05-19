@@ -80,8 +80,8 @@ class TestCaseMapper:
         steps        = analysis.get("test_steps", [])
         expected_list = analysis.get("expected_results", []) or [f"Feature works as described in {ticket_id}"]
 
-        # ── Gọi AI Generator để lấy actions thực ──────────────────────────
-        from testing.ai_robot_generator import AIRobotGenerator
+        # ── Gọi AI Generator để lấy actions thực ────────────────────────
+        from src.testing.ai_robot_generator import AIRobotGenerator
         ai_gen   = AIRobotGenerator()
         ai_impls = ai_gen.generate(ticket_data, analysis)
 

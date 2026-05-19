@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.4.2 (Python 3.13.13 on darwin)" generated="2026-05-19T23:31:23.274220" rpa="false" schemaversion="5">
+<suite id="s1" name="KAN-7 ios" source="/Users/vinhnt0111/Desktop/MCP/robot_tests/suites/generated/KAN-7_ios.robot">
+<kw name="Suite Setup For KAN-7" type="SETUP">
+<kw name="Log" owner="BuiltIn">
+<arg>===== START: KAN-7 on ${PLATFORM} =====</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-19T23:31:23.475021" elapsed="0.000143"/>
+</kw>
+<kw name="Open App On Platform" owner="appium_base">
+<kw name="Run Keyword If" owner="BuiltIn">
+<kw name="Open Android App" owner="appium_base">
+<kw name="Open Application" owner="AppiumLibrary">
+<arg>${APPIUM_URL}</arg>
+<arg>platformName=${ANDROID_PLATFORM_NAME}</arg>
+<arg>automationName=${ANDROID_AUTOMATION}</arg>
+<arg>deviceName=${ANDROID_DEVICE_NAME}</arg>
+<arg>appPackage=${ANDROID_APP_PACKAGE}</arg>
+<arg>appActivity=${ANDROID_APP_ACTIVITY}</arg>
+<arg>noReset=${ANDROID_NO_RESET}</arg>
+<arg>autoGrantPermissions=${TRUE}</arg>
+<arg>newCommandTimeout=300</arg>
+<doc>Opens a new application to the given Appium server.
+Capabilities of appium server, Android and iOS,
+Please check https://appium.io/docs/en/2.19/guides/caps/
+| *Option*            | *Man.* | *Description*     |
+| remote_url          | Yes    | Appium server url |
+| alias               | No     | alias             |</doc>
+<status status="NOT RUN" start="2026-05-19T23:31:23.475539" elapsed="0.000083"/>
+</kw>
+<doc>Khởi động app Android với UiAutomator2</doc>
+<status status="PASS" start="2026-05-19T23:31:23.475490" elapsed="0.000164"/>
+</kw>
+<kw name="Open iOS App" owner="appium_base">
+<kw name="Open Application" owner="AppiumLibrary">
+<arg>${APPIUM_URL}</arg>
+<arg>platformName=${IOS_PLATFORM_NAME}</arg>
+<arg>automationName=${IOS_AUTOMATION}</arg>
+<arg>udid=${IOS_UDID}</arg>
+<arg>bundleId=${IOS_BUNDLE_ID}</arg>
+<arg>noReset=${IOS_NO_RESET}</arg>
+<arg>newCommandTimeout=300</arg>
+<arg>wdaLaunchTimeout=120000</arg>
+<doc>Opens a new application to the given Appium server.
+Capabilities of appium server, Android and iOS,
+Please check https://appium.io/docs/en/2.19/guides/caps/
+| *Option*            | *Man.* | *Description*     |
+| remote_url          | Yes    | Appium server url |
+| alias               | No     | alias             |</doc>
+<status status="NOT RUN" start="2026-05-19T23:31:23.475746" elapsed="0.000061"/>
+</kw>
+<doc>Khởi động app iOS với XCUITest</doc>
+<status status="PASS" start="2026-05-19T23:31:23.475701" elapsed="0.000130"/>
+</kw>
+<kw name="Fail" owner="BuiltIn">
+<arg>Unsupported platform: ${platform}</arg>
+<doc>Fails the test with the given message and optionally alters its tags.</doc>
+<status status="NOT RUN" start="2026-05-19T23:31:23.475867" elapsed="0.000053"/>
+</kw>
+<arg>'${platform}' == 'android'</arg>
+<arg>Open Android App</arg>
+<arg>ELSE IF</arg>
+<arg>'${platform}' == 'ios'</arg>
+<arg>Open iOS App</arg>
+<arg>ELSE</arg>
+<arg>Fail</arg>
+<arg>Unsupported platform: ${platform}</arg>
+<doc>Runs the given keyword with the given arguments, if ``condition`` is true.</doc>
+<status status="PASS" start="2026-05-19T23:31:23.475331" elapsed="0.000602"/>
+</kw>
+<kw name="Log" owner="BuiltIn">
+<arg>✅ App opened on ${platform}</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-19T23:31:23.475974" elapsed="0.000065"/>
+</kw>
+<arg>${PLATFORM}</arg>
+<doc>Mở app tương ứng với platform (android/ios)</doc>
+<status status="PASS" start="2026-05-19T23:31:23.475253" elapsed="0.000814"/>
+</kw>
+<doc>Khởi động app và thực hiện preconditions</doc>
+<status status="PASS" start="2026-05-19T23:31:23.474613" elapsed="0.001466"/>
+</kw>
+<test id="s1-t1" name="TC_001 Feature Works As Described In Kan7" line="23">
+<kw name="Log" owner="BuiltIn">
+<arg>Running: TC_001 - Feature Works As Described In Kan7</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-19T23:31:23.476316" elapsed="0.000075"/>
+</kw>
+<kw name="Execute Step: Verify feature works as described in ticket">
+<kw name="Log" owner="BuiltIn">
+<arg>STEP: Verify feature works as described in ticket</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-19T23:31:23.476535" elapsed="0.000067"/>
+</kw>
+<doc>Step: Verify feature works as described in ticket</doc>
+<status status="PASS" start="2026-05-19T23:31:23.476466" elapsed="0.000154"/>
+</kw>
+<kw name="Verify: Feature works as described in KAN-7">
+<kw name="App Should Not Have Crashed" owner="assertions">
+<kw name="Get Source" owner="AppiumLibrary">
+<var>${source}</var>
+<doc>Returns the entire source of the current page.</doc>
+<status status="NOT RUN" start="2026-05-19T23:31:23.476902" elapsed="0.000015"/>
+</kw>
+<kw name="Create List" owner="BuiltIn">
+<var>${crash_strings}</var>
+<arg>Unfortunately</arg>
+<arg>has stopped</arg>
+<arg>keeps stopping</arg>
+<arg>Force Close</arg>
+<arg>ANR</arg>
+<arg>Application Error</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="NOT RUN" start="2026-05-19T23:31:23.476960" elapsed="0.000085"/>
+</kw>
+<for flavor="IN">
+<iter>
+<kw name="Run Keyword And Continue On Failure" owner="BuiltIn">
+<kw name="Should Not Contain" owner="BuiltIn">
+<arg>${source}</arg>
+<arg>${crash_str}</arg>
+<arg>msg=⚠️ Crash detected: '${crash_str}' found in page source</arg>
+<doc>Fails if ``container`` contains ``item`` one or more times.</doc>
+<status status="NOT RUN" start="2026-05-19T23:31:23.477268" elapsed="0.000069"/>
+</kw>
+<arg>Should Not Contain</arg>
+<arg>${source}</arg>
+<arg>${crash_str}</arg>
+<arg>msg=⚠️ Crash detected: '${crash_str}' found in page source</arg>
+<doc>Runs the keyword and continues execution even if a failure occurs.</doc>
+<status status="PASS" start="2026-05-19T23:31:23.477161" elapsed="0.000194"/>
+</kw>
+<var name="${crash_str}"/>
+<status status="PASS" start="2026-05-19T23:31:23.477121" elapsed="0.000247"/>
+</iter>
+<var>${crash_str}</var>
+<value>@{crash_strings}</value>
+<status status="PASS" start="2026-05-19T23:31:23.477081" elapsed="0.000300"/>
+</for>
+<kw name="Log" owner="BuiltIn">
+<arg>✅ App is healthy – no crash detected</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-19T23:31:23.477422" elapsed="0.000054"/>
+</kw>
+<doc>Verify app không bị crash (không hiện dialog lỗi)</doc>
+<status status="PASS" start="2026-05-19T23:31:23.476829" elapsed="0.000663"/>
+</kw>
+<doc>Verify: Feature works as described in KAN-7</doc>
+<status status="PASS" start="2026-05-19T23:31:23.476707" elapsed="0.000797"/>
+</kw>
+<kw name="Capture Screenshot On Failure" owner="appium_base" type="TEARDOWN">
+<kw name="Run Keyword If Test Failed" owner="BuiltIn">
+<kw name="Capture Page Screenshot" owner="AppiumLibrary">
+<doc>Takes a screenshot of the current page and embeds it into the log.</doc>
+<status status="NOT RUN" start="2026-05-19T23:31:23.477775" elapsed="0.000016"/>
+</kw>
+<arg>Capture Page Screenshot</arg>
+<doc>Runs the given keyword with the given arguments, if the test failed.</doc>
+<status status="PASS" start="2026-05-19T23:31:23.477685" elapsed="0.000117"/>
+</kw>
+<doc>Chụp screenshot khi test case FAIL (dùng cho Test Teardown)</doc>
+<status status="PASS" start="2026-05-19T23:31:23.477605" elapsed="0.000210"/>
+</kw>
+<doc>Expected: Feature works as described in KAN-7</doc>
+<tag>functional</tag>
+<tag>ios</tag>
+<tag>KAN-7</tag>
+<tag>P2</tag>
+<status status="PASS" start="2026-05-19T23:31:23.476109" elapsed="0.001732"/>
+</test>
+<kw name="Suite Teardown For KAN-7" type="TEARDOWN">
+<kw name="Log" owner="BuiltIn">
+<arg>===== END: KAN-7 =====</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-19T23:31:23.478105" elapsed="0.000075"/>
+</kw>
+<kw name="Close App On Platform" owner="appium_base">
+<kw name="Run Keyword And Ignore Error" owner="BuiltIn">
+<kw name="Close Application" owner="AppiumLibrary">
+<doc>Closes the current application and the webdriver session.</doc>
+<status status="NOT RUN" start="2026-05-19T23:31:23.478374" elapsed="0.000013"/>
+</kw>
+<arg>Close Application</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="PASS" start="2026-05-19T23:31:23.478290" elapsed="0.000327"/>
+</kw>
+<kw name="Log" owner="BuiltIn">
+<arg>App session closed</arg>
+<arg>console=True</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="NOT RUN" start="2026-05-19T23:31:23.478652" elapsed="0.000064"/>
+</kw>
+<doc>Đóng Appium session</doc>
+<status status="PASS" start="2026-05-19T23:31:23.478235" elapsed="0.000496"/>
+</kw>
+<doc>Dọn dẹp sau khi chạy xong</doc>
+<status status="PASS" start="2026-05-19T23:31:23.478051" elapsed="0.000691"/>
+</kw>
+<doc>Auto-generated suite for KAN-7: [TEST] MCP Router Test - 20260518_231634
+Generated: 2026-05-19 23:30
+Platform : ios</doc>
+<status status="PASS" start="2026-05-19T23:31:23.275129" elapsed="0.203621"/>
+</suite>
+<statistics>
+<total>
+<stat pass="1" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+<stat pass="1" fail="0" skip="0">functional</stat>
+<stat pass="1" fail="0" skip="0">ios</stat>
+<stat pass="1" fail="0" skip="0">KAN-7</stat>
+<stat pass="1" fail="0" skip="0">P2</stat>
+</tag>
+<suite>
+<stat name="KAN-7 ios" id="s1" pass="1" fail="0" skip="0">KAN-7 ios</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bài 06: Cryptography trong EMV — EMV Academy</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<nav class="top-nav">
+    <div class="nav-container">
+        <a href="../index.html" class="nav-logo">💳 EMV Academy</a>
+        <div class="nav-menu">
+            <a href="../index.html">Trang chủ</a>
+            <a href="lesson01.html">01</a>
+            <a href="lesson02.html">02</a>
+            <a href="lesson03.html">03</a>
+            <a href="lesson04.html">04</a>
+            <a href="lesson05.html">05</a>
+            <a href="lesson06.html" class="active">06</a>
+            <a href="lesson07.html">07</a>
+            <a href="lesson08.html">08</a>
+            <a href="lesson09.html">09</a>
+            <a href="lesson10.html">10</a>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="lesson-header">
+        <h1>Bài 06 · Cryptography trong EMV</h1>
+        <p class="subtitle">RSA, 3DES/AES, SHA, MAC; key hierarchy CA / Issuer / ICC</p>
+    </div>
+    <div class="breadcrumb">
+        <a href="../index.html">Trang chủ</a> &rsaquo; Bài 06: Cryptography trong EMV
+    </div>
+    <div class="lesson-content">
+
+<div class="section">
+    <h2>🎯 Mục tiêu bài học</h2>
+    <ul>
+        <li>Hiểu vai trò RSA, 3DES, AES, SHA trong EMV (theo EMV Book 2).</li>
+        <li>Nắm key hierarchy: CA Key → Issuer Key → ICC Key.</li>
+        <li>Hiểu cách card sinh Application Cryptogram (MAC ISO 9797-1 Algorithm 3).</li>
+        <li>Hiểu derive session key (EMV Common Session Key Derivation).</li>
+    </ul>
+</div>
+
+<div class="section">
+    <h2>🔐 Tổng quan crypto trong EMV</h2>
+    <table>
+        <tr><th>Thuật toán</th><th>Loại</th><th>Dùng cho</th><th>Spec tham chiếu</th></tr>
+        <tr><td>RSA</td><td>Public-key</td><td>Card authentication (SDA/DDA/CDA), encipher offline PIN, issuer authentication</td><td>EMV Book 2 §5–7; PKCS#1</td></tr>
+        <tr><td>3DES (TDEA)</td><td>Symmetric</td><td>Application Cryptogram (TC/ARQC/AAC), MAC, derive session key</td><td>EMV Book 2 §8; ISO 9797-1 Alg 3</td></tr>
+        <tr><td>AES</td><td>Symmetric</td><td>Thay thế 3DES trên các deployment mới (EMV Book 2 v4.4)</td><td>EMV Book 2 §8</td></tr>
+        <tr><td>SHA-1 / SHA-256</td><td>Hash</td><td>Hash dữ liệu trước khi ký RSA, integrity check</td><td>FIPS 180-4</td></tr>
+    </table>
+
+    <div class="warning-box">
+        <h3>⚠️ SHA-1 và RSA-1024 còn dùng không?</h3>
+        <p>Trong EMV hiện tại <em>vẫn còn</em> SHA-1 (vì legacy card phát hành trước 2017). EMVCo bắt đầu deprecate: EMV Book 2 v4.4 ưu tiên SHA-256 và RSA-2048 cho key mới. Riêng dải <strong>RSA-1408 và 1984</strong> tồn tại trong spec để bridge — đừng ngạc nhiên khi thấy.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>🌳 Key hierarchy</h2>
+    <div class="diagram"><pre>
+                ┌─────────────────────────────────┐
+                │   CA (Certification Authority)  │
+                │   - Public Key index: 1 byte    │  EMV Book 2 §11
+                │   - RSA 1024/1408/1984/2048-bit │
+                │   Khóa CA do mỗi NETWORK quản lý│  (Visa CA, Mastercard CA…)
+                │   Public key được cài cứng vào  │
+                │   mọi POS/Terminal              │
+                └───────────────┬─────────────────┘
+                                │ ký (sign)
+                                ▼
+                ┌─────────────────────────────────┐
+                │   Issuer Public Key Certificate │  tag 90
+                │   - Do CA ký                    │
+                │   - Issuer = NGÂN HÀNG          │
+                └───────────────┬─────────────────┘
+                                │ ký
+                                ▼
+                ┌─────────────────────────────────┐
+                │   ICC Public Key Certificate    │  tag 9F46
+                │   - Do Issuer ký                │
+                │   - ICC = chip cụ thể           │
+                │   - Private key tương ứng nằm   │
+                │     trong secure element, KHÔNG │
+                │     thể xuất ra ngoài           │
+                └─────────────────────────────────┘
+    </pre></div>
+
+    <h3>Verify certificate chain (terminal làm)</h3>
+    <ol>
+        <li>Đọc <strong>CA Public Key Index</strong> (tag <code>8F</code>) từ card → terminal tra trong bảng CA keys (cài sẵn) để lấy CA Public Key.</li>
+        <li>Recover <strong>Issuer Public Key Certificate</strong> (tag <code>90</code>) bằng CA Public Key. Verify hash, expiry, PAN range.</li>
+        <li>Recover <strong>ICC Public Key Certificate</strong> (tag <code>9F46</code>) bằng Issuer Public Key. Verify hash, PAN của certificate khớp PAN của card.</li>
+        <li>Bây giờ terminal đã có ICC Public Key, dùng cho DDA/CDA.</li>
+    </ol>
+
+    <div class="info-box">
+        <h3>📥 Bạn có thể tải CA public key thật</h3>
+        <p>Mỗi network công bố CA public key. Ví dụ: <a href="https://www.eftlab.com/knowledge-base/list-of-ca-public-keys">eftlab.com</a> tổng hợp tất cả 200+ CA keys (Visa, Mastercard, JCB, Amex…). Bạn không cần khôi phục chúng từ đâu — chỉ cài vào terminal.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>🔒 RSA trong EMV — chữ ký số</h2>
+    <p>EMV dùng RSA theo <strong>ISO/IEC 9796-2 Scheme 1</strong> (message recovery). Khác PKCS#1 ở chỗ chữ ký <em>chứa cả</em> message — chỉ một phần message phải gửi riêng.</p>
+
+    <div class="code-block"><span class="comment">// Chữ ký S được tạo bởi card:</span>
+S = (Header || M1 || hash(M1 || M2) || Trailer)^d  mod n
+
+<span class="comment">// Trong đó:</span>
+<span class="comment">// Header   = 6A    (1 byte cố định)</span>
+<span class="comment">// M1       = phần message được recover (tối đa N - 22 byte)</span>
+<span class="comment">// hash     = SHA-1 hoặc SHA-256 trên (M1 || M2)</span>
+<span class="comment">// Trailer  = BC (nếu SHA-1) hoặc khác (xem ISO 9796-2 §9.3)</span>
+<span class="comment">// d, n     = private key, modulus của card</span>
+
+<span class="comment">// Terminal verify:</span>
+recovered = S^e mod n
+<span class="comment">// Kiểm tra header 6A, trailer BC, hash khớp với hash(M1 || M2)</span></div>
+
+    <h3>Vì sao dùng ISO 9796-2?</h3>
+    <ul>
+        <li>Recover một phần message → tiết kiệm băng thông (thẻ chỉ trả về phần "remainder" tag <code>92</code>).</li>
+        <li>Thiết kế phù hợp cho thiết bị có RAM nhỏ.</li>
+    </ul>
+</div>
+
+<div class="section">
+    <h2>🔑 3DES (TDEA) — đối xứng</h2>
+    <p>EMV dùng 3DES cho việc tạo MAC (cryptogram). Variant: <strong>2-key 3DES</strong> (16 byte key = K1‖K2, K3 = K1). Thuật toán: <strong>ISO/IEC 9797-1 MAC Algorithm 3</strong> với padding method 1 hoặc 2.</p>
+
+    <div class="diagram"><pre>
+Input data D, key K = K1‖K2 (16 byte)
+
+D pad → D1 D2 ... Dn  (mỗi block 8 byte)
+
+      D1                D2                       Dn
+       │                 │                        │
+       ▼                 ▼                        ▼
+  ┌──DES(K1)───┐  ┌───XOR──┐  ┌───XOR──┐    ┌───XOR──┐
+  │  H1        │  │  H1⊕D2 │  │  H2⊕D3 │ …  │ Hn-1⊕Dn│
+  └─────┬──────┘  └────┬───┘  └────┬───┘    └────┬───┘
+        ▼              ▼            ▼              ▼
+                 DES(K1)         DES(K1)        DES(K1)
+                                                     │
+                                                     ▼
+                                              DES⁻¹(K2)
+                                                     │
+                                                     ▼
+                                              DES(K1) → MAC (8 byte)
+    </pre></div>
+</div>
+
+<div class="section">
+    <h2>🎫 Application Cryptogram (TC/ARQC/AAC)</h2>
+
+    <h3>1. Master Key tại Issuer</h3>
+    <p>Issuer giữ <strong>IMK_AC</strong> (Issuer Master Key for Application Cryptogram) — 16 byte. Đây là bí mật <em>chỉ Issuer biết</em>.</p>
+
+    <h3>2. Derive UDK (Unique Derived Key) khi cá nhân hóa thẻ</h3>
+    <p>EMV Book 2 §8.1.1 ("Common Card Master Key derivation"):</p>
+    <div class="code-block">Y = PAN || PSN          <span class="comment">// nếu &lt; 16 nibble, pad bên trái bằng 0; sau đó lấy 16 nibble cuối = 8 byte</span>
+
+UDK_L = 3DES_Encrypt(IMK_AC, Y)
+UDK_R = 3DES_Encrypt(IMK_AC, Y XOR 0xFFFFFFFFFFFFFFFF)
+UDK   = UDK_L || UDK_R            <span class="comment">// 16 byte, cá nhân hóa vào chip</span></div>
+
+    <h3>3. Derive Session Key khi giao dịch (EMV CSK)</h3>
+    <p>EMV Book 2 §8.1.3 ("Common Session Key Derivation"):</p>
+    <div class="code-block">F1 = ATC || "F0 00 00 00 00 00"   <span class="comment">// 8 byte</span>
+F2 = ATC || "0F 00 00 00 00 00"
+
+SK_L = 3DES_Encrypt(UDK, F1)
+SK_R = 3DES_Encrypt(UDK, F2)
+SK_AC = SK_L || SK_R              <span class="comment">// session key cho giao dịch này</span></div>
+
+    <h3>4. Tính Application Cryptogram</h3>
+    <div class="code-block">data = CDOL1_data || AIP || ATC || IAD_input
+AC   = MAC_3DES(SK_AC, data) [first 8 bytes]</div>
+
+    <h3>5. Issuer verify ARQC</h3>
+    <ol>
+        <li>Issuer nhận ARQC + ATC + PAN + CDOL1 + AIP + IAD qua message ISO 8583 (DE 55).</li>
+        <li>Tái tạo UDK từ IMK_AC + PAN/PSN.</li>
+        <li>Tái tạo SK_AC từ UDK + ATC.</li>
+        <li>Tính lại MAC, so sánh với ARQC nhận được.</li>
+    </ol>
+
+    <div class="info-box">
+        <h3>💡 Vì sao phải có UN và ATC?</h3>
+        <p><strong>ATC</strong> đảm bảo session key luôn khác, ngay cả khi cùng amount → chống <em>replay attack</em>. <strong>UN</strong> (Unpredictable Number) đảm bảo terminal challenge khác nhau → chống <em>pre-computed attack</em>.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>↩️ ARPC — Issuer ký phản hồi</h2>
+    <p>Sau khi verify ARQC, issuer sinh <strong>ARPC</strong> (Authorization Response Cryptogram) gửi xuống terminal để card verify. Đảm bảo response thật sự đến từ issuer.</p>
+
+    <h3>ARPC Method 1 (EMV Book 2 §8.2.1)</h3>
+    <div class="code-block">ARPC = 3DES_Encrypt(SK_AC, ARQC XOR (ARC || "00 00 00 00 00 00"))</div>
+    <p>(ARC = Authorization Response Code, ví dụ "00" → 0x3030)</p>
+
+    <h3>ARPC Method 2 (CSU-based, dùng từ EMV 4.2)</h3>
+    <p>Sử dụng <strong>CSU</strong> (Card Status Update, 4 byte) + Proprietary Auth Data, MAC bằng 3DES — phép truyền tải nhiều thông điệp hơn về phía card.</p>
+</div>
+
+<div class="section">
+    <h2>🔐 Offline PIN encryption (RSA)</h2>
+    <p>Khi CVM yêu cầu <em>enciphered offline PIN</em>, terminal phải lấy được <strong>ICC PIN Encipherment Public Key</strong> (tag <code>9F2D / 9F2E / 9F2F</code>) — có thể cùng key với DDA hoặc khác. Sau đó:</p>
+
+    <div class="code-block">PIN_block_format2 = 2 || L || PIN_digits || pad_F
+random_bytes      = N - 17 byte ngẫu nhiên                <span class="comment">// N = key size byte</span>
+plaintext         = 7F || PIN_block || random_bytes || 01  <span class="comment">// header 7F, trailer BC</span>
+
+ciphertext = RSA_Encrypt(plaintext, ICC_PIN_PK)            <span class="comment">// dùng public key</span>
+&gt;&gt; <span class="hex">00 20 00 88 Lc [ciphertext]</span>                <span class="comment">// VERIFY P2 = 88 = enciphered</span></div>
+
+    <p>Chỉ card mới giải mã được (vì chỉ card có private key tương ứng), so sánh với PIN nội bộ.</p>
+</div>
+
+<div class="section">
+    <h2>📱 Kotlin — 3DES MAC theo ISO 9797-1 Alg 3</h2>
+    <div class="code-block">import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
+import javax.crypto.spec.IvParameterSpec
+
+fun mac3desRetail(key16: ByteArray, data: ByteArray): ByteArray {
+    require(key16.size == 16)
+    val k1 = key16.copyOfRange(0, 8)
+    val k2 = key16.copyOfRange(8, 16)
+
+    val padded = isoPad1(data)               <span class="comment">// padding method 1: pad bằng 0x00</span>
+    var h = ByteArray(8)
+
+    <span class="comment">// 1) DES-CBC với K1 trên tất cả block trừ block cuối</span>
+    val desK1 = Cipher.getInstance("DES/CBC/NoPadding").apply {
+        init(Cipher.ENCRYPT_MODE, SecretKeySpec(k1, "DES"), IvParameterSpec(ByteArray(8)))
+    }
+    var i = 0
+    while (i &lt; padded.size - 8) {
+        h = desK1.doFinal(padded.copyOfRange(i, i + 8))
+        desK1.init(Cipher.ENCRYPT_MODE, SecretKeySpec(k1, "DES"), IvParameterSpec(h))
+        i += 8
+    }
+
+    <span class="comment">// 2) Block cuối: XOR h, sau đó 3DES (encrypt-K1, decrypt-K2, encrypt-K1)</span>
+    val last = xor(padded.copyOfRange(i, i + 8), h)
+    val e1 = Cipher.getInstance("DES/ECB/NoPadding").apply {
+        init(Cipher.ENCRYPT_MODE, SecretKeySpec(k1, "DES"))
+    }.doFinal(last)
+    val d2 = Cipher.getInstance("DES/ECB/NoPadding").apply {
+        init(Cipher.DECRYPT_MODE, SecretKeySpec(k2, "DES"))
+    }.doFinal(e1)
+    val e3 = Cipher.getInstance("DES/ECB/NoPadding").apply {
+        init(Cipher.ENCRYPT_MODE, SecretKeySpec(k1, "DES"))
+    }.doFinal(d2)
+    return e3
+}
+
+fun xor(a: ByteArray, b: ByteArray) =
+    ByteArray(a.size) { i -&gt; (a[i].toInt() xor b[i].toInt()).toByte() }
+
+fun isoPad1(data: ByteArray): ByteArray {
+    val padLen = 8 - (data.size % 8)
+    return if (padLen == 8) data else data + ByteArray(padLen)
+}</div>
+</div>
+
+<div class="term-box">
+    <h3>📘 Thuật ngữ bài này</h3>
+    <dl>
+        <dt>IMK / UDK / SK</dt>
+        <dd>Issuer Master Key / Unique Derived Key (per card) / Session Key (per transaction).</dd>
+        <dt>CA Public Key</dt>
+        <dd>Khóa công khai của Network (Visa CA, MC CA…). Mỗi key có một <em>index</em> 1 byte. Terminal cài tất cả CA keys.</dd>
+        <dt>ARC</dt>
+        <dd>Authorization Response Code — 2 ký tự ASCII issuer trả về (00, 01, 05, 91…).</dd>
+        <dt>ARPC</dt>
+        <dd>Authorization Response Cryptogram — chữ ký của issuer trên ARQC + ARC.</dd>
+        <dt>ISO 9797-1 MAC Algorithm 3</dt>
+        <dd>Thuật toán MAC dựa DES-CBC + 3DES cho block cuối ("retail MAC"). EMV dùng cho AC.</dd>
+        <dt>ISO 9796-2 Scheme 1</dt>
+        <dd>RSA signature scheme với message recovery — EMV dùng cho mọi chữ ký số (Issuer cert, ICC cert, SDAD).</dd>
+        <dt>SHA-1 / SHA-256</dt>
+        <dd>Hash 160/256-bit theo FIPS 180-4. EMV dùng để tạo digest trước khi RSA-sign.</dd>
+        <dt>PIN Block Format 2</dt>
+        <dd>Format dùng cho offline PIN giữa terminal và ICC, theo ISO 9564-1.</dd>
+    </dl>
+</div>
+
+<div class="exercise">
+    <h3>🧪 Bài tập</h3>
+    <ol>
+        <li>Cho IMK = 16 byte số 0, PAN = 4532123456789010, PSN = 00. Tính UDK (dùng OpenSSL CLI hoặc code Kotlin).</li>
+        <li>Cho UDK ở câu 1, ATC = 0x001A. Tính SK_AC.</li>
+        <li>SHA-1 vs SHA-256: số byte output bao nhiêu?</li>
+        <li>Vì sao ICC private key không bao giờ rời chip?</li>
+    </ol>
+</div>
+
+<div class="success-box">
+    <h3>✅ Tóm tắt</h3>
+    <ul>
+        <li>EMV dùng RSA (theo ISO 9796-2) cho authentication, 3DES/AES (theo ISO 9797-1 Alg 3) cho cryptogram.</li>
+        <li>Key hierarchy: CA → Issuer Cert (tag 90) → ICC Cert (tag 9F46). Terminal verify chuỗi này.</li>
+        <li>UDK derive từ IMK + PAN/PSN; SK_AC derive từ UDK + ATC mỗi giao dịch.</li>
+        <li>ARQC do card sinh, issuer verify; ARPC do issuer sinh, card verify.</li>
+    </ul>
+</div>
+
+    </div>
+    <div class="navigation">
+        <a href="lesson05.html" class="nav-button">&larr; Bài 05</a>
+        <a href="lesson07.html" class="nav-button primary">Bài 07 &rarr;</a>
+    </div>
+</div>
+</body>
+</html>

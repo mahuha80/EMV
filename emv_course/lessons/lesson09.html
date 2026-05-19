@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bài 09: Demo: Đọc thẻ thật — EMV Academy</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<nav class="top-nav">
+    <div class="nav-container">
+        <a href="../index.html" class="nav-logo">💳 EMV Academy</a>
+        <div class="nav-menu">
+            <a href="../index.html">Trang chủ</a>
+            <a href="lesson01.html">01</a>
+            <a href="lesson02.html">02</a>
+            <a href="lesson03.html">03</a>
+            <a href="lesson04.html">04</a>
+            <a href="lesson05.html">05</a>
+            <a href="lesson06.html">06</a>
+            <a href="lesson07.html">07</a>
+            <a href="lesson08.html">08</a>
+            <a href="lesson09.html" class="active">09</a>
+            <a href="lesson10.html">10</a>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="lesson-header">
+        <h1>Bài 09 · Demo: Đọc thẻ thật</h1>
+        <p class="subtitle">Project Android hoàn chỉnh: SELECT PPSE → SELECT AID → GPO → READ RECORD</p>
+    </div>
+    <div class="breadcrumb">
+        <a href="../index.html">Trang chủ</a> &rsaquo; Bài 09: Demo: Đọc thẻ thật
+    </div>
+    <div class="lesson-content">
+
+<div class="section">
+    <h2>🎯 Mục tiêu bài học</h2>
+    <ul>
+        <li>Ghép tất cả bài trước thành một demo Android hoàn chỉnh.</li>
+        <li>Đọc và hiển thị: PAN (đã mask), expiry, cardholder name, AID, application label.</li>
+        <li>Biết troubleshoot các lỗi phổ biến: 6A 82, 6A 83, 67 00.</li>
+    </ul>
+</div>
+
+<div class="section">
+    <h2>📂 Cấu trúc project</h2>
+    <div class="code-block">app/
+ └─ src/main/
+     ├─ AndroidManifest.xml
+     ├─ res/xml/nfc_tech_filter.xml
+     ├─ res/layout/activity_main.xml
+     └─ java/com/example/emvreader/
+         ├─ MainActivity.kt
+         ├─ apdu/
+         │   ├─ CommandApdu.kt
+         │   ├─ ResponseApdu.kt
+         │   └─ Hex.kt
+         ├─ tlv/
+         │   ├─ Tlv.kt
+         │   └─ TlvParser.kt
+         └─ emv/
+             ├─ EmvReader.kt
+             └─ Pdol.kt</div>
+</div>
+
+<div class="section">
+    <h2>📜 MainActivity.kt</h2>
+    <div class="code-block">class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
+
+    private lateinit var nfcAdapter: NfcAdapter
+    private lateinit var status: TextView
+    private lateinit var details: TextView
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+                        WindowManager.LayoutParams.FLAG_SECURE)
+        status = findViewById(R.id.status)
+        details = findViewById(R.id.details)
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+            ?: run {
+                status.text = "Thiết bị không có NFC"
+                return
+            }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!nfcAdapter.isEnabled) {
+            status.text = "NFC đang tắt — vào Settings để bật"
+            return
+        }
+        status.text = "Đặt thẻ lên mặt sau điện thoại…"
+        nfcAdapter.enableReaderMode(
+            this, this,
+            NfcAdapter.FLAG_READER_NFC_A or
+            NfcAdapter.FLAG_READER_NFC_B or
+            NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
+            null
+        )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        nfcAdapter.disableReaderMode(this)
+    }
+
+    override fun onTagDiscovered(tag: Tag) {
+        val isoDep = IsoDep.get(tag) ?: return
+        try {
+            isoDep.connect()
+            isoDep.timeout = 5_000
+            val info = EmvReader(isoDep).read()
+            runOnUiThread {
+                status.text = "✅ Đọc thành công"
+                details.text = info.prettyPrint()
+            }
+        } catch (e: Exception) {
+            runOnUiThread {
+                status.text = "❌ Lỗi"
+                details.text = e.message ?: "Unknown"
+            }
+        } finally {
+            try { isoDep.close() } catch (_: Exception) {}
+        }
+    }
+}</div>
+</div>
+
+<div class="section">
+    <h2>📜 EmvReader.kt — core flow</h2>
+    <div class="code-block">data class CardInfo(
+    val aid: String?,
+    val applicationLabel: String?,
+    val pan: String?,
+    val expiry: String?,
+    val cardholderName: String?,
+    val track2: String?
+) {
+    fun prettyPrint() = buildString {
+        appendLine("AID:             $aid")
+        appendLine("App Label:       $applicationLabel")
+        appendLine("PAN (masked):    ${pan?.let(::maskPan)}")
+        appendLine("Expiry:          ${expiry?.let(::formatExpiry)}")
+        appendLine("Cardholder:      $cardholderName")
+        appendLine("Track 2:         ${track2?.let(::maskTrack2)}")
+    }
+}
+
+class EmvReader(private val iso: IsoDep) {
+
+    fun read(): CardInfo {
+        val aidBytes = selectPpseAndPickAid()
+        val fci = selectAid(aidBytes)
+        val pdolTpl = fci.findTag(0x9F38)?.value
+        val gpoTlv = getProcessingOptions(pdolTpl)
+        val afl = extractAfl(gpoTlv)
+        val records = readAllRecords(afl)
+
+        val appLabel = fci.findTag(0x50)?.value?.let { String(it, Charsets.US_ASCII).trim() }
+        val pan = records.findTag(0x5A)?.value?.toHex()?.trimEnd('F', 'f')
+        val expiry = records.findTag(0x5F24)?.value?.toHex()
+        val name = records.findTag(0x5F20)?.value?.let { String(it, Charsets.US_ASCII).trim() }
+        val track2 = records.findTag(0x57)?.value?.toHex()
+
+        return CardInfo(
+            aid = aidBytes.toHex(),
+            applicationLabel = appLabel,
+            pan = pan,
+            expiry = expiry,
+            cardholderName = name,
+            track2 = track2
+        )
+    }
+
+    private fun selectPpseAndPickAid(): ByteArray {
+        val ppseName = "2PAY.SYS.DDF01".toByteArray(Charsets.US_ASCII)
+        val resp = transceive(CommandApdu(0x00, 0xA4.toByte(), 0x04, 0x00, ppseName, 0x00).toBytes())
+        ensure(resp.isSuccess) { "SELECT PPSE → ${resp.swHex()}" }
+
+        val tlv = TlvParser(resp.data).parseAll()
+        return tlv.findTag(0x4F)?.value
+            ?: throw IllegalStateException("Không thấy AID trong PPSE response")
+    }
+
+    private fun selectAid(aid: ByteArray): List&lt;Tlv&gt; {
+        val resp = transceive(
+            CommandApdu(0x00, 0xA4.toByte(), 0x04, 0x00, aid, 0x00).toBytes()
+        )
+        ensure(resp.isSuccess) { "SELECT AID → ${resp.swHex()}" }
+        return TlvParser(resp.data).parseAll()
+    }
+
+    private fun getProcessingOptions(pdolTpl: ByteArray?): List&lt;Tlv&gt; {
+        val pdolData = Pdol.build(pdolTpl)
+        val dataField = byteArrayOf(0x83.toByte(), pdolData.size.toByte()) + pdolData
+        val resp = transceive(
+            CommandApdu(0x80.toByte(), 0xA8.toByte(), 0x00, 0x00, dataField, 0x00).toBytes()
+        )
+        ensure(resp.isSuccess) { "GPO → ${resp.swHex()}" }
+        return TlvParser(resp.data).parseAll()
+    }
+
+    private fun extractAfl(gpoTlv: List&lt;Tlv&gt;): ByteArray {
+        gpoTlv.findTag(0x94)?.let { return it.value }
+        <span class="comment">// format 1 (80): byte[0..1] = AIP, byte[2..] = AFL</span>
+        val format1 = gpoTlv.firstOrNull { it.tag == 0x80 }?.value
+            ?: throw IllegalStateException("GPO không có AFL")
+        return format1.copyOfRange(2, format1.size)
+    }
+
+    private fun readAllRecords(afl: ByteArray): List&lt;Tlv&gt; {
+        val out = mutableListOf&lt;Tlv&gt;()
+        var i = 0
+        while (i &lt; afl.size) {
+            val sfi = (afl[i].toInt() and 0xFF) shr 3
+            val first = afl[i + 1].toInt() and 0xFF
+            val last = afl[i + 2].toInt() and 0xFF
+            i += 4
+            for (rec in first..last) {
+                val resp = transceive(
+                    CommandApdu(0x00, 0xB2, rec.toByte(),
+                                ((sfi shl 3) or 0x04).toByte(), null, 0x00).toBytes()
+                )
+                if (resp.isSuccess) out += TlvParser(resp.data).parseAll()
+            }
+        }
+        return out
+    }
+
+    private fun transceive(cmd: ByteArray): ResponseApdu {
+        val raw = iso.transceive(cmd)
+        return ResponseApdu.parse(raw)
+    }
+
+    private inline fun ensure(cond: Boolean, msg: () -&gt; String) {
+        if (!cond) throw IllegalStateException(msg())
+    }
+}
+
+fun maskPan(pan: String) = pan.take(4) + " •••• •••• " + pan.takeLast(4)
+fun formatExpiry(yymmdd: String) = "${yymmdd.substring(2,4)}/${yymmdd.substring(0,2)}"
+fun maskTrack2(t2: String): String {
+    val sep = t2.indexOf('D').takeIf { it &gt; 0 } ?: t2.indexOf('d')
+    if (sep &lt; 0) return "(unparseable)"
+    val pan = t2.substring(0, sep)
+    return maskPan(pan) + "D" + t2.substring(sep + 1).take(4).padEnd(4, '*')
+}</div>
+</div>
+
+<div class="section">
+    <h2>🧪 Demo output (thẻ Vietcombank Visa Debit thật, đã ẩn số)</h2>
+    <div class="code-block">AID:             A0000000031010
+App Label:       VISA DEBIT
+PAN (masked):    4532 •••• •••• 9010
+Expiry:          12/27
+Cardholder:      NGUYEN/VAN A
+Track 2:         4532 •••• •••• 9010D2712****</div>
+</div>
+
+<div class="section">
+    <h2>🐛 Troubleshooting</h2>
+    <table>
+        <tr><th>Triệu chứng</th><th>Nguyên nhân</th><th>Khắc phục</th></tr>
+        <tr><td>Tag bị mất ngay sau khi connect</td><td>Thẻ rời antenna giữa các APDU</td><td>Tăng <code>EXTRA_READER_PRESENCE_CHECK_DELAY</code>, yêu cầu user giữ thẻ ổn định</td></tr>
+        <tr><td>SELECT PPSE → <code>6A 82</code></td><td>Thẻ chip-only (không hỗ trợ contactless) hoặc thẻ Mifare Classic (không phải EMV)</td><td>Thẻ không có 2PAY.SYS.DDF01 — không phải EMV contactless</td></tr>
+        <tr><td>READ RECORD → <code>6A 83</code></td><td>Record không tồn tại</td><td>Kiểm tra lại parse AFL — có thể bị off-by-one</td></tr>
+        <tr><td>GPO → <code>67 00</code></td><td>Sai length của PDOL data</td><td>Verify mỗi field có đúng length spec yêu cầu</td></tr>
+        <tr><td>Đọc Mastercard ra thấy AFL khác mỗi lần</td><td>Card random hóa AFL để chống fingerprinting</td><td>Bình thường — luôn parse AFL từ response, không hardcode</td></tr>
+        <tr><td><code>java.io.IOException: Transceive failed</code></td><td>Thẻ rời quá sớm hoặc APDU malformed</td><td>Wrap retry 1-2 lần, kiểm tra log APDU hex</td></tr>
+    </table>
+</div>
+
+<div class="exercise">
+    <h3>🧪 Bài tập</h3>
+    <ol>
+        <li>Implement project trên Android Studio. Test với thẻ Visa, Mastercard, JCB của bạn.</li>
+        <li>Thêm hiển thị Track 2 expiry và service code (parse riêng nibble từ Track 2 equivalent).</li>
+        <li>Khi card có nhiều AID, hiện UI cho user chọn thay vì lấy AID đầu tiên.</li>
+        <li>Thêm chống đọc lặp lại quá nhanh (debounce 1s sau khi đọc thành công).</li>
+    </ol>
+</div>
+
+<div class="success-box">
+    <h3>✅ Tóm tắt</h3>
+    <ul>
+        <li>EmvReader thực hiện đúng 4 bước: SELECT PPSE → SELECT AID → GPO → READ RECORD.</li>
+        <li>Mask PAN khi hiển thị; bật FLAG_SECURE; không lưu/log dữ liệu nhạy cảm.</li>
+        <li>Luôn parse AFL từ response — đừng hardcode SFI.</li>
+        <li>Hiểu SW phổ biến để debug nhanh.</li>
+    </ul>
+</div>
+
+    </div>
+    <div class="navigation">
+        <a href="lesson08.html" class="nav-button">&larr; Bài 08</a>
+        <a href="lesson10.html" class="nav-button primary">Bài 10 &rarr;</a>
+    </div>
+</div>
+</body>
+</html>

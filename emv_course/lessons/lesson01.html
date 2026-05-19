@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bài 01: EMV là gì? — EMV Academy</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<nav class="top-nav">
+    <div class="nav-container">
+        <a href="../index.html" class="nav-logo">💳 EMV Academy</a>
+        <div class="nav-menu">
+            <a href="../index.html">Trang chủ</a>
+            <a href="lesson01.html" class="active">01</a>
+            <a href="lesson02.html">02</a>
+            <a href="lesson03.html">03</a>
+            <a href="lesson04.html">04</a>
+            <a href="lesson05.html">05</a>
+            <a href="lesson06.html">06</a>
+            <a href="lesson07.html">07</a>
+            <a href="lesson08.html">08</a>
+            <a href="lesson09.html">09</a>
+            <a href="lesson10.html">10</a>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="lesson-header">
+        <h1>Bài 01 · EMV là gì?</h1>
+        <p class="subtitle">Bối cảnh, lịch sử, các thành phần và vai trò trong hệ sinh thái thanh toán</p>
+    </div>
+    <div class="breadcrumb">
+        <a href="../index.html">Trang chủ</a> &rsaquo; Bài 01: EMV là gì?
+    </div>
+    <div class="lesson-content">
+
+<div class="section">
+    <h2>🎯 Mục tiêu bài học</h2>
+    <ul>
+        <li>Giải thích EMV là gì, ai duy trì chuẩn này, và tại sao nó tồn tại.</li>
+        <li>Hiểu sự khác biệt giữa thẻ từ (magnetic stripe) và thẻ chip EMV.</li>
+        <li>Phân biệt 3 loại giao tiếp: contact (ISO 7816), contactless (ISO 14443), và mobile (HCE/Tokenization).</li>
+        <li>Nắm các thuật ngữ nền tảng sẽ dùng trong toàn khóa.</li>
+    </ul>
+</div>
+
+<div class="section">
+    <h2>📖 EMV — định nghĩa chính xác</h2>
+    <p><span class="keyword-highlight">EMV</span> là viết tắt của <strong>E</strong>uropay, <strong>M</strong>astercard, và <strong>V</strong>isa — ba tổ chức ban đầu cùng xây dựng chuẩn vào năm 1994. Hiện nay chuẩn được duy trì bởi <strong>EMVCo LLC</strong>, một tổ chức thuộc sở hữu của 6 thành viên: American Express, Discover, JCB, Mastercard, UnionPay, và Visa.</p>
+
+    <p>EMV không phải một sản phẩm cụ thể, mà là <strong>tập hợp các specification</strong> mô tả:</p>
+    <ul>
+        <li>Cách chip trên thẻ giao tiếp với terminal (điện học, vật lý, giao thức APDU).</li>
+        <li>Cách dữ liệu được tổ chức trong chip (file system, TLV).</li>
+        <li>Cách xác thực thẻ và chủ thẻ (SDA/DDA/CDA, PIN, signature).</li>
+        <li>Cách tạo và verify cryptogram để chống fraud.</li>
+    </ul>
+
+    <div class="info-box">
+        <h3>💡 EMV vs EMVCo</h3>
+        <p><strong>EMV</strong> = tên chuẩn. <strong>EMVCo</strong> = tổ chức duy trì chuẩn. Bạn sẽ thấy spec ghi “EMV Book 3, EMVCo 2023” — nghĩa là phiên bản 2023 của Book 3 do EMVCo công bố.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>📜 Lịch sử — vì sao EMV ra đời</h2>
+    <p>Trước EMV, gần như mọi thẻ thanh toán đều dùng <strong>magnetic stripe</strong> (dải từ ISO 7811). Dữ liệu thẻ (PAN, expiry, service code, CVV1) được mã hóa thành các bit từ tính cố định — và đây là tử huyệt:</p>
+
+    <ul>
+        <li>Dữ liệu <strong>tĩnh</strong>: chỉ cần đọc một lần là copy được toàn bộ thẻ.</li>
+        <li>Skimming device giá vài chục USD có thể clone thẻ trong vài giây.</li>
+        <li>Vào những năm 1990, fraud từ thẻ giả ở châu Âu lên hàng tỉ USD/năm.</li>
+    </ul>
+
+    <p>Năm 1994, Europay + Mastercard + Visa thống nhất viết chuẩn dùng <strong>smartcard chip</strong> theo ISO/IEC 7816 — một con chip nhỏ có CPU và bộ nhớ, có thể chạy crypto, tạo dữ liệu <em>động</em> cho mỗi giao dịch.</p>
+
+    <table>
+        <tr><th>Năm</th><th>Mốc</th></tr>
+        <tr><td>1994</td><td>Europay, Mastercard, Visa thành lập EMVCo</td></tr>
+        <tr><td>1996</td><td>EMV ’96 — phiên bản đầu tiên (v3.0)</td></tr>
+        <tr><td>2000</td><td>EMV 4.0 — thêm contactless</td></tr>
+        <tr><td>2004</td><td>EMV 4.1 — đa số ngân hàng EU triển khai</td></tr>
+        <tr><td>2011</td><td>EMVCo mở rộng: thêm JCB, Amex, China UnionPay, Discover</td></tr>
+        <tr><td>2015</td><td>Mỹ chính thức “liability shift” — bắt đầu chuyển đổi EMV</td></tr>
+        <tr><td>2024</td><td>EMV 4.4 — bản hiện hành</td></tr>
+    </table>
+
+    <div class="info-box">
+        <h3>📊 Hiệu quả EMV trong thực tế</h3>
+        <p>Theo báo cáo Visa (2023), sau khi triển khai EMV, fraud tại các merchant chấp nhận chip ở Mỹ <strong>giảm 76%</strong> so với thời kỳ magnetic stripe. Tại Anh, fraud thẻ giảm từ £505 triệu (2008) xuống £47 triệu (2012) sau khi EMV phổ cập.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>🆚 Magnetic Stripe vs EMV Chip</h2>
+
+    <div class="payment-card">
+        <div class="card-brand">VISA</div>
+        <div class="card-chip"></div>
+        <div class="card-number">4532 •••• •••• 9010</div>
+        <div class="card-info">
+            <div><span class="label">Cardholder</span>NGUYEN VAN A</div>
+            <div><span class="label">Expires</span>12/27</div>
+        </div>
+    </div>
+
+    <table>
+        <tr><th>Tiêu chí</th><th>Magnetic Stripe</th><th>EMV Chip</th></tr>
+        <tr><td>Chuẩn vật lý</td><td>ISO 7811</td><td>ISO/IEC 7816 (contact), ISO/IEC 14443 (contactless)</td></tr>
+        <tr><td>Dung lượng</td><td>~226 byte (3 tracks)</td><td>8 KB – 144 KB EEPROM</td></tr>
+        <tr><td>Bản chất dữ liệu</td><td>Tĩnh — copy được</td><td>Có khả năng tạo dữ liệu động (cryptogram)</td></tr>
+        <tr><td>Cryptography</td><td>Không có</td><td>RSA, 3DES, AES, SHA</td></tr>
+        <tr><td>Cardholder verification</td><td>Signature</td><td>Offline PIN, Online PIN, CDCVM, Signature, No CVM</td></tr>
+        <tr><td>Chống clone</td><td>Rất khó</td><td>DDA/CDA gần như không thể clone (chip có private key trong secure element)</td></tr>
+        <tr><td>Tốc độ giao dịch</td><td>~1s (swipe)</td><td>Contact: 1–3s; Contactless: &lt;500ms</td></tr>
+    </table>
+
+    <div class="warning-box">
+        <h3>⚠️ Vì sao chip không thể clone?</h3>
+        <p>Chip EMV có <strong>private key RSA</strong> (1024–2048 bit) được fuse cứng vào secure element ngay từ nhà máy. Không một câu lệnh APDU nào có thể đọc ra khóa này. Để giao dịch, chip <em>ký</em> dữ liệu bằng khóa, terminal <em>verify</em> bằng public key — kẻ tấn công nghe lén được signature cũng không tái tạo được khóa.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>🔌 Ba kiểu giao tiếp</h2>
+
+    <h3>1. Contact (Tiếp xúc) — ISO/IEC 7816</h3>
+    <p>Thẻ phải được <strong>cắm</strong> vào reader. Reader cấp nguồn (Vcc 3V/5V) và clock cho chip qua 8 điểm tiếp xúc bằng vàng. Sau khi cấp nguồn, chip trả về <span class="keyword-highlight">ATR</span> (Answer To Reset) — chuỗi byte mô tả chip hỗ trợ giao thức nào (T=0 hoặc T=1), tốc độ baud, v.v.</p>
+
+    <h3>2. Contactless (Không tiếp xúc) — ISO/IEC 14443</h3>
+    <p>Thẻ chỉ cần <strong>chạm</strong> hoặc đưa lại gần (&lt;4 cm) reader. Truyền dữ liệu bằng sóng RF <strong>13.56 MHz</strong>. Chuẩn 14443 có hai biến thể: Type A (NXP Mifare, JCB, Visa payWave một số) và Type B (American Express ExpressPay, một số Visa). Sau khi thẻ "wake up" (REQA/REQB), kết nối được nâng lên giao thức APDU giống contact.</p>
+
+    <h3>3. Mobile — HCE & Tokenization</h3>
+    <p>Apple Pay / Google Pay không gửi PAN thật qua NFC. Thay vào đó, ngân hàng cấp một <strong>DPAN</strong> (Device PAN — một token 16 chữ số khác) cho thiết bị. Mỗi giao dịch tạo cryptogram bằng key của token, gửi qua mạng cùng DPAN. Token Service Provider (Visa Token Service, Mastercard MDES) sẽ map DPAN → PAN thật. Toàn bộ vẫn tuân chuẩn EMV (gọi là <em>EMV Payment Tokenisation Specification</em>).</p>
+
+    <div class="info-box">
+        <h3>📱 Vì sao Android có thể làm thẻ?</h3>
+        <p>Android 4.4+ hỗ trợ <strong>HCE</strong> (Host Card Emulation). App của bạn đăng ký AID, khi user chạm POS, hệ thống route APDU từ POS lên app — app trả lời như một thẻ thật. Đây là cơ chế đằng sau Google Pay.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>🏗️ Các bên trong một giao dịch EMV</h2>
+    <div class="flow-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+            <h4>Cardholder</h4>
+            <p>Chủ thẻ — sở hữu thẻ và thực hiện giao dịch.</p>
+        </div>
+    </div>
+    <div class="flow-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+            <h4>Card / Token (ICC)</h4>
+            <p><strong>ICC</strong> = Integrated Circuit Card. Chip có hệ điều hành (Java Card, MULTOS…), chứa các application Visa/Mastercard/…</p>
+        </div>
+    </div>
+    <div class="flow-step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+            <h4>Terminal (POS/ATM)</h4>
+            <p>Thiết bị chấp nhận thẻ. Chạy phần mềm gọi là <strong>EMV kernel</strong> (mỗi network có kernel riêng: Visa = Kernel 3, Mastercard = Kernel 2…).</p>
+        </div>
+    </div>
+    <div class="flow-step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+            <h4>Acquirer</h4>
+            <p>Ngân hàng của merchant. Nhận yêu cầu authorization từ POS, route đến network.</p>
+        </div>
+    </div>
+    <div class="flow-step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+            <h4>Payment Network</h4>
+            <p>Visa/Mastercard/JCB/UnionPay/Amex. Là “xa lộ” trung gian giữa acquirer và issuer.</p>
+        </div>
+    </div>
+    <div class="flow-step">
+        <div class="step-number">6</div>
+        <div class="step-content">
+            <h4>Issuer</h4>
+            <p>Ngân hàng phát hành thẻ. Là bên cuối cùng quyết định approve/decline dựa trên số dư, hạn mức, cryptogram.</p>
+        </div>
+    </div>
+</div>
+
+<div class="term-box">
+    <h3>📘 Thuật ngữ bài này</h3>
+    <dl>
+        <dt>EMV</dt>
+        <dd>Tập specification mô tả chuẩn giao tiếp giữa chip thẻ và terminal, do EMVCo phát hành.</dd>
+
+        <dt>EMVCo</dt>
+        <dd>Tổ chức (LLC) đồng sở hữu bởi Amex, Discover, JCB, Mastercard, UnionPay, Visa, duy trì spec EMV.</dd>
+
+        <dt>ICC</dt>
+        <dd>Integrated Circuit Card — thuật ngữ chính thức của chip thẻ trong spec.</dd>
+
+        <dt>ATR</dt>
+        <dd>Answer To Reset — chuỗi byte chip trả về ngay sau khi được cấp nguồn (contact card), mô tả khả năng của chip. Định nghĩa ở ISO/IEC 7816-3.</dd>
+
+        <dt>PAN</dt>
+        <dd>Primary Account Number — số thẻ (thường 13–19 chữ số), tag EMV <code>5A</code>.</dd>
+
+        <dt>HCE</dt>
+        <dd>Host Card Emulation — cơ chế của Android cho phép app đóng vai trò một thẻ contactless.</dd>
+
+        <dt>Tokenization</dt>
+        <dd>Thay PAN thật bằng một số khác (token / DPAN) trong quá trình thanh toán, nhằm bảo vệ PAN thật. Chuẩn: <em>EMV Payment Tokenisation Specification</em>.</dd>
+
+        <dt>Kernel</dt>
+        <dd>Phần mềm trên terminal thực thi flow EMV. Mỗi network có một hoặc nhiều kernel: C-2 (Mastercard PayPass), C-3 (Visa payWave), C-4 (Amex), C-5 (JCB), C-6 (Discover), C-7 (UnionPay).</dd>
+
+        <dt>Issuer / Acquirer</dt>
+        <dd>Issuer = ngân hàng phát hành thẻ. Acquirer = ngân hàng của merchant.</dd>
+    </dl>
+</div>
+
+<div class="exercise">
+    <h3>🧪 Bài tập</h3>
+    <ol>
+        <li>Mở ví của bạn, đếm xem có bao nhiêu thẻ. Thẻ nào có chip vàng, thẻ nào chỉ có dải từ?</li>
+        <li>Tìm biểu tượng sóng wifi nằm ngang )))) trên thẻ — đó là chỉ báo thẻ contactless.</li>
+        <li>Tra cứu: ngân hàng phát hành thẻ của bạn là issuer của network nào (Visa, Mastercard, JCB, NAPAS)?</li>
+        <li>Đọc nhanh EMVCo Book 1 mục “Scope” (free download tại emvco.com) để làm quen ngôn ngữ spec.</li>
+    </ol>
+</div>
+
+<div class="success-box">
+    <h3>✅ Tóm tắt</h3>
+    <ul>
+        <li>EMV là tập specification (do EMVCo phát hành) chuẩn hóa giao tiếp giữa chip thẻ và terminal.</li>
+        <li>Ra đời 1994 để chống fraud của thẻ từ; hiện đã trở thành chuẩn toàn cầu.</li>
+        <li>Có 3 hình thức giao tiếp: contact (ISO 7816), contactless (ISO 14443), mobile (HCE + Tokenization).</li>
+        <li>Một giao dịch có 6 vai trò: cardholder, card, terminal, acquirer, network, issuer.</li>
+    </ul>
+</div>
+
+    </div>
+    <div class="navigation">
+        <a href="../index.html" class="nav-button">&larr; Trang chủ</a>
+        <a href="lesson02.html" class="nav-button primary">Bài 02 &rarr;</a>
+    </div>
+</div>
+</body>
+</html>

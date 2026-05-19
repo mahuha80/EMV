@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EMV Academy — Giáo trình EMV cho Android Developer</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<nav class="top-nav">
+    <div class="nav-container">
+        <a href="index.html" class="nav-logo">💳 EMV Academy</a>
+        <div class="nav-menu">
+            <a href="index.html">Trang chủ</a>
+            <a href="lessons/lesson01.html">01</a>
+            <a href="lessons/lesson02.html">02</a>
+            <a href="lessons/lesson03.html">03</a>
+            <a href="lessons/lesson04.html">04</a>
+            <a href="lessons/lesson05.html">05</a>
+            <a href="lessons/lesson06.html">06</a>
+            <a href="lessons/lesson07.html">07</a>
+            <a href="lessons/lesson08.html">08</a>
+            <a href="lessons/lesson09.html">09</a>
+            <a href="lessons/lesson10.html">10</a>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <header>
+        <h1>💳 EMV Academy</h1>
+        <p>Giáo trình EMV chuyên sâu dành cho lập trình viên Android</p>
+    </header>
+    <div class="content">
+
+<div class="info-box">
+    <h3>👋 Chào mừng đến với EMV Academy</h3>
+    <p>Khóa học này hướng dẫn bạn — một <strong>lập trình viên Android</strong> chưa có nền tảng về thanh toán — từng bước làm chủ chuẩn <strong>EMV</strong> (Europay-Mastercard-Visa): chuẩn toàn cầu cho thẻ thanh toán có chip mà gần như mọi POS, ATM, mobile wallet ngày nay đều tuân theo.</p>
+    <p>Tài liệu tham chiếu chính: <strong>EMV Integrated Circuit Card Specifications for Payment Systems v4.4 (EMVCo)</strong>, gồm 4 quyển (Book 1-4) và <strong>EMV Contactless Specifications (kernel C-1 đến C-8)</strong>.</p>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-box"><div class="stat-value">10</div><div class="stat-label">Bài học</div></div>
+    <div class="stat-box"><div class="stat-value">4</div><div class="stat-label">EMV Books tham chiếu</div></div>
+    <div class="stat-box"><div class="stat-value">100%</div><div class="stat-label">Theo spec EMVCo</div></div>
+    <div class="stat-box"><div class="stat-value">Kotlin</div><div class="stat-label">Code Android</div></div>
+</div>
+
+<div class="section">
+    <h2>📚 Nội dung khóa học</h2>
+    <div class="lesson-grid">
+        <a href="lessons/lesson01.html" class="lesson-card">
+            <span class="lesson-number">BÀI 01</span>
+            <h3>EMV là gì?</h3>
+            <p>Lịch sử, vai trò của EMVCo, so sánh chip vs magnetic stripe, contact vs contactless.</p>
+        </a>
+        <a href="lessons/lesson02.html" class="lesson-card">
+            <span class="lesson-number">BÀI 02</span>
+            <h3>Kiến trúc thẻ EMV</h3>
+            <p>ISO/IEC 7816, ATR, file system (MF/DF/EF), AID, PSE/PPSE.</p>
+        </a>
+        <a href="lessons/lesson03.html" class="lesson-card">
+            <span class="lesson-number">BÀI 03</span>
+            <h3>Transaction Flow</h3>
+            <p>8 bước transaction theo EMV Book 3, online vs offline, cryptogram (TC/ARQC/AAC).</p>
+        </a>
+        <a href="lessons/lesson04.html" class="lesson-card">
+            <span class="lesson-number">BÀI 04</span>
+            <h3>APDU Commands</h3>
+            <p>ISO 7816-4: cấu trúc C-APDU/R-APDU, status words, SELECT/GPO/READ RECORD/GENERATE AC.</p>
+        </a>
+        <a href="lessons/lesson05.html" class="lesson-card">
+            <span class="lesson-number">BÀI 05</span>
+            <h3>BER-TLV & EMV Tags</h3>
+            <p>Cấu trúc BER-TLV (ISO 7816-4 / ASN.1), tag encoding, danh sách tag EMV phổ biến.</p>
+        </a>
+        <a href="lessons/lesson06.html" class="lesson-card">
+            <span class="lesson-number">BÀI 06</span>
+            <h3>Cryptography trong EMV</h3>
+            <p>RSA, 3DES, AES, SHA, MAC; key hierarchy CA / Issuer / ICC; session key.</p>
+        </a>
+        <a href="lessons/lesson07.html" class="lesson-card">
+            <span class="lesson-number">BÀI 07</span>
+            <h3>Offline Data Authentication</h3>
+            <p>SDA, DDA, CDA — cơ chế chống clone thẻ, verify certificate chain.</p>
+        </a>
+        <a href="lessons/lesson08.html" class="lesson-card">
+            <span class="lesson-number">BÀI 08</span>
+            <h3>Android NFC + EMV</h3>
+            <p>NfcAdapter, IsoDep, foreground dispatch, gửi APDU bằng Kotlin.</p>
+        </a>
+        <a href="lessons/lesson09.html" class="lesson-card">
+            <span class="lesson-number">BÀI 09</span>
+            <h3>Demo: Đọc thẻ thật</h3>
+            <p>Project Android hoàn chỉnh: SELECT PPSE → SELECT AID → GPO → READ RECORD → parse TLV.</p>
+        </a>
+        <a href="lessons/lesson10.html" class="lesson-card">
+            <span class="lesson-number">BÀI 10</span>
+            <h3>Bảo mật & PCI DSS</h3>
+            <p>PCI DSS v4.0, dữ liệu nào được/không được lưu, tokenization, best practices.</p>
+        </a>
+    </div>
+</div>
+
+<div class="section">
+    <h2>🎯 Sau khóa học bạn sẽ</h2>
+    <ul>
+        <li>Hiểu rõ một giao dịch EMV diễn ra như thế nào, từ lúc chạm thẻ đến lúc nhận được approval từ ngân hàng.</li>
+        <li>Đọc hiểu mọi APDU response của thẻ EMV (Visa, Mastercard, JCB, UnionPay…).</li>
+        <li>Tự viết được Android app sử dụng NFC để đọc các thông tin <em>không nhạy cảm</em> trên thẻ.</li>
+        <li>Biết được giới hạn pháp lý/PCI DSS: cái gì được phép, cái gì không.</li>
+    </ul>
+</div>
+
+<div class="warning-box">
+    <h3>⚠️ Tuyên bố pháp lý</h3>
+    <p>Khóa học chỉ dành cho mục đích <strong>giáo dục</strong>. Mọi thao tác đọc thẻ phải thực hiện trên thẻ <strong>của chính bạn</strong>. Tuyệt đối không lưu trữ PAN đầy đủ, không cố gắng giải mã PIN/CVV — đây là vi phạm PCI DSS và luật pháp.</p>
+</div>
+
+    </div>
+</div>
+</body>
+</html>

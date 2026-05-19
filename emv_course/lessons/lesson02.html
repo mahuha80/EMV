@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bài 02: Kiến trúc thẻ EMV — EMV Academy</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<nav class="top-nav">
+    <div class="nav-container">
+        <a href="../index.html" class="nav-logo">💳 EMV Academy</a>
+        <div class="nav-menu">
+            <a href="../index.html">Trang chủ</a>
+            <a href="lesson01.html">01</a>
+            <a href="lesson02.html" class="active">02</a>
+            <a href="lesson03.html">03</a>
+            <a href="lesson04.html">04</a>
+            <a href="lesson05.html">05</a>
+            <a href="lesson06.html">06</a>
+            <a href="lesson07.html">07</a>
+            <a href="lesson08.html">08</a>
+            <a href="lesson09.html">09</a>
+            <a href="lesson10.html">10</a>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="lesson-header">
+        <h1>Bài 02 · Kiến trúc thẻ EMV</h1>
+        <p class="subtitle">Phần cứng chip, ISO 7816-4 file system, AID, PSE & PPSE</p>
+    </div>
+    <div class="breadcrumb">
+        <a href="../index.html">Trang chủ</a> &rsaquo; Bài 02: Kiến trúc thẻ EMV
+    </div>
+    <div class="lesson-content">
+
+<div class="section">
+    <h2>🎯 Mục tiêu bài học</h2>
+    <ul>
+        <li>Hiểu kiến trúc phần cứng và phần mềm của một chip EMV.</li>
+        <li>Hiểu file system theo ISO/IEC 7816-4: MF, DF, EF.</li>
+        <li>Phân biệt AID, RID, PIX và biết AID của các network lớn.</li>
+        <li>Hiểu vai trò của PSE và PPSE trong việc application selection.</li>
+    </ul>
+</div>
+
+<div class="section">
+    <h2>🔬 Phần cứng chip</h2>
+    <p>Chip EMV thực chất là một <strong>microcontroller</strong> (gọi là <em>secure microcontroller</em> hay <em>secure element</em>), thường được sản xuất bởi NXP, Infineon, STMicroelectronics, Samsung, IDEMIA. Cấu trúc điển hình:</p>
+
+    <table>
+        <tr><th>Khối</th><th>Vai trò</th><th>Dung lượng tham khảo</th></tr>
+        <tr><td>CPU</td><td>Thực thi OS và application (Java Card / MULTOS)</td><td>8-bit, 16-bit hoặc 32-bit ARM SC000/SC300</td></tr>
+        <tr><td>ROM</td><td>Chứa OS, không thay đổi được</td><td>128 – 512 KB</td></tr>
+        <tr><td>EEPROM / Flash</td><td>Chứa application và dữ liệu cá nhân hóa</td><td>72 – 144 KB</td></tr>
+        <tr><td>RAM</td><td>Bộ nhớ làm việc tạm thời</td><td>4 – 16 KB</td></tr>
+        <tr><td>Crypto co-processor</td><td>Tăng tốc RSA, AES, DES, SHA, ECC</td><td>RSA tới 4096-bit, ECC tới 521-bit</td></tr>
+        <tr><td>True RNG</td><td>Tạo số ngẫu nhiên cho cryptogram</td><td>Hardware-based</td></tr>
+    </table>
+
+    <div class="info-box">
+        <h3>🔐 Vì sao gọi là "secure element"?</h3>
+        <p>Chip được thiết kế chống tấn công vật lý: side-channel (đo điện năng, đo thời gian), fault injection (laser, glitch điện áp), micro-probing. Sản phẩm phải được chứng nhận <strong>Common Criteria EAL4+ / EAL5+</strong> hoặc <strong>EMVCo Security Evaluation</strong> trước khi được phép phát hành thẻ thật.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>💿 ATR — Answer To Reset</h2>
+    <p>Với contact card, ngay sau khi terminal cấp nguồn (reset), chip phải gửi về <strong>ATR</strong> trong vòng 400 – 40000 clock cycle (ISO/IEC 7816-3). ATR mô tả: chip dùng giao thức T=0 hay T=1, tốc độ, mã quốc gia của nhà sản xuất…</p>
+
+    <div class="code-block"><span class="comment">// Ví dụ ATR thực tế của một thẻ Visa contact</span>
+<span class="hex">3B 6E 00 00 80 31 80 66 B0 84 0C 01 6E 01 83 00 90 00</span>
+
+<span class="comment">// Phân rã:</span>
+3B            <span class="comment">// TS  - direct convention</span>
+6E            <span class="comment">// T0  - có TB1, TC1, TD1, và 14 byte historical</span>
+00 00         <span class="comment">// TB1, TC1</span>
+80            <span class="comment">// TD1 - giao thức T=0</span>
+31 80 66 B0 84 0C 01 6E 01 83 00 90 00  <span class="comment">// Historical bytes (chứa thông tin chip)</span></div>
+
+    <p>Với contactless, không có ATR mà có <strong>ATS</strong> (Answer To Select, ISO 14443-4) — tương tự nhưng cho RF.</p>
+</div>
+
+<div class="section">
+    <h2>📁 File system (ISO/IEC 7816-4)</h2>
+    <p>Bên trong chip, dữ liệu được tổ chức theo <strong>file system phân cấp</strong> giống như Unix:</p>
+
+    <h3>Ba loại file</h3>
+    <table>
+        <tr><th>Loại</th><th>Tên đầy đủ</th><th>Tương tự Unix</th><th>Mô tả</th></tr>
+        <tr><td><strong>MF</strong></td><td>Master File</td><td><code>/</code> (root)</td><td>File gốc, mỗi chip có đúng 1 MF. File ID cố định <code>3F00</code>.</td></tr>
+        <tr><td><strong>DF</strong></td><td>Dedicated File</td><td>Folder</td><td>Thư mục chứa application. Mỗi DF có một AID để chọn nó.</td></tr>
+        <tr><td><strong>EF</strong></td><td>Elementary File</td><td>File</td><td>File chứa dữ liệu thực. Có 4 cấu trúc: Transparent, Linear Fixed, Linear Variable, Cyclic.</td></tr>
+        <tr><td><strong>ADF</strong></td><td>Application DF</td><td>Folder app</td><td>DF đặc biệt — chứa toàn bộ một payment application (Visa, Mastercard…).</td></tr>
+    </table>
+
+    <h3>SFI — Short File Identifier</h3>
+    <p><span class="keyword-highlight">SFI</span> là số 1–30 (5 bit) dùng để tham chiếu một EF <em>bên trong</em> ADF hiện hành mà không cần đường dẫn đầy đủ. EMV dùng SFI rất nhiều: mọi file dữ liệu của application đều được locate bằng <code>(SFI, record number)</code>.</p>
+
+    <div class="diagram"><pre>
+                          ┌─────────────────┐
+                          │  MF (3F00)      │
+                          │   /             │
+                          └────────┬────────┘
+            ┌──────────────────────┼──────────────────────┐
+            ▼                      ▼                      ▼
+   ┌────────────────┐    ┌────────────────┐    ┌────────────────┐
+   │  DF: PSE       │    │  ADF: Visa     │    │  ADF: MC       │
+   │  1PAY.SYS.DDF01│    │ A0000000031010 │    │ A0000000041010 │
+   └────────┬───────┘    └────────┬───────┘    └────────┬───────┘
+            │                      │                      │
+            ▼                      ▼                      ▼
+        EF (FCI            EFs (SFI 1-30):           EFs (SFI 1-30):
+        Directory)         - PAN, Expiry              - PAN, Expiry
+                           - CVM List                 - CVM List
+                           - Card keys                - Card keys
+                           - Transaction log          - Transaction log
+    </pre></div>
+</div>
+
+<div class="section">
+    <h2>🆔 AID — Application Identifier</h2>
+    <p>Mỗi payment application trên chip có một <strong>AID</strong> dài 5–16 byte (theo ISO/IEC 7816-5).</p>
+
+    <div class="code-block"><span class="comment">// Cấu trúc AID = RID (5 byte) + PIX (0 – 11 byte)</span>
+
+<span class="hex">A0 00 00 00 03</span>  <span class="hex">10 10</span>
+└─── RID ────┘  └─PIX─┘
+   Visa Inc.    Credit/Debit</div>
+
+    <h3>RID — Registered Application Provider Identifier</h3>
+    <p>5 byte, cấp bởi ISO. Mỗi tổ chức payment có một RID:</p>
+
+    <table>
+        <tr><th>RID</th><th>Tổ chức</th></tr>
+        <tr><td><code>A000000003</code></td><td>Visa International</td></tr>
+        <tr><td><code>A000000004</code></td><td>Mastercard International</td></tr>
+        <tr><td><code>A000000025</code></td><td>American Express</td></tr>
+        <tr><td><code>A000000065</code></td><td>JCB Co., Ltd.</td></tr>
+        <tr><td><code>A000000152</code></td><td>Discover Financial Services</td></tr>
+        <tr><td><code>A000000333</code></td><td>China UnionPay</td></tr>
+        <tr><td><code>A000000524</code></td><td>NAPAS (Việt Nam)</td></tr>
+    </table>
+
+    <h3>PIX — Proprietary Application Identifier Extension</h3>
+    <p>0–11 byte do mỗi tổ chức tự định nghĩa, dùng để phân biệt sản phẩm.</p>
+
+    <h3>AID của các sản phẩm phổ biến</h3>
+    <table>
+        <tr><th>AID</th><th>Application</th></tr>
+        <tr><td><code>A0000000031010</code></td><td>Visa Credit or Debit</td></tr>
+        <tr><td><code>A0000000032010</code></td><td>Visa Electron</td></tr>
+        <tr><td><code>A0000000033010</code></td><td>Visa Interlink</td></tr>
+        <tr><td><code>A0000000038010</code></td><td>Visa Plus</td></tr>
+        <tr><td><code>A0000000041010</code></td><td>Mastercard Credit or Debit</td></tr>
+        <tr><td><code>A0000000043060</code></td><td>Maestro</td></tr>
+        <tr><td><code>A00000002501</code></td><td>American Express</td></tr>
+        <tr><td><code>A0000000651010</code></td><td>JCB</td></tr>
+        <tr><td><code>A000000333010101</code></td><td>UnionPay Debit</td></tr>
+        <tr><td><code>A000000333010102</code></td><td>UnionPay Credit</td></tr>
+        <tr><td><code>A0000005241010</code></td><td>NAPAS (thẻ chip nội địa Việt Nam)</td></tr>
+    </table>
+
+    <div class="warning-box">
+        <h3>⚠️ Một thẻ có thể chứa nhiều AID</h3>
+        <p>Thẻ "dual interface" của Vietcombank chẳng hạn có thể chứa cùng lúc <code>A0000000031010</code> (Visa) và <code>A0000005241010</code> (NAPAS) — terminal tự chọn cái phù hợp dựa trên priority.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>📚 PSE & PPSE — Cơ chế Application Selection</h2>
+
+    <h3>PSE — Payment System Environment (contact)</h3>
+    <p>Theo EMV Book 1, mọi thẻ contact phải chứa một DF tên là <strong>PSE</strong> với DF Name cố định:</p>
+    <div class="code-block">DF Name (ASCII):  <span class="string">"1PAY.SYS.DDF01"</span>
+DF Name (hex):    <span class="hex">31 50 41 59 2E 53 59 53 2E 44 44 46 30 31</span>  <span class="comment">// 14 byte</span></div>
+
+    <p>Bên trong PSE là một EF tên là “Payment System Directory” (SFI 1, mặc định) chứa <strong>danh sách AID</strong> mà thẻ hỗ trợ, kèm priority và label.</p>
+
+    <h3>PPSE — Proximity Payment System Environment (contactless)</h3>
+    <p>Tương đương với PSE nhưng cho contactless. DF Name:</p>
+    <div class="code-block">DF Name (ASCII):  <span class="string">"2PAY.SYS.DDF01"</span>
+DF Name (hex):    <span class="hex">32 50 41 59 2E 53 59 53 2E 44 44 46 30 31</span>  <span class="comment">// 14 byte</span></div>
+
+    <p>Đây là <em>điểm bắt đầu</em> của mọi giao dịch contactless: terminal gửi <code>SELECT 2PAY.SYS.DDF01</code> để hỏi thẻ “bạn có những app nào?”.</p>
+
+    <div class="info-box">
+        <h3>🔢 ASCII → hex như nào?</h3>
+        <p>Mỗi ký tự ASCII chiếm 1 byte. Ví dụ: '1' = <code>0x31</code>, 'P' = <code>0x50</code>, 'A' = <code>0x41</code>, 'Y' = <code>0x59</code>, '.' = <code>0x2E</code>. Bạn có thể verify bằng lệnh <code>echo -n "1PAY.SYS.DDF01" | xxd</code>.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>🗂️ Dữ liệu trong một ADF</h2>
+    <p>Khi terminal SELECT một AID (ví dụ <code>A0000000031010</code>), thẻ trả về <strong>FCI</strong> (File Control Information) gồm:</p>
+    <ul>
+        <li><code>50</code> Application Label — tên hiển thị: "VISA CREDIT"</li>
+        <li><code>87</code> Application Priority Indicator</li>
+        <li><code>5F2D</code> Language Preference</li>
+        <li><code>9F12</code> Application Preferred Name</li>
+        <li><code>9F38</code> PDOL — Processing Options Data Object List (danh sách dữ liệu terminal phải gửi trong GPO ở bước sau)</li>
+    </ul>
+
+    <p>Các EF chứa dữ liệu cá nhân hóa (PAN, expiry, CVM list, key…) được locate bằng <strong>AFL</strong> (Application File Locator, tag <code>94</code>) trả về sau lệnh GPO ở bài 3.</p>
+
+    <div class="term-box">
+        <h3>📘 Thuật ngữ bài này</h3>
+        <dl>
+            <dt>MF / DF / EF / ADF</dt>
+            <dd>Master File / Dedicated File / Elementary File / Application DF — theo ISO/IEC 7816-4.</dd>
+
+            <dt>SFI</dt>
+            <dd>Short File Identifier — số 1–30 tham chiếu EF trong ADF hiện hành.</dd>
+
+            <dt>ATR / ATS</dt>
+            <dd>Answer To Reset (contact, ISO 7816-3) / Answer To Select (contactless, ISO 14443-4).</dd>
+
+            <dt>AID</dt>
+            <dd>Application Identifier — 5–16 byte định danh application. = RID + PIX.</dd>
+
+            <dt>RID</dt>
+            <dd>Registered Application Provider Identifier — 5 byte do ISO cấp.</dd>
+
+            <dt>PIX</dt>
+            <dd>Proprietary Identifier Extension — 0–11 byte do provider tự định nghĩa.</dd>
+
+            <dt>PSE</dt>
+            <dd>Payment System Environment — DF với DF Name "1PAY.SYS.DDF01", cho contact.</dd>
+
+            <dt>PPSE</dt>
+            <dd>Proximity Payment System Environment — DF với DF Name "2PAY.SYS.DDF01", cho contactless. Là entry point của mọi giao dịch tap-to-pay.</dd>
+
+            <dt>FCI</dt>
+            <dd>File Control Information — template <code>6F</code> chứa metadata của DF/ADF, trả về trong R-APDU của SELECT.</dd>
+
+            <dt>PDOL</dt>
+            <dd>Processing Options Data Object List — tag <code>9F38</code> trong FCI, liệt kê các tag mà terminal phải gửi trong lệnh GPO.</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="exercise">
+    <h3>🧪 Bài tập</h3>
+    <ol>
+        <li>Chuyển chuỗi "2PAY.SYS.DDF01" sang hex (bạn sẽ dùng nó rất nhiều ở các bài sau).</li>
+        <li>Giải mã AID <code>A0000000043060</code> — đó là application gì? (gợi ý: tra bảng RID + PIX).</li>
+        <li>Vẽ file tree cho một thẻ chứa cả Visa và NAPAS.</li>
+        <li>Tải EMV Book 1 phần “Application Selection” (mục 12), đọc lướt để thấy spec mô tả PPSE chính xác như thế nào.</li>
+    </ol>
+</div>
+
+<div class="success-box">
+    <h3>✅ Tóm tắt</h3>
+    <ul>
+        <li>Chip EMV là secure microcontroller có CPU, ROM, EEPROM, RAM, crypto co-processor.</li>
+        <li>Dữ liệu tổ chức theo file system ISO 7816-4: MF → DF/ADF → EF, EF được tham chiếu bằng SFI.</li>
+        <li>Mỗi application có AID = RID (5 byte do ISO cấp) + PIX (do provider định nghĩa).</li>
+        <li>PSE ("1PAY.SYS.DDF01") cho contact, PPSE ("2PAY.SYS.DDF01") cho contactless — là entry point để terminal liệt kê AID có sẵn.</li>
+    </ul>
+</div>
+
+    </div>
+    <div class="navigation">
+        <a href="lesson01.html" class="nav-button">&larr; Bài 01</a>
+        <a href="lesson03.html" class="nav-button primary">Bài 03 &rarr;</a>
+    </div>
+</div>
+</body>
+</html>

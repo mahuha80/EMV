@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bài 05: BER-TLV & EMV Tags — EMV Academy</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<nav class="top-nav">
+    <div class="nav-container">
+        <a href="../index.html" class="nav-logo">💳 EMV Academy</a>
+        <div class="nav-menu">
+            <a href="../index.html">Trang chủ</a>
+            <a href="lesson01.html">01</a>
+            <a href="lesson02.html">02</a>
+            <a href="lesson03.html">03</a>
+            <a href="lesson04.html">04</a>
+            <a href="lesson05.html" class="active">05</a>
+            <a href="lesson06.html">06</a>
+            <a href="lesson07.html">07</a>
+            <a href="lesson08.html">08</a>
+            <a href="lesson09.html">09</a>
+            <a href="lesson10.html">10</a>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="lesson-header">
+        <h1>Bài 05 · BER-TLV & EMV Tags</h1>
+        <p class="subtitle">BER-TLV theo ISO 7816-4 / ASN.1 BER và danh sách tag EMV thông dụng</p>
+    </div>
+    <div class="breadcrumb">
+        <a href="../index.html">Trang chủ</a> &rsaquo; Bài 05: BER-TLV & EMV Tags
+    </div>
+    <div class="lesson-content">
+
+<div class="section">
+    <h2>🎯 Mục tiêu bài học</h2>
+    <ul>
+        <li>Hiểu BER-TLV theo ISO/IEC 7816-4 (subset của ASN.1 BER).</li>
+        <li>Phân biệt primitive tag vs constructed tag, biết cách encode tag 1-, 2-, 3- byte.</li>
+        <li>Biết encode length (short form, long form).</li>
+        <li>Thuộc bảng tag EMV thông dụng và biết tra cứu trong EMV Book 3 Annex A.</li>
+        <li>Viết được TLV parser bằng Kotlin.</li>
+    </ul>
+</div>
+
+<div class="section">
+    <h2>📦 BER-TLV là gì?</h2>
+    <p><strong>TLV</strong> = Tag – Length – Value. Mọi dữ liệu EMV được serialize bằng BER-TLV. "BER" = <em>Basic Encoding Rules</em>, là một quy tắc encoding của ASN.1 (ISO/IEC 8825-1). EMV dùng <strong>subset</strong> của BER (giới hạn ở ISO/IEC 7816-4).</p>
+
+    <div class="diagram"><pre>
+┌──────────┬──────────┬──────────────────┐
+│   Tag    │  Length  │      Value       │
+│  1-3 B   │  1-3 B*  │   0 – 65535 B    │
+└──────────┴──────────┴──────────────────┘
+   * EMV không dùng extended length > 3 bytes
+    </pre></div>
+</div>
+
+<div class="section">
+    <h2>🔍 Tag encoding</h2>
+    <p>Tag là <strong>1, 2 hoặc 3 byte</strong>. Byte đầu tiên có ý nghĩa đặc biệt:</p>
+
+    <div class="diagram"><pre>
+Byte 1 của tag:
+┌──────┬──────┬──────────────────────┐
+│ b8b7 │  b6  │       b5 b4 b3 b2 b1 │
+└──────┴──────┴──────────────────────┘
+  class  P/C        tag number (5 bit)
+
+Class (b8 b7):
+  00 = Universal
+  01 = Application      ← EMV dùng chủ yếu
+  10 = Context-specific
+  11 = Private          ← EMV cũng dùng
+
+P/C (b6):
+  0 = Primitive (value là raw data)
+  1 = Constructed (value chứa TLV khác)
+
+Tag number (b5..b1):
+  Nếu khác 11111 (31) → tag là 1 byte
+  Nếu  = 11111         → tag là multi-byte, các byte tiếp theo
+                        có b8 = 1 cho byte trung gian,
+                        b8 = 0 cho byte cuối.
+    </pre></div>
+
+    <h3>Ví dụ phân tích</h3>
+    <table>
+        <tr><th>Tag (hex)</th><th>Binary byte 1</th><th>Class</th><th>P/C</th><th>Số byte</th><th>Ghi chú</th></tr>
+        <tr><td><code>5A</code></td><td>0101 1010</td><td>Application</td><td>Primitive</td><td>1</td><td>PAN</td></tr>
+        <tr><td><code>5F 24</code></td><td>0101 1111</td><td>Application</td><td>Primitive</td><td>2</td><td>tag number = 11111 → byte tiếp = 0x24 = 36</td></tr>
+        <tr><td><code>70</code></td><td>0111 0000</td><td>Application</td><td>Constructed</td><td>1</td><td>Record Template</td></tr>
+        <tr><td><code>9F 02</code></td><td>1001 1111</td><td>Context-specific</td><td>Primitive</td><td>2</td><td>Amount Authorized</td></tr>
+        <tr><td><code>BF 0C</code></td><td>1011 1111</td><td>Context-specific</td><td>Constructed</td><td>2</td><td>FCI Issuer Discretionary Data</td></tr>
+    </table>
+
+    <div class="info-box">
+        <h3>💡 Quy tắc nhớ nhanh</h3>
+        <ul>
+            <li>Tag bắt đầu với <code>0x9F</code> → 2 byte, primitive.</li>
+            <li>Tag bắt đầu với <code>0x5F</code> → 2 byte, primitive.</li>
+            <li>Tag bắt đầu với <code>0xBF</code> → 2 byte, constructed.</li>
+            <li>Mọi tag khác (<code>5A</code>, <code>70</code>, <code>82</code>...) → 1 byte.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="section">
+    <h2>📏 Length encoding</h2>
+
+    <h3>Short form (1 byte)</h3>
+    <p>Nếu length ≤ 127 → 1 byte, value chính là length.</p>
+    <div class="code-block">Length = 8       →  <span class="hex">08</span>
+Length = 127     →  <span class="hex">7F</span></div>
+
+    <h3>Long form (2-3 byte)</h3>
+    <p>Byte đầu có dạng <code>10000NNN</code>, trong đó NNN = số byte tiếp theo chứa length thực.</p>
+    <div class="code-block">Length = 128     →  <span class="hex">81 80</span>
+Length = 200     →  <span class="hex">81 C8</span>
+Length = 256     →  <span class="hex">82 01 00</span>
+Length = 500     →  <span class="hex">82 01 F4</span></div>
+
+    <div class="warning-box">
+        <h3>⚠️ Chú ý</h3>
+        <p>Length encoding tuân chuẩn DER (definite, shortest form). <code>00</code> = "length là 0, value rỗng" — hợp lệ. Length <code>80</code> trong BER chuẩn nghĩa là "indefinite" — <strong>không được dùng trong EMV</strong>.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>🪆 TLV lồng nhau (constructed)</h2>
+    <p>Khi tag là constructed (bit b6 = 1), value <em>tự nó</em> là chuỗi TLV con. Ví dụ FCI:</p>
+
+    <div class="code-block"><span class="hex">6F 1A
+   84 07 A0 00 00 00 03 10 10
+   A5 0F
+      50 04 56 49 53 41
+      87 01 01
+      5F 2D 02 65 6E</span>
+
+<span class="comment">// 6F (constructed) length 1A (26 byte). Value chứa:
+//   84 (primitive) length 07 value = AID
+//   A5 (constructed) length 0F (15 byte). Value chứa:
+//     50 (primitive) length 04 value = "VISA"
+//     87 (primitive) length 01 value = 01
+//     5F2D (primitive) length 02 value = "en"</span></div>
+</div>
+
+<div class="section">
+    <h2>🔢 Định dạng value</h2>
+    <p>EMV Book 3 quy định mỗi tag có một <strong>data format</strong>. Phổ biến:</p>
+
+    <table>
+        <tr><th>Format</th><th>Ý nghĩa</th><th>Ví dụ</th></tr>
+        <tr><td><strong>n</strong> (numeric)</td><td>BCD, mỗi nibble một chữ số 0-9, pad bằng F nếu lẻ</td><td>PAN <code>5A 08 45 32 12 34 56 78 90 10</code> = 4532123456789010</td></tr>
+        <tr><td><strong>cn</strong></td><td>Compressed numeric — như n nhưng pad bằng F bên phải</td><td>PAN 17 số: <code>45 32 12 34 56 78 90 10 5F</code></td></tr>
+        <tr><td><strong>an</strong></td><td>Alphanumeric — ASCII</td><td>"VISA" = <code>56 49 53 41</code></td></tr>
+        <tr><td><strong>ans</strong></td><td>Alphanumeric + special — ASCII đầy đủ</td><td>Cardholder name "DOE/JOHN"</td></tr>
+        <tr><td><strong>b</strong> (binary)</td><td>Raw byte</td><td>Cryptogram, key, signature</td></tr>
+    </table>
+</div>
+
+<div class="section">
+    <h2>📋 Danh sách EMV Tag thông dụng (EMV Book 3 Annex A)</h2>
+
+    <h3>Card identification</h3>
+    <table>
+        <tr><th>Tag</th><th>Name</th><th>Format</th><th>Length</th></tr>
+        <tr><td><code>4F</code></td><td>Application Identifier (AID)</td><td>b</td><td>5–16</td></tr>
+        <tr><td><code>50</code></td><td>Application Label</td><td>ans</td><td>1–16</td></tr>
+        <tr><td><code>57</code></td><td>Track 2 Equivalent Data</td><td>b</td><td>≤19</td></tr>
+        <tr><td><code>5A</code></td><td>Application Primary Account Number (PAN)</td><td>cn</td><td>≤10</td></tr>
+        <tr><td><code>5F20</code></td><td>Cardholder Name</td><td>ans</td><td>2–26</td></tr>
+        <tr><td><code>5F24</code></td><td>Application Expiration Date</td><td>n6 (YYMMDD)</td><td>3</td></tr>
+        <tr><td><code>5F25</code></td><td>Application Effective Date</td><td>n6</td><td>3</td></tr>
+        <tr><td><code>5F28</code></td><td>Issuer Country Code</td><td>n3</td><td>2</td></tr>
+        <tr><td><code>5F2A</code></td><td>Transaction Currency Code</td><td>n3</td><td>2</td></tr>
+        <tr><td><code>5F2D</code></td><td>Language Preference</td><td>an2</td><td>2–8</td></tr>
+        <tr><td><code>5F30</code></td><td>Service Code</td><td>n3</td><td>2</td></tr>
+        <tr><td><code>5F34</code></td><td>PAN Sequence Number</td><td>n2</td><td>1</td></tr>
+    </table>
+
+    <h3>Templates (constructed)</h3>
+    <table>
+        <tr><th>Tag</th><th>Name</th></tr>
+        <tr><td><code>6F</code></td><td>File Control Information (FCI) Template</td></tr>
+        <tr><td><code>70</code></td><td>READ RECORD Response Message Template</td></tr>
+        <tr><td><code>77</code></td><td>Response Message Template Format 2</td></tr>
+        <tr><td><code>80</code></td><td>Response Message Template Format 1</td></tr>
+        <tr><td><code>A5</code></td><td>FCI Proprietary Template</td></tr>
+        <tr><td><code>BF0C</code></td><td>FCI Issuer Discretionary Data</td></tr>
+    </table>
+
+    <h3>Application / Transaction</h3>
+    <table>
+        <tr><th>Tag</th><th>Name</th></tr>
+        <tr><td><code>82</code></td><td>Application Interchange Profile (AIP)</td></tr>
+        <tr><td><code>84</code></td><td>Dedicated File (DF) Name</td></tr>
+        <tr><td><code>87</code></td><td>Application Priority Indicator</td></tr>
+        <tr><td><code>88</code></td><td>SFI of the Directory EF</td></tr>
+        <tr><td><code>8C</code></td><td>CDOL1</td></tr>
+        <tr><td><code>8D</code></td><td>CDOL2</td></tr>
+        <tr><td><code>8E</code></td><td>CVM List</td></tr>
+        <tr><td><code>8F</code></td><td>Certification Authority Public Key Index</td></tr>
+        <tr><td><code>90</code></td><td>Issuer Public Key Certificate</td></tr>
+        <tr><td><code>92</code></td><td>Issuer Public Key Remainder</td></tr>
+        <tr><td><code>93</code></td><td>Signed Static Application Data</td></tr>
+        <tr><td><code>94</code></td><td>Application File Locator (AFL)</td></tr>
+        <tr><td><code>95</code></td><td>Terminal Verification Results (TVR)</td></tr>
+        <tr><td><code>97</code></td><td>Transaction Certificate Data Object List (TDOL)</td></tr>
+        <tr><td><code>9A</code></td><td>Transaction Date</td></tr>
+        <tr><td><code>9B</code></td><td>Transaction Status Information (TSI)</td></tr>
+        <tr><td><code>9C</code></td><td>Transaction Type</td></tr>
+    </table>
+
+    <h3>Terminal data (Context-specific, 9F xx)</h3>
+    <table>
+        <tr><th>Tag</th><th>Name</th></tr>
+        <tr><td><code>9F02</code></td><td>Amount, Authorized (n12)</td></tr>
+        <tr><td><code>9F03</code></td><td>Amount, Other (n12)</td></tr>
+        <tr><td><code>9F09</code></td><td>Application Version Number (terminal)</td></tr>
+        <tr><td><code>9F10</code></td><td>Issuer Application Data (IAD)</td></tr>
+        <tr><td><code>9F12</code></td><td>Application Preferred Name</td></tr>
+        <tr><td><code>9F13</code></td><td>Last Online ATC Register</td></tr>
+        <tr><td><code>9F17</code></td><td>PIN Try Counter</td></tr>
+        <tr><td><code>9F1A</code></td><td>Terminal Country Code (n3)</td></tr>
+        <tr><td><code>9F1E</code></td><td>IFD Serial Number</td></tr>
+        <tr><td><code>9F26</code></td><td>Application Cryptogram (8 byte)</td></tr>
+        <tr><td><code>9F27</code></td><td>Cryptogram Information Data (CID)</td></tr>
+        <tr><td><code>9F32</code></td><td>Issuer Public Key Exponent</td></tr>
+        <tr><td><code>9F33</code></td><td>Terminal Capabilities (3 byte)</td></tr>
+        <tr><td><code>9F34</code></td><td>CVM Results (3 byte)</td></tr>
+        <tr><td><code>9F35</code></td><td>Terminal Type</td></tr>
+        <tr><td><code>9F36</code></td><td>Application Transaction Counter (ATC, 2 byte)</td></tr>
+        <tr><td><code>9F37</code></td><td>Unpredictable Number (4 byte)</td></tr>
+        <tr><td><code>9F38</code></td><td>PDOL</td></tr>
+        <tr><td><code>9F40</code></td><td>Additional Terminal Capabilities (5 byte)</td></tr>
+        <tr><td><code>9F42</code></td><td>Application Currency Code</td></tr>
+        <tr><td><code>9F44</code></td><td>Application Currency Exponent</td></tr>
+        <tr><td><code>9F46</code></td><td>ICC Public Key Certificate</td></tr>
+        <tr><td><code>9F47</code></td><td>ICC Public Key Exponent</td></tr>
+        <tr><td><code>9F48</code></td><td>ICC Public Key Remainder</td></tr>
+        <tr><td><code>9F4A</code></td><td>SDA Tag List</td></tr>
+        <tr><td><code>9F4B</code></td><td>Signed Dynamic Application Data</td></tr>
+        <tr><td><code>9F66</code></td><td>Terminal Transaction Qualifiers (TTQ)</td></tr>
+    </table>
+</div>
+
+<div class="section">
+    <h2>🔬 Ví dụ parse một READ RECORD response</h2>
+    <div class="code-block"><span class="hex">70 30
+   5A 08 45 32 12 34 56 78 90 10
+   5F 24 03 27 12 31
+   5F 25 03 22 01 01
+   5F 28 02 07 04
+   5F 34 01 01
+   57 13 45 32 12 34 56 78 90 10 D2 71 22 01 00 01 23 45 67 89 0F</span>
+
+<span class="comment">// Parse:</span>
+70 (constructed) length 30 (48 byte) — Record Template
+  ├─ 5A (PAN)         len 08 = <span class="hex">45 32 12 34 56 78 90 10</span> → 4532 1234 5678 9010
+  ├─ 5F24 (Expiry)    len 03 = <span class="hex">27 12 31</span>             → 2027-12-31
+  ├─ 5F25 (Effective) len 03 = <span class="hex">22 01 01</span>             → 2022-01-01
+  ├─ 5F28 (Country)   len 02 = <span class="hex">07 04</span>                → 0704 = VN
+  ├─ 5F34 (PAN Seq)   len 01 = <span class="hex">01</span>                  → 1
+  └─ 57 (Track 2 eq)  len 13 = <span class="hex">45 32 12 34 56 78 90 10 D2 71 22 01 00 01 23 45 67 89 0F</span>
+       └ Track 2: PAN '45321234567890 10' + 'D' + expiry '2712' + svc '201' + discretionary '0001234567890F'</div>
+</div>
+
+<div class="section">
+    <h2>📱 Kotlin TLV parser</h2>
+    <div class="code-block">data class Tlv(val tag: Int, val value: ByteArray, val children: List&lt;Tlv&gt; = emptyList()) {
+    val isConstructed get() = (tag.bytesOf().first().toInt() and 0x20) != 0
+}
+
+class TlvParser(private val data: ByteArray) {
+    private var pos = 0
+
+    fun parseAll(): List&lt;Tlv&gt; {
+        val list = mutableListOf&lt;Tlv&gt;()
+        while (pos &lt; data.size) {
+            <span class="comment">// Skip BER padding (00 hoặc FF)</span>
+            if (data[pos] == 0x00.toByte() || data[pos] == 0xFF.toByte()) { pos++; continue }
+            list += readOne()
+        }
+        return list
+    }
+
+    private fun readOne(): Tlv {
+        val tag = readTag()
+        val len = readLength()
+        val value = data.copyOfRange(pos, pos + len); pos += len
+        val constructed = (tag.bytesOf().first().toInt() and 0x20) != 0
+        val children = if (constructed) TlvParser(value).parseAll() else emptyList()
+        return Tlv(tag, value, children)
+    }
+
+    private fun readTag(): Int {
+        val first = data[pos++].toInt() and 0xFF
+        var tag = first
+        if ((first and 0x1F) == 0x1F) {              <span class="comment">// multi-byte tag</span>
+            do {
+                val next = data[pos++].toInt() and 0xFF
+                tag = (tag shl 8) or next
+            } while ((tag and 0x80) != 0 && (data[pos - 1].toInt() and 0x80) != 0)
+        }
+        return tag
+    }
+
+    private fun readLength(): Int {
+        val first = data[pos++].toInt() and 0xFF
+        if (first &lt; 0x80) return first
+        val numBytes = first and 0x7F
+        var len = 0
+        repeat(numBytes) { len = (len shl 8) or (data[pos++].toInt() and 0xFF) }
+        return len
+    }
+}
+
+fun Int.bytesOf(): ByteArray {
+    val bytes = mutableListOf&lt;Byte&gt;()
+    var v = this
+    while (v != 0) { bytes.add(0, (v and 0xFF).toByte()); v = v ushr 8 }
+    return bytes.toByteArray()
+}
+
+<span class="comment">// Helper tìm tag (depth-first)</span>
+fun List&lt;Tlv&gt;.findTag(tag: Int): Tlv? {
+    for (t in this) {
+        if (t.tag == tag) return t
+        t.children.findTag(tag)?.let { return it }
+    }
+    return null
+}</div>
+</div>
+
+<div class="term-box">
+    <h3>📘 Thuật ngữ bài này</h3>
+    <dl>
+        <dt>BER-TLV</dt><dd>Basic Encoding Rules cho Tag-Length-Value, là subset của ASN.1 (ISO 8825). EMV chuẩn hóa subset của BER trong ISO 7816-4.</dd>
+        <dt>Primitive vs Constructed</dt><dd>Primitive: value là raw data. Constructed: value chứa các TLV con. Bit b6 byte đầu của tag = 1 → constructed.</dd>
+        <dt>Short / Long form length</dt><dd>Short: 1 byte (≤127). Long: byte đầu 81/82/… cho biết có 1/2/… byte tiếp theo chứa length.</dd>
+        <dt>BCD / cn / n format</dt><dd>n = numeric BCD (mỗi nibble một chữ số). cn = compressed numeric (pad F bên phải).</dd>
+        <dt>PDOL / CDOL1 / CDOL2 / DDOL / TDOL</dt><dd>Các "Data Object List" — chỉ chứa danh sách (tag, length), terminal phải nhồi data theo thứ tự.</dd>
+        <dt>Template</dt><dd>Tag constructed chứa các TLV khác. EMV dùng: 6F, 70, 77, 80, A5, BF0C, 9F69…</dd>
+    </dl>
+</div>
+
+<div class="exercise">
+    <h3>🧪 Bài tập</h3>
+    <ol>
+        <li>Encode TLV cho tag <code>5F24</code> (expiry) ngày 31/12/2028.</li>
+        <li>Length = 130 → encode ra mấy byte? Hex bằng bao nhiêu?</li>
+        <li>Tag <code>9F26</code> là primitive hay constructed? Vì sao?</li>
+        <li>Parse: <code>9F02 06 00 00 00 01 50 00</code> — amount là bao nhiêu (VND, biết exponent = 0)?</li>
+        <li>Cài thử <code>TlvParser</code> ở trên và parse FCI của Mastercard.</li>
+    </ol>
+</div>
+
+<div class="success-box">
+    <h3>✅ Tóm tắt</h3>
+    <ul>
+        <li>BER-TLV: Tag (1-3 byte) + Length (1-3 byte) + Value (raw hoặc TLV con).</li>
+        <li>Tag bắt đầu <code>5F/9F/BF</code> → 2 byte; <code>BF/A5/6F/70/77</code> → constructed.</li>
+        <li>Length: short form ≤127; long form <code>81 XX</code>, <code>82 XX XX</code>.</li>
+        <li>EMV Book 3 Annex A chứa toàn bộ tag — luôn tra spec gốc trước khi đoán.</li>
+    </ul>
+</div>
+
+    </div>
+    <div class="navigation">
+        <a href="lesson04.html" class="nav-button">&larr; Bài 04</a>
+        <a href="lesson06.html" class="nav-button primary">Bài 06 &rarr;</a>
+    </div>
+</div>
+</body>
+</html>

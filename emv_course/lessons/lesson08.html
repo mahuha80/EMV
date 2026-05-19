@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bài 08: Android NFC + EMV — EMV Academy</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<nav class="top-nav">
+    <div class="nav-container">
+        <a href="../index.html" class="nav-logo">💳 EMV Academy</a>
+        <div class="nav-menu">
+            <a href="../index.html">Trang chủ</a>
+            <a href="lesson01.html">01</a>
+            <a href="lesson02.html">02</a>
+            <a href="lesson03.html">03</a>
+            <a href="lesson04.html">04</a>
+            <a href="lesson05.html">05</a>
+            <a href="lesson06.html">06</a>
+            <a href="lesson07.html">07</a>
+            <a href="lesson08.html" class="active">08</a>
+            <a href="lesson09.html">09</a>
+            <a href="lesson10.html">10</a>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="lesson-header">
+        <h1>Bài 08 · Android NFC + EMV</h1>
+        <p class="subtitle">NfcAdapter, IsoDep, Reader Mode, gửi APDU bằng Kotlin</p>
+    </div>
+    <div class="breadcrumb">
+        <a href="../index.html">Trang chủ</a> &rsaquo; Bài 08: Android NFC + EMV
+    </div>
+    <div class="lesson-content">
+
+<div class="section">
+    <h2>🎯 Mục tiêu bài học</h2>
+    <ul>
+        <li>Hiểu kiến trúc NFC trên Android (NfcAdapter, Tag, IsoDep).</li>
+        <li>Setup permission và intent filter đúng cho payment card.</li>
+        <li>Viết được hàm gửi APDU bằng Kotlin và xử lý SW.</li>
+        <li>Hiểu Foreground Dispatch và Reader Mode (API 19+).</li>
+    </ul>
+</div>
+
+<div class="section">
+    <h2>📦 Android NFC stack</h2>
+    <div class="diagram"><pre>
+                    Your App (Kotlin)
+                          │
+                          ▼
+              android.nfc.tech.IsoDep        (ISO 14443-4 wrapper, gửi APDU)
+                          │
+                          ▼
+              android.nfc.Tag                (tag handle do hệ thống cấp)
+                          │
+                          ▼
+              android.nfc.NfcAdapter         (entry point của NFC stack)
+                          │
+                          ▼
+              NFC Service (system)           (giao tiếp với NFC controller chip)
+                          │
+                          ▼
+              ┌───────────────────────┐
+              │  Reader/Writer mode   │       Đọc thẻ ⟵ chúng ta dùng cái này
+              │  HCE                  │       Phone đóng vai thẻ
+              │  Peer-to-peer (legacy)│
+              └───────────────────────┘
+    </pre></div>
+
+    <p><strong>IsoDep</strong> là class cao cấp nhất chúng ta cần: nó cung cấp <code>transceive(byte[])</code> gửi C-APDU và trả về R-APDU.</p>
+</div>
+
+<div class="section">
+    <h2>🔧 AndroidManifest.xml</h2>
+    <div class="code-block">&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android"&gt;
+    <span class="comment">&lt;!-- Permission --&gt;</span>
+    &lt;uses-permission android:name="android.permission.NFC" /&gt;
+
+    <span class="comment">&lt;!-- Yêu cầu thiết bị có NFC để hiện trên Play Store --&gt;</span>
+    &lt;uses-feature android:name="android.hardware.nfc" android:required="true" /&gt;
+
+    &lt;application&gt;
+        &lt;activity android:name=".ReadCardActivity" android:launchMode="singleTop"&gt;
+            <span class="comment">&lt;!-- Filter intent khi user chạm thẻ contactless --&gt;</span>
+            &lt;intent-filter&gt;
+                &lt;action android:name="android.nfc.action.TECH_DISCOVERED" /&gt;
+            &lt;/intent-filter&gt;
+            &lt;meta-data
+                android:name="android.nfc.action.TECH_DISCOVERED"
+                android:resource="@xml/nfc_tech_filter" /&gt;
+        &lt;/activity&gt;
+    &lt;/application&gt;
+&lt;/manifest&gt;</div>
+
+    <h3>res/xml/nfc_tech_filter.xml</h3>
+    <div class="code-block">&lt;resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2"&gt;
+    &lt;tech-list&gt;
+        &lt;tech&gt;android.nfc.tech.IsoDep&lt;/tech&gt;
+        &lt;tech&gt;android.nfc.tech.NfcA&lt;/tech&gt;
+    &lt;/tech-list&gt;
+    &lt;tech-list&gt;
+        &lt;tech&gt;android.nfc.tech.IsoDep&lt;/tech&gt;
+        &lt;tech&gt;android.nfc.tech.NfcB&lt;/tech&gt;
+    &lt;/tech-list&gt;
+&lt;/resources&gt;</div>
+
+    <div class="info-box">
+        <h3>💡 Vì sao 2 tech-list?</h3>
+        <p>EMV contactless dùng cả ISO 14443 Type A (Visa, JCB…) và Type B (Amex, một số JCB). Phải khai báo riêng để intent fire cho cả 2 loại.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>📡 Reader Mode (khuyến nghị cho EMV)</h2>
+    <p>Từ API 19, Android có <code>enableReaderMode()</code> — cho phép disable các tính năng làm gián đoạn (như "Android Beam") và chỉ bật một subset tech. Đây là cách <strong>chính thức</strong> mọi POS Android dùng:</p>
+
+    <div class="code-block">class ReadCardActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
+
+    private lateinit var nfcAdapter: NfcAdapter
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_read)
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+            ?: throw IllegalStateException("Device không có NFC")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val options = Bundle().apply {
+            <span class="comment">// timeout transceive (ms)</span>
+            putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 250)
+        }
+        nfcAdapter.enableReaderMode(
+            this,
+            this,
+            NfcAdapter.FLAG_READER_NFC_A
+                or NfcAdapter.FLAG_READER_NFC_B
+                or NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
+            options
+        )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        nfcAdapter.disableReaderMode(this)
+    }
+
+    override fun onTagDiscovered(tag: Tag) {
+        val isoDep = IsoDep.get(tag) ?: return    <span class="comment">// thẻ không hỗ trợ 14443-4</span>
+        try {
+            isoDep.connect()
+            isoDep.timeout = 5_000                 <span class="comment">// 5s cho từng APDU</span>
+            readEmv(isoDep)
+        } finally {
+            try { isoDep.close() } catch (_: Exception) {}
+        }
+    }
+}</div>
+</div>
+
+<div class="section">
+    <h2>📤 Gửi APDU</h2>
+    <div class="code-block">private fun readEmv(isoDep: IsoDep) {
+    <span class="comment">// 1) SELECT PPSE</span>
+    val ppseResp = isoDep.transceive(buildSelectPpse())
+    val ppseR = ResponseApdu.parse(ppseResp)
+    require(ppseR.isSuccess) { "SELECT PPSE failed: SW=${ppseR.swHex()}" }
+
+    val ppseTlv = TlvParser(ppseR.data).parseAll()
+    val aid = ppseTlv.findTag(0x4F)?.value
+        ?: error("No AID in PPSE response")
+
+    <span class="comment">// 2) SELECT AID</span>
+    val selectAid = CommandApdu(0x00, 0xA4.toByte(), 0x04, 0x00, aid, 0x00).toBytes()
+    val aidR = ResponseApdu.parse(isoDep.transceive(selectAid))
+    require(aidR.isSuccess) { "SELECT AID failed: SW=${aidR.swHex()}" }
+
+    val aidTlv = TlvParser(aidR.data).parseAll()
+    val pdolTemplate = aidTlv.findTag(0x9F38)?.value   <span class="comment">// có thể null</span>
+
+    <span class="comment">// 3) Build GPO data</span>
+    val pdolData = buildPdolData(pdolTemplate)
+    val gpoData = byteArrayOf(0x83.toByte(), pdolData.size.toByte()) + pdolData
+    val gpo = CommandApdu(0x80.toByte(), 0xA8.toByte(), 0x00, 0x00, gpoData, 0x00).toBytes()
+    val gpoR = ResponseApdu.parse(isoDep.transceive(gpo))
+    require(gpoR.isSuccess) { "GPO failed: SW=${gpoR.swHex()}" }
+
+    <span class="comment">// 4) Parse AFL và READ RECORD</span>
+    val gpoTlv = TlvParser(gpoR.data).parseAll()
+    val afl = gpoTlv.findTag(0x94)?.value
+        ?: gpoR.data.copyOfRange(2 + (gpoR.data[1].toInt() and 0xFF), gpoR.data.size)  <span class="comment">// format 1: 80 lenAIP AIP AFL</span>
+
+    val records = mutableListOf&lt;Tlv&gt;()
+    afl.asList().chunked(4).forEach { (b0, b1, b2, _) ->
+        val sfi = (b0.toInt() and 0xFF) shr 3
+        val first = b1.toInt() and 0xFF
+        val last = b2.toInt() and 0xFF
+        for (rec in first..last) {
+            val rd = ResponseApdu.parse(
+                isoDep.transceive(CommandApdu(0x00, 0xB2, rec.toByte(), ((sfi shl 3) or 0x04).toByte(), null, 0x00).toBytes())
+            )
+            if (rd.isSuccess) records += TlvParser(rd.data).parseAll()
+        }
+    }
+
+    <span class="comment">// 5) Lấy PAN, expiry, name…</span>
+    val pan = records.findTag(0x5A)?.value?.toHex()
+    val expiry = records.findTag(0x5F24)?.value?.toHex()
+    val name = records.findTag(0x5F20)?.let { String(it.value, Charsets.US_ASCII).trim() }
+
+    runOnUiThread { showCardInfo(maskPan(pan), expiry, name) }
+}
+
+private fun buildSelectPpse() = CommandApdu(
+    0x00, 0xA4.toByte(), 0x04, 0x00,
+    "2PAY.SYS.DDF01".toByteArray(Charsets.US_ASCII),
+    0x00
+).toBytes()</div>
+</div>
+
+<div class="section">
+    <h2>🧮 Build PDOL data (helper)</h2>
+    <div class="code-block">private fun buildPdolData(pdolTemplate: ByteArray?): ByteArray {
+    if (pdolTemplate == null || pdolTemplate.isEmpty()) return byteArrayOf()
+
+    val out = mutableListOf&lt;Byte&gt;()
+    var i = 0
+    while (i &lt; pdolTemplate.size) {
+        <span class="comment">// đọc tag</span>
+        val tagStart = i
+        var tag = pdolTemplate[i++].toInt() and 0xFF
+        if ((tag and 0x1F) == 0x1F) {
+            tag = (tag shl 8) or (pdolTemplate[i++].toInt() and 0xFF)
+        }
+        val len = pdolTemplate[i++].toInt() and 0xFF
+
+        val value: ByteArray = when (tag) {
+            0x9F66 -&gt; byteArrayOf(0x36, 0x00, 0x40, 0x80)                <span class="comment">// TTQ: VSDC, online PIN ok</span>
+            0x9F02 -&gt; "000000010000".hexToBytes()                          <span class="comment">// 1000.00 đơn vị</span>
+            0x9F03 -&gt; ByteArray(6)
+            0x9F1A -&gt; "0704".hexToBytes()                                  <span class="comment">// VN</span>
+            0x95   -&gt; ByteArray(5)                                         <span class="comment">// TVR</span>
+            0x5F2A -&gt; "0704".hexToBytes()                                  <span class="comment">// VND</span>
+            0x9A   -&gt; nowAsYYMMDD()
+            0x9C   -&gt; byteArrayOf(0x00)
+            0x9F37 -&gt; SecureRandom().run { ByteArray(4).also(::nextBytes) }
+            else   -&gt; ByteArray(len)
+        }
+        require(value.size == len) { "Wrong length for tag ${tag.toString(16)}" }
+        out += value.toList()
+    }
+    return out.toByteArray()
+}</div>
+</div>
+
+<div class="section">
+    <h2>🛡️ Bảo mật và compliance ở phía client</h2>
+    <ul>
+        <li><strong>Không log PAN đầy đủ.</strong> Mask: <code>4532 •••• •••• 9010</code>. Vi phạm là vi phạm PCI DSS.</li>
+        <li><strong>Không lưu PAN, CVV, PIN.</strong> Tuyệt đối. Nếu cần token, dùng tokenization service của ngân hàng.</li>
+        <li><strong>Không dùng <code>SharedPreferences</code> cho dữ liệu thẻ.</strong> Bộ nhớ này có thể bị backup ra Google Drive.</li>
+        <li><strong>Disable screenshot</strong> ở Activity hiển thị card data: <code>window.setFlags(FLAG_SECURE, FLAG_SECURE)</code>.</li>
+        <li><strong>Foreground only.</strong> Đọc thẻ chỉ khi Activity đang resume — không bao giờ trong background service.</li>
+    </ul>
+</div>
+
+<div class="term-box">
+    <h3>📘 Thuật ngữ bài này</h3>
+    <dl>
+        <dt>NfcAdapter</dt><dd>Entry-point API của Android NFC. <code>getDefaultAdapter(context)</code>.</dd>
+        <dt>IsoDep</dt><dd>Class bọc ISO 14443-4: hàm chính là <code>transceive(byte[]): byte[]</code>.</dd>
+        <dt>Reader Mode</dt><dd>API 19+ (<code>enableReaderMode</code>), tắt Android Beam/NDEF, ổn định nhất cho EMV.</dd>
+        <dt>Foreground Dispatch</dt><dd>API cũ hơn (API 10+) để ưu tiên Activity nhận tag — vẫn dùng được nhưng không ổn định bằng Reader Mode.</dd>
+        <dt>HCE</dt><dd>Host Card Emulation — Android app đóng vai thẻ (phần POS đọc app).</dd>
+        <dt>FLAG_SECURE</dt><dd>Window flag chặn screenshot/screen recording — bắt buộc với UI hiển thị data thẻ.</dd>
+    </dl>
+</div>
+
+<div class="exercise">
+    <h3>🧪 Bài tập</h3>
+    <ol>
+        <li>Tạo project Android mới, copy <code>CommandApdu</code>/<code>ResponseApdu</code>/<code>TlvParser</code> từ bài 4-5 vào.</li>
+        <li>Test thử SELECT PPSE với thẻ của bạn, in ra response hex.</li>
+        <li>Bật <code>FLAG_SECURE</code> cho Activity và verify rằng screenshot bị chặn.</li>
+        <li>Đo timeout: với thẻ chậm (như thẻ chip cũ), giá trị nào phù hợp?</li>
+    </ol>
+</div>
+
+<div class="success-box">
+    <h3>✅ Tóm tắt</h3>
+    <ul>
+        <li>Cần permission <code>android.permission.NFC</code> + uses-feature.</li>
+        <li>Reader Mode (API 19+) là cách khuyến nghị, không bị NDEF/Android Beam can thiệp.</li>
+        <li>IsoDep.transceive(byte[]) là API duy nhất bạn cần để gửi APDU.</li>
+        <li>Bắt buộc: không log/lưu PAN/CVV/PIN; bật FLAG_SECURE; chỉ đọc khi Activity foreground.</li>
+    </ul>
+</div>
+
+    </div>
+    <div class="navigation">
+        <a href="lesson07.html" class="nav-button">&larr; Bài 07</a>
+        <a href="lesson09.html" class="nav-button primary">Bài 09 &rarr;</a>
+    </div>
+</div>
+</body>
+</html>

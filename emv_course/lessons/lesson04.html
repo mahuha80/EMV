@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bài 04: APDU Commands — EMV Academy</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<nav class="top-nav">
+    <div class="nav-container">
+        <a href="../index.html" class="nav-logo">💳 EMV Academy</a>
+        <div class="nav-menu">
+            <a href="../index.html">Trang chủ</a>
+            <a href="lesson01.html">01</a>
+            <a href="lesson02.html">02</a>
+            <a href="lesson03.html">03</a>
+            <a href="lesson04.html" class="active">04</a>
+            <a href="lesson05.html">05</a>
+            <a href="lesson06.html">06</a>
+            <a href="lesson07.html">07</a>
+            <a href="lesson08.html">08</a>
+            <a href="lesson09.html">09</a>
+            <a href="lesson10.html">10</a>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="lesson-header">
+        <h1>Bài 04 · APDU Commands</h1>
+        <p class="subtitle">ISO/IEC 7816-4: cấu trúc C-APDU & R-APDU, status words, các lệnh EMV</p>
+    </div>
+    <div class="breadcrumb">
+        <a href="../index.html">Trang chủ</a> &rsaquo; Bài 04: APDU Commands
+    </div>
+    <div class="lesson-content">
+
+<div class="section">
+    <h2>🎯 Mục tiêu bài học</h2>
+    <ul>
+        <li>Hiểu cấu trúc Command APDU và Response APDU theo ISO/IEC 7816-4.</li>
+        <li>Phân biệt 4 dạng C-APDU (Case 1–4) và short vs extended length.</li>
+        <li>Học chi tiết các APDU dùng trong EMV: SELECT, GPO, READ RECORD, GENERATE AC, INTERNAL AUTHENTICATE, VERIFY, GET DATA.</li>
+        <li>Đọc và hiểu status word SW1-SW2.</li>
+    </ul>
+</div>
+
+<div class="section">
+    <h2>📦 Cấu trúc APDU (ISO/IEC 7816-4)</h2>
+
+    <h3>Command APDU (C-APDU)</h3>
+    <div class="diagram"><pre>
+┌──── Header (4 byte bắt buộc) ────┐  ┌────── Body (tùy chọn) ──────┐
+│  CLA  │  INS  │  P1   │  P2     │  │  [Lc]   [Data]   [Le]       │
+└───────┴───────┴───────┴─────────┘  └─────────────────────────────┘
+   1B      1B      1B      1B           1-3B    0-65535B    1-3B
+    </pre></div>
+
+    <table>
+        <tr><th>Trường</th><th>Ý nghĩa</th></tr>
+        <tr><td><strong>CLA</strong></td><td>Class byte — quy định bộ lệnh và secure messaging</td></tr>
+        <tr><td><strong>INS</strong></td><td>Instruction byte — mã lệnh</td></tr>
+        <tr><td><strong>P1, P2</strong></td><td>Parameter 1, 2 — tham số tùy theo INS</td></tr>
+        <tr><td><strong>Lc</strong></td><td>Length of Command data — chỉ có nếu có Data</td></tr>
+        <tr><td><strong>Data</strong></td><td>Data field</td></tr>
+        <tr><td><strong>Le</strong></td><td>Expected length of response — <code>00</code> = "tối đa" (256 byte với short, 65536 với extended)</td></tr>
+    </table>
+
+    <h3>4 Cases (ISO 7816-4 §5.1)</h3>
+    <table>
+        <tr><th>Case</th><th>Data từ terminal</th><th>Data từ card</th><th>Layout</th></tr>
+        <tr><td>1</td><td>Không</td><td>Không</td><td>CLA INS P1 P2</td></tr>
+        <tr><td>2</td><td>Không</td><td>Có</td><td>CLA INS P1 P2 Le</td></tr>
+        <tr><td>3</td><td>Có</td><td>Không</td><td>CLA INS P1 P2 Lc Data</td></tr>
+        <tr><td>4</td><td>Có</td><td>Có</td><td>CLA INS P1 P2 Lc Data Le</td></tr>
+    </table>
+
+    <h3>Response APDU (R-APDU)</h3>
+    <div class="diagram"><pre>
+┌────────── Data ──────────┐ ┌── SW1 ──┐ ┌── SW2 ──┐
+│   0 hoặc nhiều byte      │ │   1B    │ │   1B    │
+└──────────────────────────┘ └─────────┘ └─────────┘
+    </pre></div>
+
+    <p>SW1-SW2 luôn có. Data có thể rỗng (nhiều lệnh chỉ trả status).</p>
+
+    <h3>Status Words quan trọng (ISO 7816-4 §5.1.3 + EMV Book 1)</h3>
+    <table>
+        <tr><th>SW1 SW2</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>90 00</code></td><td>Success — không thêm thông tin</td></tr>
+        <tr><td><code>61 XX</code></td><td>Process completed normally, còn XX byte sẵn sàng — gọi GET RESPONSE</td></tr>
+        <tr><td><code>62 83</code></td><td>State of non-volatile memory unchanged; selected file deactivated</td></tr>
+        <tr><td><code>63 CX</code></td><td>Verification failed, còn X lần thử (X = 0 → blocked)</td></tr>
+        <tr><td><code>67 00</code></td><td>Wrong length (Lc hoặc Le sai)</td></tr>
+        <tr><td><code>69 81</code></td><td>Command incompatible with file structure</td></tr>
+        <tr><td><code>69 82</code></td><td>Security status not satisfied</td></tr>
+        <tr><td><code>69 83</code></td><td>Authentication method blocked</td></tr>
+        <tr><td><code>69 84</code></td><td>Reference data invalidated</td></tr>
+        <tr><td><code>69 85</code></td><td>Conditions of use not satisfied</td></tr>
+        <tr><td><code>69 86</code></td><td>Command not allowed (no current EF)</td></tr>
+        <tr><td><code>6A 80</code></td><td>Incorrect parameters in data field</td></tr>
+        <tr><td><code>6A 81</code></td><td>Function not supported</td></tr>
+        <tr><td><code>6A 82</code></td><td>File or application not found</td></tr>
+        <tr><td><code>6A 83</code></td><td>Record not found</td></tr>
+        <tr><td><code>6A 86</code></td><td>Incorrect P1-P2</td></tr>
+        <tr><td><code>6A 88</code></td><td>Referenced data not found</td></tr>
+        <tr><td><code>6C XX</code></td><td>Wrong Le, the right length is XX — gửi lại với Le = XX</td></tr>
+        <tr><td><code>6D 00</code></td><td>Instruction code not supported or invalid</td></tr>
+        <tr><td><code>6E 00</code></td><td>Class not supported</td></tr>
+        <tr><td><code>6F 00</code></td><td>No precise diagnosis</td></tr>
+    </table>
+</div>
+
+<div class="section">
+    <h2>🎯 SELECT (INS = <code>A4</code>) — chọn ứng dụng/file</h2>
+
+    <h3>P1 — selection mode</h3>
+    <table>
+        <tr><th>P1</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>00</code></td><td>Select MF, DF, EF bằng file identifier (2 byte)</td></tr>
+        <tr><td><code>01</code></td><td>Select child DF</td></tr>
+        <tr><td><code>02</code></td><td>Select EF dưới DF hiện hành</td></tr>
+        <tr><td><code>03</code></td><td>Select parent DF</td></tr>
+        <tr><td><code>04</code></td><td><strong>Select by DF Name / AID</strong> (dùng nhiều nhất trong EMV)</td></tr>
+    </table>
+
+    <h3>P2 — selection options</h3>
+    <p>EMV mặc định <code>P2 = 00</code> = "return FCI template, first or only occurrence".</p>
+
+    <div class="code-block"><span class="comment">// Ví dụ: SELECT Visa Credit AID</span>
+&gt;&gt; <span class="hex">00 A4 04 00 07 A0 00 00 00 03 10 10 00</span>
+   │  │  │  │  │  └────────────┬───────┘  │
+   │  │  │  │  │               │          └─ Le = 00 (xin tối đa 256 byte)
+   │  │  │  │  │               └─ Data = AID
+   │  │  │  │  └─ Lc = 7 byte
+   │  │  │  └─ P2 = 00 (FCI, first)
+   │  │  └─ P1 = 04 (select by name)
+   │  └─ INS = A4
+   └─ CLA = 00 (ISO standard)</div>
+</div>
+
+<div class="section">
+    <h2>🎯 GET PROCESSING OPTIONS (CLA=<code>80</code>, INS=<code>A8</code>)</h2>
+    <p>Lệnh "proprietary" của EMV (vì CLA = 80, không phải ISO standard 00). P1=P2=00.</p>
+
+    <div class="code-block"><span class="comment">// Data luôn nằm trong template 83 (PDOL Related Data)</span>
+&gt;&gt; <span class="hex">80 A8 00 00 Lc 83 (Lc-2) [PDOL_data] 00</span>
+
+<span class="comment">// Nếu PDOL rỗng (thẻ không yêu cầu data):</span>
+&gt;&gt; <span class="hex">80 A8 00 00 02 83 00 00</span></div>
+
+    <h3>Response — 2 định dạng</h3>
+    <table>
+        <tr><th>Format</th><th>Template</th><th>Cấu trúc</th></tr>
+        <tr><td>1</td><td><code>80</code></td><td>AIP (2 byte) || AFL (var) — không TLV, dữ liệu liền mạch</td></tr>
+        <tr><td>2</td><td><code>77</code></td><td>TLV — có tag <code>82</code> (AIP), <code>94</code> (AFL) và có thể thêm tag khác</td></tr>
+    </table>
+</div>
+
+<div class="section">
+    <h2>🎯 READ RECORD (CLA=<code>00</code>, INS=<code>B2</code>)</h2>
+    <p><strong>P1</strong> = record number. <strong>P2</strong> = <code>(SFI &lt;&lt; 3) | 0x04</code>.</p>
+
+    <div class="code-block"><span class="comment">// Đọc record 2 của EF có SFI = 3</span>
+P2 = (3 &lt;&lt; 3) | 0x04 = 0x1C
+&gt;&gt; <span class="hex">00 B2 02 1C 00</span></div>
+
+    <p>Nếu trả về <code>6C XX</code>, terminal gửi lại với Le = XX:</p>
+    <div class="code-block">&lt;&lt; <span class="hex">6C 5A</span>                  <span class="comment">// "đúng length là 5A = 90 byte"</span>
+&gt;&gt; <span class="hex">00 B2 02 1C 5A</span>        <span class="comment">// gửi lại với Le = 5A</span>
+&lt;&lt; <span class="hex">70 ... 90 00</span></div>
+</div>
+
+<div class="section">
+    <h2>🎯 GENERATE AC (CLA=<code>80</code>, INS=<code>AE</code>)</h2>
+    <p>Đã giới thiệu ở bài 3. P1 quyết định loại cryptogram terminal yêu cầu.</p>
+
+    <div class="code-block">&gt;&gt; <span class="hex">80 AE 80 00 Lc [CDOL1_data] 00</span>      <span class="comment">// P1=80 → request ARQC</span>
+&gt;&gt; <span class="hex">80 AE 40 00 Lc [CDOL1_data] 00</span>      <span class="comment">// P1=40 → request TC (offline approve)</span>
+&gt;&gt; <span class="hex">80 AE 00 00 Lc [CDOL1_data] 00</span>      <span class="comment">// P1=00 → request AAC (decline)</span>
+
+<span class="comment">// Bit b6 của P1 = CDA Signature Requested
+// → 50 = TC + CDA, 90 = ARQC + CDA</span></div>
+</div>
+
+<div class="section">
+    <h2>🎯 INTERNAL AUTHENTICATE (CLA=<code>00</code>, INS=<code>88</code>)</h2>
+    <p>Dùng cho DDA — terminal gửi data (DDOL data) cho card ký bằng ICC Private Key.</p>
+
+    <div class="code-block">&gt;&gt; <span class="hex">00 88 00 00 Lc [DDOL_data] 00</span>
+
+&lt;&lt; <span class="hex">80 81 80 [128 byte RSA-signed data] 90 00</span>
+   <span class="comment">// Hoặc dạng TLV: 77 81 83 9F 4B 81 80 [...] 90 00
+   // 9F4B = Signed Dynamic Application Data</span></div>
+</div>
+
+<div class="section">
+    <h2>🎯 VERIFY (CLA=<code>00</code>, INS=<code>20</code>) — kiểm tra PIN</h2>
+    <p>P2 quy định reference data (<code>80</code> = transaction PIN).</p>
+
+    <div class="code-block">&gt;&gt; <span class="hex">00 20 00 80 08 [8 byte PIN block]</span>
+
+<span class="comment">// PIN Block format 2 (ISO 9564-1):</span>
+<span class="comment">// nibble[0]   = 2  (format code)
+// nibble[1]   = N  (PIN length, ví dụ 4)
+// nibble[2..N+1] = PIN digits
+// nibble còn lại = F (pad)</span>
+
+<span class="comment">// PIN "1234" → 24 12 34 FF FF FF FF FF</span></div>
+
+    <p>Nếu dùng <strong>enciphered offline PIN</strong>, terminal phải encrypt PIN block bằng <strong>ICC PIN Encipherment Public Key</strong> (RSA) đọc từ card trước.</p>
+</div>
+
+<div class="section">
+    <h2>🎯 GET DATA (CLA=<code>80</code>, INS=<code>CA</code>)</h2>
+    <p>Đọc một data object cụ thể không nằm trong record. EMV chuẩn hóa 4 tag có thể đọc bằng GET DATA:</p>
+    <table>
+        <tr><th>Tag</th><th>Data</th></tr>
+        <tr><td><code>9F36</code></td><td>ATC (Application Transaction Counter)</td></tr>
+        <tr><td><code>9F13</code></td><td>Last Online ATC</td></tr>
+        <tr><td><code>9F17</code></td><td>PIN Try Counter</td></tr>
+        <tr><td><code>9F4F</code></td><td>Log Format</td></tr>
+    </table>
+    <div class="code-block"><span class="comment">// Đọc PIN Try Counter</span>
+&gt;&gt; <span class="hex">80 CA 9F 17 00</span>
+&lt;&lt; <span class="hex">9F 17 01 03 90 00</span>     <span class="comment">// còn 3 lần thử PIN</span></div>
+</div>
+
+<div class="section">
+    <h2>🎯 GET RESPONSE (CLA=<code>00</code>, INS=<code>C0</code>)</h2>
+    <p>Dùng với protocol T=0 sau khi nhận <code>61 XX</code>:</p>
+    <div class="code-block">&lt;&lt; <span class="hex">61 1A</span>                    <span class="comment">// "Có 0x1A byte chờ"</span>
+&gt;&gt; <span class="hex">00 C0 00 00 1A</span>
+&lt;&lt; <span class="hex">[26 byte data] 90 00</span></div>
+</div>
+
+<div class="section">
+    <h2>📱 Kotlin helper — APDU</h2>
+    <div class="code-block">data class CommandApdu(
+    val cla: Byte, val ins: Byte, val p1: Byte, val p2: Byte,
+    val data: ByteArray? = null, val le: Int = -1
+) {
+    fun toBytes(): ByteArray {
+        val out = mutableListOf&lt;Byte&gt;()
+        out += cla; out += ins; out += p1; out += p2
+        if (data != null) {
+            out += data.size.toByte()
+            out += data.toList()
+        }
+        if (le &gt;= 0) out += le.toByte()
+        return out.toByteArray()
+    }
+}
+
+data class ResponseApdu(val data: ByteArray, val sw1: Int, val sw2: Int) {
+    val sw: Int get() = (sw1 shl 8) or sw2
+    val isSuccess: Boolean get() = sw == 0x9000
+
+    companion object {
+        fun parse(bytes: ByteArray): ResponseApdu {
+            require(bytes.size &gt;= 2)
+            val sw1 = bytes[bytes.size - 2].toInt() and 0xFF
+            val sw2 = bytes[bytes.size - 1].toInt() and 0xFF
+            val data = bytes.copyOfRange(0, bytes.size - 2)
+            return ResponseApdu(data, sw1, sw2)
+        }
+    }
+}
+
+<span class="comment">// Helper</span>
+fun selectByAid(aid: ByteArray) =
+    CommandApdu(0x00, 0xA4.toByte(), 0x04, 0x00, aid, 0x00).toBytes()
+
+fun readRecord(sfi: Int, record: Int) =
+    CommandApdu(0x00, 0xB2, record.toByte(), ((sfi shl 3) or 0x04).toByte(), null, 0x00).toBytes()</div>
+</div>
+
+<div class="term-box">
+    <h3>📘 Thuật ngữ bài này</h3>
+    <dl>
+        <dt>APDU</dt><dd>Application Protocol Data Unit — đơn vị thông tin giữa terminal và card (ISO 7816-4).</dd>
+        <dt>C-APDU / R-APDU</dt><dd>Command / Response APDU.</dd>
+        <dt>CLA, INS, P1, P2</dt><dd>4 byte header bắt buộc.</dd>
+        <dt>Lc, Le</dt><dd>Length of command/expected response. <code>Le = 0</code> trong wire = "tối đa".</dd>
+        <dt>SW1-SW2</dt><dd>2 byte status word ở cuối R-APDU.</dd>
+        <dt>Short APDU vs Extended APDU</dt><dd>Short: Lc/Le là 1 byte (tối đa 255/256). Extended: 3 byte (tối đa 65535/65536). EMV chủ yếu dùng short.</dd>
+        <dt>T=0 / T=1</dt><dd>Hai giao thức truyền dữ liệu giữa contact card và reader (ISO 7816-3). T=0 byte-oriented, T=1 block-oriented.</dd>
+        <dt>GET RESPONSE</dt><dd>Lệnh phụ trợ cho T=0, terminal phải gọi sau khi nhận <code>61 XX</code> để lấy data thật.</dd>
+    </dl>
+</div>
+
+<div class="exercise">
+    <h3>🧪 Bài tập</h3>
+    <ol>
+        <li>Decode: <code>00 B2 02 14 00</code> — đọc record nào, SFI bao nhiêu?</li>
+        <li>SW = <code>6A 82</code> nghĩa là gì? Khi nào bạn gặp nó?</li>
+        <li>Tính P2 cho READ RECORD với SFI = 11.</li>
+        <li>Tạo C-APDU SELECT AID của Mastercard (<code>A0000000041010</code>).</li>
+        <li>Card trả <code>63 C1</code> — chuyện gì xảy ra?</li>
+    </ol>
+</div>
+
+<div class="success-box">
+    <h3>✅ Tóm tắt</h3>
+    <ul>
+        <li>C-APDU = CLA INS P1 P2 [Lc Data] [Le]; R-APDU = Data SW1 SW2 (luôn có SW).</li>
+        <li>EMV chính chỉ dùng: SELECT, GPO, READ RECORD, INTERNAL AUTHENTICATE, GENERATE AC, VERIFY, GET DATA, GET RESPONSE.</li>
+        <li>Cần thuộc các SW phổ biến (90 00, 61 XX, 63 CX, 6A 82, 6A 83, 6C XX, 69 82) để debug.</li>
+        <li>READ RECORD: P1 = record number, P2 = (SFI &lt;&lt; 3) | 0x04.</li>
+    </ul>
+</div>
+
+    </div>
+    <div class="navigation">
+        <a href="lesson03.html" class="nav-button">&larr; Bài 03</a>
+        <a href="lesson05.html" class="nav-button primary">Bài 05 &rarr;</a>
+    </div>
+</div>
+</body>
+</html>

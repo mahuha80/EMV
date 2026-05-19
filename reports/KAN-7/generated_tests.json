@@ -1,0 +1,11 @@
+{
+  "ticket_id": "KAN-7",
+  "platform": "ios",
+  "test_cases": [
+    {
+      "id": "TC_001",
+      "name": "Feature Works As Described In Kan7",
+      "expected": "Feature works as described in KAN-7"
+    }
+  ]
+}

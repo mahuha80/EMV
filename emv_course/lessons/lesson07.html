@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bài 07: Offline Data Authentication — EMV Academy</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<nav class="top-nav">
+    <div class="nav-container">
+        <a href="../index.html" class="nav-logo">💳 EMV Academy</a>
+        <div class="nav-menu">
+            <a href="../index.html">Trang chủ</a>
+            <a href="lesson01.html">01</a>
+            <a href="lesson02.html">02</a>
+            <a href="lesson03.html">03</a>
+            <a href="lesson04.html">04</a>
+            <a href="lesson05.html">05</a>
+            <a href="lesson06.html">06</a>
+            <a href="lesson07.html" class="active">07</a>
+            <a href="lesson08.html">08</a>
+            <a href="lesson09.html">09</a>
+            <a href="lesson10.html">10</a>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="lesson-header">
+        <h1>Bài 07 · Offline Data Authentication</h1>
+        <p class="subtitle">SDA, DDA, CDA — verify certificate chain, chống clone thẻ</p>
+    </div>
+    <div class="breadcrumb">
+        <a href="../index.html">Trang chủ</a> &rsaquo; Bài 07: Offline Data Authentication
+    </div>
+    <div class="lesson-content">
+
+<div class="section">
+    <h2>🎯 Mục tiêu bài học</h2>
+    <ul>
+        <li>Hiểu vì sao có Offline Data Authentication (ODA).</li>
+        <li>Phân biệt SDA, DDA, CDA và biết khi nào nào dùng cái nào.</li>
+        <li>Biết các tag liên quan (<code>8F</code>, <code>90</code>, <code>92</code>, <code>93</code>, <code>9F46–9F4B</code>).</li>
+        <li>Vẽ được flow verify certificate chain.</li>
+    </ul>
+</div>
+
+<div class="section">
+    <h2>❓ Vấn đề ODA giải quyết</h2>
+    <p>Khi giao dịch <strong>offline</strong> (không gọi online tới issuer), terminal cần một cách để chắc chắn:</p>
+    <ol>
+        <li>Dữ liệu đọc từ thẻ <em>không bị giả mạo</em>.</li>
+        <li>Thẻ <em>thật sự là thẻ ngân hàng phát hành</em>, không phải clone.</li>
+    </ol>
+    <p>ODA = cơ chế chữ ký RSA chứng minh hai điều trên, do EMV Book 2 §5–7 định nghĩa. Có 3 cấp độ:</p>
+
+    <table>
+        <tr><th>Method</th><th>Chống tampering data?</th><th>Chống clone?</th><th>Bit b8/b6/b1 AIP</th></tr>
+        <tr><td><strong>SDA</strong> — Static Data Authentication</td><td>✅</td><td>❌</td><td>b7 = 1</td></tr>
+        <tr><td><strong>DDA</strong> — Dynamic Data Authentication</td><td>✅</td><td>✅</td><td>b6 = 1</td></tr>
+        <tr><td><strong>CDA</strong> — Combined DDA / Generate AC</td><td>✅</td><td>✅ (+ bind với AC)</td><td>b1 = 1</td></tr>
+    </table>
+</div>
+
+<div class="section">
+    <h2>🔹 SDA — Static Data Authentication</h2>
+    <p>Issuer tính một chữ ký RSA <em>một lần</em> trên dữ liệu tĩnh (PAN, expiry, AIP…) khi cá nhân hóa thẻ. Chữ ký này lưu trong tag <code>93</code> (Signed Static Application Data).</p>
+
+    <h3>Flow SDA</h3>
+    <div class="flow-step"><div class="step-number">1</div><div class="step-content"><h4>Lấy CA Public Key</h4><p>Đọc CA Public Key Index (<code>8F</code>) → tra trong bảng CA cài sẵn → lấy CA PK + exponent.</p></div></div>
+    <div class="flow-step"><div class="step-number">2</div><div class="step-content"><h4>Recover Issuer PK</h4><p>Đọc Issuer PK Certificate (<code>90</code>), Issuer PK Remainder (<code>92</code>), Issuer PK Exponent (<code>9F32</code>). RSA recover bằng CA PK → có Issuer PK đầy đủ. Verify hash, expiry, PAN range.</p></div></div>
+    <div class="flow-step"><div class="step-number">3</div><div class="step-content"><h4>Verify SDAD</h4><p>Đọc Signed Static Application Data (<code>93</code>). RSA recover bằng Issuer PK. So sánh hash bên trong với hash(static data đọc từ card + AIP). Nếu khớp → SDA pass.</p></div></div>
+
+    <div class="danger-box">
+        <h3>🚨 Vì sao SDA dễ bị clone?</h3>
+        <p>Chữ ký <code>93</code> là <em>tĩnh</em> — kẻ tấn công đọc một lần là copy toàn bộ. Sau đó nạp lên một "yes-card" (thẻ giả luôn trả PIN OK offline) là dùng được offline. EMVCo khuyến cáo dừng phát hành SDA-only từ 2015.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>🔸 DDA — Dynamic Data Authentication</h2>
+    <p>Card có <strong>private key riêng</strong> (ICC private key) trong secure element. Mỗi giao dịch, terminal challenge bằng số ngẫu nhiên — card phải ký bằng private key — terminal verify bằng ICC public key.</p>
+
+    <h3>Flow DDA</h3>
+    <div class="flow-step"><div class="step-number">1</div><div class="step-content"><h4>Verify chuỗi chứng chỉ (giống SDA bước 1-2)</h4><p>Recover Issuer PK → recover ICC PK Certificate (<code>9F46</code>), ICC PK Remainder (<code>9F48</code>), ICC PK Exponent (<code>9F47</code>) bằng Issuer PK.</p></div></div>
+    <div class="flow-step"><div class="step-number">2</div><div class="step-content"><h4>Build DDOL data</h4><p>Đọc DDOL (tag <code>9F49</code>) từ card. Nếu không có, dùng "Default DDOL" = tag <code>9F37</code> 4 byte (UN).</p></div></div>
+    <div class="flow-step"><div class="step-number">3</div><div class="step-content"><h4>INTERNAL AUTHENTICATE</h4>
+    <div class="code-block">&gt;&gt; <span class="hex">00 88 00 00 04 [UN 4 byte] 00</span>
+
+&lt;&lt; <span class="hex">77 81 83
+     9F 4B 81 80 [Signed Dynamic Application Data: 128 byte]
+   90 00</span></div>
+    </div></div>
+    <div class="flow-step"><div class="step-number">4</div><div class="step-content"><h4>Verify SDAD</h4><p>RSA recover bằng ICC PK. Bên trong chứa: header, ICC Dynamic Data (gồm ICC Dynamic Number, optional Cryptogram Information Data...), hash của (recovered data || DDOL data || UN), trailer. So sánh hash → DDA pass.</p></div></div>
+
+    <p>Vì challenge <strong>khác nhau mỗi giao dịch</strong>, kẻ tấn công có nghe trộm cũng không tái dùng được. Để clone thẻ DDA, cần lấy được ICC private key — không xảy ra trên chip đạt EAL4+.</p>
+</div>
+
+<div class="section">
+    <h2>🔷 CDA — Combined DDA / Application Cryptogram Generation</h2>
+    <p>SDA và DDA chỉ verify <em>tính xác thực card</em>, không bảo vệ riêng cryptogram. Nếu kênh giữa terminal và card bị MITM, attacker có thể đổi cryptogram. CDA giải quyết bằng cách <strong>gộp DDA vào GENERATE AC</strong>:</p>
+
+    <ol>
+        <li>Terminal gọi GENERATE AC với <code>P1 = 0x50</code> (TC + CDA) hoặc <code>0x90</code> (ARQC + CDA).</li>
+        <li>Card ký <em>cùng lúc</em> ICC Dynamic Data + AC + ATC + IAD + hash của các giá trị giao dịch bằng ICC private key.</li>
+        <li>Terminal verify chữ ký này — nghĩa là verify cả "card thật" và "cryptogram không bị đổi".</li>
+    </ol>
+
+    <div class="info-box">
+        <h3>✅ CDA là mặc định ngày nay</h3>
+        <p>Hầu hết thẻ mới (đặc biệt là Mastercard M/Chip Advance và Visa VSDC) đều bật CDA. Bit AIP b1 = 1 báo card hỗ trợ CDA.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>📋 Tag liên quan ODA — bảng tra nhanh</h2>
+    <table>
+        <tr><th>Tag</th><th>Tên</th><th>Vai trò</th></tr>
+        <tr><td><code>8F</code></td><td>CA Public Key Index</td><td>Trỏ tới CA key trong bảng terminal</td></tr>
+        <tr><td><code>90</code></td><td>Issuer Public Key Certificate</td><td>RSA-signed bởi CA, chứa Issuer PK</td></tr>
+        <tr><td><code>92</code></td><td>Issuer Public Key Remainder</td><td>Bit còn lại của Issuer PK (nếu certificate không chứa hết)</td></tr>
+        <tr><td><code>9F32</code></td><td>Issuer Public Key Exponent</td><td>Thường là 03 hoặc 010001</td></tr>
+        <tr><td><code>93</code></td><td>Signed Static Application Data (SDAD)</td><td>Dùng cho SDA</td></tr>
+        <tr><td><code>9F46</code></td><td>ICC Public Key Certificate</td><td>RSA-signed bởi Issuer, chứa ICC PK</td></tr>
+        <tr><td><code>9F47</code></td><td>ICC Public Key Exponent</td><td></td></tr>
+        <tr><td><code>9F48</code></td><td>ICC Public Key Remainder</td><td></td></tr>
+        <tr><td><code>9F49</code></td><td>DDOL</td><td>Danh sách tag cho INTERNAL AUTHENTICATE</td></tr>
+        <tr><td><code>9F4A</code></td><td>Static Data Authentication Tag List</td><td>Liệt kê tag phải đưa vào hash khi tính SDAD/SDA</td></tr>
+        <tr><td><code>9F4B</code></td><td>Signed Dynamic Application Data (SDAD)</td><td>Dùng cho DDA/CDA</td></tr>
+    </table>
+</div>
+
+<div class="section">
+    <h2>🛡️ Tóm tắt cơ chế chống fraud</h2>
+    <table>
+        <tr><th>Tấn công</th><th>SDA</th><th>DDA</th><th>CDA</th></tr>
+        <tr><td>Đổi PAN/expiry trên chip</td><td>❌ Phát hiện</td><td>❌ Phát hiện</td><td>❌ Phát hiện</td></tr>
+        <tr><td>Clone card (yes-card)</td><td>⚠️ Bị clone được</td><td>❌ Bị chặn</td><td>❌ Bị chặn</td></tr>
+        <tr><td>MITM đổi cryptogram</td><td>—</td><td>⚠️ Có thể</td><td>❌ Bị chặn</td></tr>
+        <tr><td>Replay cryptogram cũ</td><td>—</td><td>❌ ATC chống</td><td>❌ ATC chống</td></tr>
+    </table>
+</div>
+
+<div class="term-box">
+    <h3>📘 Thuật ngữ bài này</h3>
+    <dl>
+        <dt>ODA</dt><dd>Offline Data Authentication — tổng tên cho SDA/DDA/CDA.</dd>
+        <dt>SDA</dt><dd>Static Data Authentication — chữ ký RSA tĩnh trên dữ liệu thẻ.</dd>
+        <dt>DDA</dt><dd>Dynamic Data Authentication — card ký challenge UN bằng ICC private key.</dd>
+        <dt>CDA</dt><dd>Combined DDA / Application Cryptogram — kết hợp DDA vào GENERATE AC.</dd>
+        <dt>SDAD</dt><dd>Signed Dynamic Application Data — tag <code>9F4B</code>, output của DDA/CDA.</dd>
+        <dt>Certificate chain</dt><dd>CA → Issuer (tag 90) → ICC (tag 9F46).</dd>
+        <dt>Yes-card</dt><dd>Thẻ giả luôn nói "PIN OK" — đe doạ chính của SDA-only.</dd>
+        <dt>Default DDOL</dt><dd>Nếu thẻ không cung cấp DDOL, terminal dùng "9F37 04" (chỉ UN) — định nghĩa trong EMV Book 3.</dd>
+    </dl>
+</div>
+
+<div class="exercise">
+    <h3>🧪 Bài tập</h3>
+    <ol>
+        <li>AIP của thẻ = <code>5C 00</code>. Bit b1 byte 1 = 0, b3 = 1, b4 = 1, b6 = 1, b7 = 1 → thẻ hỗ trợ những gì?</li>
+        <li>Vì sao kẻ tấn công không thể clone thẻ DDA?</li>
+        <li>Khi nào terminal dùng Default DDOL?</li>
+        <li>Liệt kê 5 tag tối thiểu cần đọc trước khi thực hiện DDA.</li>
+    </ol>
+</div>
+
+<div class="success-box">
+    <h3>✅ Tóm tắt</h3>
+    <ul>
+        <li>ODA gồm 3 cấp: SDA (chữ ký tĩnh, dễ clone), DDA (challenge-response), CDA (DDA + AC).</li>
+        <li>Terminal phải verify chuỗi: CA → Issuer Cert (90) → ICC Cert (9F46).</li>
+        <li>SDA chỉ verify dữ liệu không bị đổi; DDA + CDA mới chống clone.</li>
+        <li>EMVCo khuyến cáo CDA cho mọi thẻ mới (AIP bit b1 byte 1).</li>
+    </ul>
+</div>
+
+    </div>
+    <div class="navigation">
+        <a href="lesson06.html" class="nav-button">&larr; Bài 06</a>
+        <a href="lesson08.html" class="nav-button primary">Bài 08 &rarr;</a>
+    </div>
+</div>
+</body>
+</html>
