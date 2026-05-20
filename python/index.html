@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Học Python cho Appium & Robotic Automation</title>
+    <link rel="stylesheet" href="../emv_course/styles.css">
+    <style>
+        /* Small page-specific tweaks to complement main styles */
+        .hero {padding:40px 20px; text-align:center}
+        .curriculum {max-width:1100px; margin:20px auto}
+        .lesson-card {background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.04); padding:18px; border-radius:8px; margin-bottom:14px}
+        pre.code {background:#0b1020; color:#cfefff; padding:12px; border-radius:6px; overflow:auto}
+        .refs {font-size:0.9rem; color:#bcd}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐍 Python cho Appium & Robotic Automation</h1>
+            <p>Giáo trình thực tế, nguồn tham chiếu: <strong>Python Docs</strong>, <strong>Appium</strong>, <strong>Robot Framework</strong>, <strong>Selenium</strong>, <strong>Android Developers</strong>.</p>
+        </header>
+
+        <div class="hero">
+            <h2>Mục tiêu</h2>
+            <p>Học Python từ nền tảng đến áp dụng vào <strong>Appium</strong> (mobile test automation) và <strong>robotic automation</strong> (Robot Framework & scripts). Mỗi bài có ví dụ code, giải thích thuật ngữ và link tới nguồn chính thức.</p>
+        </div>
+
+        <main class="curriculum">
+            <section class="lesson-card">
+                <h3>Bài 1 — Môi trường & Công cụ (Setup)</h3>
+                <p>Nội dung: cài Python, pip, virtualenv/venv, Git, Appium server, Android SDK, ChromeDriver, adb, Java JDK.</p>
+                <p>Commands cơ bản:</p>
+                <pre class="code"># macOS (zsh)
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install appium-python-client selenium robotframework AppiumLibrary
+
+# Verify adb (Android SDK)
+adb devices
+
+# Start Appium server (Appium Desktop or CLI)
+appium
+                </pre>
+                <p class="refs">Tham khảo: <a href="https://docs.python.org/3/using/venv.html">Python venv</a>, <a href="https://appium.io/docs/en/about-appium/intro/">Appium docs</a></p>
+            </section>
+
+            <section class="lesson-card">
+                <h3>Bài 2 — Ngôn ngữ Python cần thiết (Syntax & OOP)</h3>
+                <p>Nội dung: kiểu dữ liệu, function, lớp (class), context manager, exceptions, logging, typing. Giải thích các khái niệm thường dùng trong automation (fixture, teardown).</p>
+                <pre class="code"># Ví dụ: Page Object class đơn giản
+class LoginPage:
+    def __init__(self, driver):
+        self.driver = driver
+    def username_field(self):
+        return self.driver.find_element_by_id('com.example:id/username')
+    def login(self, username, password):
+        self.username_field().send_keys(username)
+        self.driver.find_element_by_id('com.example:id/password').send_keys(password)
+        self.driver.find_element_by_id('com.example:id/login').click()
+                </pre>
+                <p class="refs">Tham khảo: <a href="https://docs.python.org/3/tutorial/">Python Tutorial</a></p>
+            </section>
+
+            <section class="lesson-card">
+                <h3>Bài 3 — Appium basics (Python client)</h3>
+                <p>Giải thích: Desired Capabilities, Session, Remote WebDriver, UiAutomator2 (Android) / XCUITest (iOS).</p>
+                <pre class="code"># Minimal Appium Python example (Android, UiAutomator2)
+from appium import webdriver
+
+desired_caps = {
+    'platformName': 'Android',
+    'platformVersion': '11',
+    'deviceName': 'emulator-5554',
+    'automationName': 'UiAutomator2',
+    'appPackage': 'com.example.myapp',
+    'appActivity': '.MainActivity',
+    'noReset': True
+}
+
+driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps)
+try:
+    el = driver.find_element_by_accessibility_id('Login')
+    el.click()
+finally:
+    driver.quit()
+                </pre>
+                <p>Giải thích dòng chính: <em>automationName</em> chọn engine; <em>noReset</em> giữ trạng thái app; <em>Remote</em> tạo session tới Appium server.</p>
+                <p class="refs">Tham khảo: <a href="https://appium.io/docs/en/about-appium/intro/">Appium intro</a>, <a href="https://appium.io/docs/en/writing-running-appium/caps/">Desired Capabilities</a></p>
+            </section>
+
+            <section class="lesson-card">
+                <h3>Bài 4 — Locators, Waits & Common Interactions</h3>
+                <p>Giải thích các locator: resource-id, accessibility id, xpath, class name; sử dụng Explicit Waits tránh flaky tests.</p>
+                <pre class="code">from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+wait = WebDriverWait(driver, 15)
+login_btn = wait.until(EC.element_to_be_clickable((By.ACCESSIBILITY_ID, 'Login')))
+login_btn.click()
+                </pre>
+                <p class="refs">Tham khảo: <a href="https://www.selenium.dev/documentation/">Selenium docs</a> (Appium client mirrors many APIs).</p>
+            </section>
+
+            <section class="lesson-card">
+                <h3>Bài 5 — Advanced Appium patterns</h3>
+                <ul>
+                    <li>Context switching (NATIVE_APP ↔ WEBVIEW)</li>
+                    <li>Gestures & TouchAction</li>
+                    <li>Handling permissions and notifications</li>
+                </ul>
+                <pre class="code"># Context switch example
+contexts = driver.contexts
+print(contexts)
+driver.switch_to.context('WEBVIEW_com.example')
+# ... do web interactions
+driver.switch_to.context('NATIVE_APP')
+                </pre>
+                <p class="refs">Tham khảo: <a href="https://appium.io/docs/en/writing-running-appium/web/">Hybrid apps / contexts</a></p>
+            </section>
+
+            <section class="lesson-card">
+                <h3>Bài 6 — Robot Framework (Automation Orchestration)</h3>
+                <p>Giải thích: Robot Framework là generic test automation framework sử dụng keyword-driven testing. AppiumLibrary là library phổ biến để kết nối Appium.</p>
+                <pre class="code">*** Settings ***
+Library    AppiumLibrary
+
+*** Variables ***
+${REMOTE}    http://localhost:4723/wd/hub
+${PLATFORM}  Android
+
+*** Test Cases ***
+Login Test
+    Open Application    ${REMOTE}    platformName=${PLATFORM}    deviceName=emulator-5554    appPackage=com.example.myapp    appActivity=.MainActivity
+    Click Element    accessibility_id=Login
+    Close Application
+                </pre>
+                <p class="refs">Tham khảo: <a href="https://robotframework.org/">Robot Framework</a>, <a href="https://github.com/serhatbolsu/AppiumLibrary">AppiumLibrary</a></p>
+            </section>
+
+            <section class="lesson-card">
+                <h3>Bài 7 — Test Design & Page Object Pattern</h3>
+                <p>Giải thích cách tổ chức test: Page Objects, fixtures, reusable utilities, locators file, and CI-friendly structure.</p>
+                <pre class="code"># project/
+# tests/
+#   test_login.py
+# pages/
+#   login_page.py
+# conftest.py (pytest fixtures)
+                </pre>
+                <p>Ví dụ pytest fixture kết hợp Appium session:</p>
+                <pre class="code">import pytest
+from appium import webdriver
+
+@pytest.fixture(scope='session')
+def driver():
+    caps = {...}
+    driver = webdriver.Remote('http://localhost:4723/wd/hub', caps)
+    yield driver
+    driver.quit()
+                </pre>
+                <p class="refs">Tham khảo: <a href="https://docs.pytest.org/">pytest fixtures</a></p>
+            </section>
+
+            <section class="lesson-card">
+                <h3>Bài 8 — CI/CD & Real Device Farm</h3>
+                <p>Thiết lập CI (GitHub Actions / Jenkins) để chạy test trên emulator hoặc cloud device farms (BrowserStack, Sauce Labs, Firebase Test Lab).</p>
+                <p>Ví dụ GitHub Actions job để run pytest tests:</p>
+                <pre class="code"># .github/workflows/android-tests.yml (excerpt)
+name: Android Tests
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install deps
+        run: |
+          python -m pip install -r requirements.txt
+      - name: Run tests
+        run: pytest -q
+                </pre>
+                <p class="refs">Tham khảo: Docs của BrowserStack, Sauce Labs, Firebase Test Lab, và GitHub Actions</p>
+            </section>
+
+            <section class="lesson-card">
+                <h3>Bài 9 — Troubleshooting & Best Practices</h3>
+                <ul>
+                    <li>Sử dụng explicit waits, tránh sleeps</li>
+                    <li>Isolate tests (no shared state)</li>
+                    <li>Log & capture screenshot on failure</li>
+                    <li>Version control capabilities and drivers</li>
+                </ul>
+                <pre class="code"># Screenshot on failure (pytest example)
+def test_example(driver):
+    try:
+        assert driver.find_element_by_id('x')
+    except Exception as e:
+        driver.save_screenshot('failure.png')
+        raise
+                </pre>
+            </section>
+
+            <section class="lesson-card">
+                <h3>Bài 10 — Resources & Next Steps</h3>
+                <ol>
+                    <li>Official Python tutorial: https://docs.python.org/3/tutorial/</li>
+                    <li>Appium docs: https://appium.io/docs/en/about-appium/intro/</li>
+                    <li>Robot Framework: https://robotframework.org/</li>
+                    <li>Selenium: https://www.selenium.dev/</li>
+                    <li>Android developer guides: https://developer.android.com/docs</li>
+                </ol>
+                <p class="refs">Mẹo: luôn đối chiếu hành vi thực tế trên device, kiểm tra driver/adb versions và Appium server logs.</p>
+            </section>
+
+            <div style="margin-top:18px; text-align:center;">
+                <a class="nav-button" href="/emv_course/index.html">← Quay về EMV Course</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
+
