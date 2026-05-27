@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>EMV</title>
+    <style>
+        :root{
+          --primary:#3949ab;--primary-dark:#1a237e;--primary-light:#e8eaf6;
+          --accent:#00897b;--warn-bg:#fff8e1;--warn-border:#f9a825;
+          --danger-bg:#fce4ec;--danger-border:#e91e63;
+          --text:#1a1a2e;--text-muted:#546e7a;--bg:#f8f9fc;--card:#fff;
+          --border:#e0e0e0;--sidebar-w:280px;--header-h:56px;
+          --tag-bg:#e8eaf6;--tag-color:#283593;
+          --badge-foundation:#1565c0;--badge-txn:#2e7d32;--badge-security:#6a1b9a;
+          --badge-contactless:#00695c;--badge-infra:#e65100;
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.75;overflow-x:hidden}
+
+        /* PROGRESS BAR */
+        #progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--accent));width:0%;z-index:9999;transition:width .1s}
+
+        /* HEADER */
+        header{position:fixed;top:0;left:0;right:0;height:var(--header-h);background:var(--primary-dark);color:#fff;display:flex;align-items:center;padding:0 20px;z-index:1000;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+        header h1{font-size:1.1rem;font-weight:600;flex:1;letter-spacing:.3px}
+        #search-box{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 14px;border-radius:20px;font-size:.85rem;width:220px;outline:none;transition:.2s}
+        #search-box::placeholder{color:rgba(255,255,255,.6)}
+        #search-box:focus{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.6)}
+        #menu-toggle{display:none;background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;margin-right:12px}
+        .header-actions{display:flex;gap:10px;align-items:center;margin-left:16px}
+        .btn-icon{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:.8rem;transition:.2s}
+        .btn-icon:hover{background:rgba(255,255,255,.25)}
+
+        /* LAYOUT */
+        .layout{display:flex;margin-top:var(--header-h)}
+
+        /* SIDEBAR */
+        aside{width:var(--sidebar-w);position:fixed;top:var(--header-h);bottom:0;left:0;background:#fff;border-right:1px solid var(--border);overflow-y:auto;z-index:900;transition:transform .3s}
+        aside::-webkit-scrollbar{width:4px}
+        aside::-webkit-scrollbar-thumb{background:#c5cae9;border-radius:2px}
+        .sidebar-header{padding:16px 16px 8px;font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);margin-bottom:4px}
+        nav a{display:flex;align-items:center;gap:8px;padding:7px 16px;font-size:.82rem;color:var(--text-muted);text-decoration:none;border-left:3px solid transparent;transition:.15s;line-height:1.3}
+        nav a:hover{background:var(--primary-light);color:var(--primary);border-left-color:var(--primary)}
+        nav a.active{background:var(--primary-light);color:var(--primary);border-left-color:var(--primary);font-weight:600}
+        nav a .num{font-size:.72rem;background:var(--primary-light);color:var(--primary);border-radius:3px;padding:1px 5px;min-width:22px;text-align:center;font-weight:700}
+        .badge{font-size:.65rem;padding:1px 6px;border-radius:10px;color:#fff;font-weight:600;white-space:nowrap}
+        .b-f{background:var(--badge-foundation)}
+        .b-t{background:var(--badge-txn)}
+        .b-s{background:var(--badge-security)}
+        .b-c{background:var(--badge-contactless)}
+        .b-i{background:var(--badge-infra)}
+
+        /* MAIN */
+        main{margin-left:var(--sidebar-w);padding:32px 40px 80px;max-width:900px;width:100%}
+
+        /* HERO */
+        .hero{background:linear-gradient(135deg,var(--primary-dark) 0%,var(--primary) 60%,#3f51b5 100%);color:#fff;border-radius:12px;padding:36px 40px;margin-bottom:40px}
+        .hero h2{font-size:1.8rem;font-weight:700;margin-bottom:8px}
+        .hero p{opacity:.9;font-size:.95rem;margin-bottom:20px}
+        .hero-stats{display:flex;gap:24px;flex-wrap:wrap}
+        .stat{background:rgba(255,255,255,.15);border-radius:8px;padding:10px 18px;text-align:center}
+        .stat-num{font-size:1.5rem;font-weight:700}
+        .stat-label{font-size:.75rem;opacity:.8}
+
+        /* SECTION CARD */
+        .section-card{background:var(--card);border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:28px;overflow:hidden;border:1px solid var(--border);scroll-margin-top:calc(var(--header-h) + 16px)}
+        .section-card.hidden{display:none}
+        .section-head{padding:18px 24px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,var(--primary-light),#fff)}
+        .section-num{background:var(--primary);color:#fff;border-radius:6px;padding:3px 9px;font-size:.8rem;font-weight:700;white-space:nowrap}
+        .section-title{font-size:1.05rem;font-weight:600;color:var(--primary-dark);flex:1}
+        .section-body{padding:24px}
+
+        /* TABS */
+        .tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:20px;gap:0}
+        .tab-btn{padding:8px 20px;border:none;background:none;font-size:.88rem;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:.15s;font-weight:500}
+        .tab-btn:hover{color:var(--primary)}
+        .tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+        .tab-pane{display:none}
+        .tab-pane.active{display:block}
+
+        /* CONTENT */
+        .section-body h3{font-size:.95rem;font-weight:600;color:var(--primary-dark);margin:0 0 10px}
+        .section-body p{color:#333;margin-bottom:12px;font-size:.9rem}
+        .section-body ul{padding-left:20px;margin-bottom:12px}
+        .section-body li{margin-bottom:6px;font-size:.9rem;color:#333}
+        .section-body strong{color:var(--primary-dark)}
+        code{background:#eceff1;padding:1px 6px;border-radius:3px;font-size:.85em;font-family:'Consolas','Courier New',monospace;color:#c62828}
+        .tag{background:var(--tag-bg);color:var(--tag-color);padding:1px 6px;border-radius:3px;font-family:monospace;font-size:.82em;font-weight:600}
+        .note{background:var(--warn-bg);border-left:4px solid var(--warn-border);padding:10px 14px;border-radius:0 6px 6px 0;margin:14px 0;font-size:.87rem}
+        .warn{background:var(--danger-bg);border-left:4px solid var(--danger-border);padding:10px 14px;border-radius:0 6px 6px 0;margin:14px 0;font-size:.87rem}
+
+        /* TABLE */
+        table{border-collapse:collapse;width:100%;margin:14px 0;font-size:.85rem;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+        th{background:var(--primary);color:#fff;padding:9px 12px;text-align:left;font-weight:600}
+        td{padding:8px 12px;border-bottom:1px solid #e8eaf6;color:#333}
+        tr:last-child td{border-bottom:none}
+        tr:nth-child(even) td{background:#f5f6ff}
+
+        /* CODE BLOCKS */
+        .section-body pre{background:#eceff1;border:1px solid #cfd8dc;border-radius:6px;padding:14px;font-size:.8rem;font-family:'Consolas','Courier New',monospace;line-height:1.6;overflow-x:auto;color:#263238;margin:12px 0}
+        .section-body pre code{background:none;padding:0;color:inherit;font-size:inherit}
+
+        /* REFS */
+        .refs-list li{margin-bottom:8px;font-size:.83rem;color:var(--text-muted);line-height:1.5}
+
+        /* BACK TO TOP */
+        #back-top{position:fixed;bottom:28px;right:28px;width:44px;height:44px;background:var(--primary);color:#fff;border:none;border-radius:50%;font-size:1.2rem;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(57,73,171,.4);z-index:800;transition:.2s}
+        #back-top:hover{background:var(--primary-dark);transform:translateY(-2px)}
+        #back-top.show{display:flex}
+
+        /* CATEGORY LEGEND */
+        .legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+        .legend-item{display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--text-muted)}
+        .legend-dot{width:10px;height:10px;border-radius:50%}
+
+        /* MOBILE */
+        @media(max-width:768px){
+          aside{transform:translateX(-100%)}
+          aside.open{transform:translateX(0)}
+          main{margin-left:0;padding:20px 16px 60px}
+          #menu-toggle{display:block}
+          #search-box{width:150px}
+          .hero{padding:24px 20px}
+          .hero h2{font-size:1.3rem}
+          .hero-stats{gap:12px}
+          .tabs{overflow-x:auto}
+          .tab-btn{white-space:nowrap;padding:8px 14px}
+        }
+        @media print{
+          aside,header,#back-top,#progress-bar,#menu-toggle,.header-actions{display:none!important}
+          main{margin-left:0;padding:0}
+          .section-card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}
+          .tab-pane{display:block!important}
+          .tabs{display:none}
+        }
+    </style>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header>
+    <button id="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <h1>📱 Tài Liệu EMV Toàn Diện</h1>
+    <input id="search-box" type="text" placeholder="🔍 Tìm kiếm chủ đề..." oninput="filterSections(this.value)"/>
+    <div class="header-actions">
+        <button class="btn-icon" onclick="window.print()">🖨 In</button>
+        <button class="btn-icon" onclick="expandAll()">📖 Mở tất cả</button>
+    </div>
+</header>
+
+<div class="layout">
+    <aside id="sidebar">
+        <div class="sidebar-header">27 Chủ Đề · 5 Danh Mục</div>
+        <nav id="nav-links">
+            <a href="#s1"  class="nav-link" data-id="s1"><span class="num">1</span>EMV là gì? <span class="badge b-f">Nền tảng</span></a>
+            <a href="#s2"  class="nav-link" data-id="s2"><span class="num">2</span>Application Selection &amp; AID <span class="badge b-f">Nền tảng</span></a>
+            <a href="#s3"  class="nav-link" data-id="s3"><span class="num">3</span>Luồng Giao Dịch EMV <span class="badge b-t">Giao dịch</span></a>
+            <a href="#s4"  class="nav-link" data-id="s4"><span class="num">4</span>ODA: SDA / DDA / CDA <span class="badge b-s">Bảo mật</span></a>
+            <a href="#s5"  class="nav-link" data-id="s5"><span class="num">5</span>CVM – Xác Minh Chủ Thẻ <span class="badge b-t">Giao dịch</span></a>
+            <a href="#s6"  class="nav-link" data-id="s6"><span class="num">6</span>Xử Lý PIN <span class="badge b-s">Bảo mật</span></a>
+            <a href="#s7"  class="nav-link" data-id="s7"><span class="num">7</span>Quản Lý Rủi Ro (TRM) <span class="badge b-t">Giao dịch</span></a>
+            <a href="#s8"  class="nav-link" data-id="s8"><span class="num">8</span>Cryptogram: ARQC/TC/AAC <span class="badge b-s">Bảo mật</span></a>
+            <a href="#s9"  class="nav-link" data-id="s9"><span class="num">9</span>Online Processing &amp; ARPC <span class="badge b-t">Giao dịch</span></a>
+            <a href="#s10" class="nav-link" data-id="s10"><span class="num">10</span>Issuer Script Processing <span class="badge b-t">Giao dịch</span></a>
+            <a href="#s11" class="nav-link" data-id="s11"><span class="num">11</span>Contactless &amp; ISO 14443 <span class="badge b-c">Contactless</span></a>
+            <a href="#s12" class="nav-link" data-id="s12"><span class="num">12</span>Contactless Kernels K1–K7 <span class="badge b-c">Contactless</span></a>
+            <a href="#s13" class="nav-link" data-id="s13"><span class="num">13</span>fDDA &amp; CDCVM <span class="badge b-c">Contactless</span></a>
+            <a href="#s14" class="nav-link" data-id="s14"><span class="num">14</span>Loại Terminal &amp; Khả Năng <span class="badge b-f">Nền tảng</span></a>
+            <a href="#s15" class="nav-link" data-id="s15"><span class="num">15</span>TLV &amp; BER-TLV <span class="badge b-f">Nền tảng</span></a>
+            <a href="#s16" class="nav-link" data-id="s16"><span class="num">16</span>Bảng Tag EMV <span class="badge b-f">Nền tảng</span></a>
+            <a href="#s17" class="nav-link" data-id="s17"><span class="num">17</span>EMV PKI &amp; Chứng Chỉ <span class="badge b-s">Bảo mật</span></a>
+            <a href="#s18" class="nav-link" data-id="s18"><span class="num">18</span>Session Key Derivation <span class="badge b-s">Bảo mật</span></a>
+            <a href="#s19" class="nav-link" data-id="s19"><span class="num">19</span>EMV Tokenization <span class="badge b-s">Bảo mật</span></a>
+            <a href="#s20" class="nav-link" data-id="s20"><span class="num">20</span>HCE &amp; Mobile NFC <span class="badge b-c">Contactless</span></a>
+            <a href="#s21" class="nav-link" data-id="s21"><span class="num">21</span>Cá Nhân Hóa &amp; Key Injection <span class="badge b-i">Hạ tầng</span></a>
+            <a href="#s22" class="nav-link" data-id="s22"><span class="num">22</span>HSM <span class="badge b-i">Hạ tầng</span></a>
+            <a href="#s23" class="nav-link" data-id="s23"><span class="num">23</span>Magnetic Stripe Fallback <span class="badge b-i">Hạ tầng</span></a>
+            <a href="#s24" class="nav-link" data-id="s24"><span class="num">24</span>Acquirer &amp; ISO 8583 <span class="badge b-i">Hạ tầng</span></a>
+            <a href="#s25" class="nav-link" data-id="s25"><span class="num">25</span>Xử Lý Lỗi &amp; Ngoại Lệ <span class="badge b-i">Hạ tầng</span></a>
+            <a href="#s26" class="nav-link" data-id="s26"><span class="num">26</span>Chứng Nhận L1/L2/L3 <span class="badge b-i">Hạ tầng</span></a>
+            <a href="#s27" class="nav-link" data-id="s27"><span class="num">27</span>EMV Transit <span class="badge b-c">Contactless</span></a>
+            <a href="#refs" class="nav-link" data-id="refs"><span class="num">📚</span>Tài Liệu Tham Khảo</a>
+        </nav>
+    </aside>
+
+    <main>
+        <!-- HERO -->
+        <div class="hero">
+            <h2>Tài Liệu Kỹ Thuật EMV Toàn Diện</h2>
+            <p>Chuẩn thanh toán chip toàn cầu — từ cơ bản đến triển khai thực tế. Mọi nội dung có trích dẫn chính thức từ EMVCo, Visa, Mastercard và ISO.</p>
+            <div class="hero-stats">
+                <div class="stat"><div class="stat-num">27</div><div class="stat-label">Chủ đề</div></div>
+                <div class="stat"><div class="stat-num">5</div><div class="stat-label">Danh mục</div></div>
+                <div class="stat"><div class="stat-num">3</div><div class="stat-label">Lớp giải thích</div></div>
+                <div class="stat"><div class="stat-num">25+</div><div class="stat-label">Nguồn tham khảo</div></div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--badge-foundation)"></div>Nền tảng</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--badge-txn)"></div>Giao dịch</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--badge-security)"></div>Bảo mật</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--badge-contactless)"></div>Contactless</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--badge-infra)"></div>Hạ tầng</div>
+        </div>
+
+        <!-- MACRO to render a section -->
+        <!-- S1 -->
+        <div class="section-card" id="s1">
+            <div class="section-head"><span class="section-num">01</span><span class="section-title">EMV là gì?</span><span class="badge b-f">Nền tảng</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t1a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t1b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t1c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t1a"><p>EMV là viết tắt của <strong>Europay, Mastercard và Visa</strong> — ba tổ chức thanh toán đã tạo ra tiêu chuẩn toàn cầu cho thẻ thanh toán có chip. Thẻ chip EMV an toàn hơn thẻ từ vì nó tạo ra một mã bảo mật <strong>duy nhất, dùng một lần</strong> cho mỗi giao dịch [EMVCo, <em>About EMV</em>, https://www.emvco.com/about/].</p></div>
+                <div class="tab-pane" id="t1b">
+                    <p>Với tư cách Android developer, bạn đã quen với <strong>HTTPS</strong> — mỗi TLS session tạo một session key duy nhất, không tái sử dụng. EMV áp dụng nguyên lý tương tự cho thẻ vật lý: thay vì gửi số thẻ thật (dễ bị clone), chip tạo một <strong>cryptogram 8 byte duy nhất</strong> mỗi giao dịch, giống như một HMAC signature [EMVCo, <em>About EMV</em>, https://www.emvco.com/about/].</p>
+                    <p><strong>So sánh cụ thể:</strong><br/>
+                        • HTTPS: <code>client_random + server_random → master_secret → session_key</code><br/>
+                        • EMV: <code>IMK + ATC (bộ đếm) → session_key → ARQC (cryptogram 8 byte)</code><br/>
+                        Kẻ gian ghi lại ARQC của giao dịch hôm nay mang replay lại ngày mai → ngân hàng kiểm tra ATC (bộ đếm tăng mỗi giao dịch) thấy ATC cũ → từ chối ngay. Giống JWT đã expire [Visa, <em>Chip Card Technology</em>, Visa Developer Center, 2023].</p>
+                </div>
+                <div class="tab-pane" id="t1c"><p>Tiêu chuẩn EMV được công bố bởi <strong>EMVCo</strong> — tổ chức thuộc sở hữu ngang nhau của American Express, Discover, JCB, Mastercard, UnionPay và Visa. Đặc tả chia thành bốn cuốn sách cho thẻ tiếp xúc: <strong>Book 1</strong> (Giao diện Terminal–ICC), <strong>Book 2</strong> (Bảo mật &amp; Quản lý Khóa), <strong>Book 3</strong> (Đặc tả Ứng dụng), <strong>Book 4</strong> (Giao diện Chủ thẻ/Acquirer). Giao tiếp thẻ tiếp xúc tuân theo ISO/IEC 7816; thẻ contactless dùng ISO/IEC 14443 (RF 13.56 MHz) [EMVCo, Book 1, v4.3, 2011; ISO/IEC 7816-4:2020; ISO/IEC 14443-4:2018].</p></div>
+            </div>
+        </div>
+
+        <!-- S2 -->
+        <div class="section-card" id="s2">
+            <div class="section-head"><span class="section-num">02</span><span class="section-title">Application Selection &amp; AID</span><span class="badge b-f">Nền tảng</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t2a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t2b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t2c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t2a"><p><strong>AID (Application Identifier)</strong> là mã duy nhất lưu trên chip thẻ, cho terminal biết thẻ hỗ trợ mạng thanh toán nào. Application Selection là quá trình terminal và thẻ thống nhất chọn ứng dụng nào để dùng [EMVCo, Book 1, v4.3, §12].</p></div>
+                <div class="tab-pane" id="t2b">
+                    <p>Trong Android, mỗi app có <strong>package name</strong> duy nhất (<code>com.visa.app</code>, <code>com.mastercard.app</code>). AID trong EMV giống hệt vậy: <code>A0000000031010</code> là "package name" của ứng dụng Visa Credit trên chip thẻ. Một thẻ có thể chứa nhiều AID như điện thoại chứa nhiều app [EMVCo, Book 1, v4.3, §12].</p>
+                    <p><strong>Ví dụ step-by-step — thẻ Vietcombank dual-network tại POS:</strong><br/>
+                        ① Terminal gửi: <code>SELECT 2PAY.SYS.DDF01</code> (hỏi thẻ "bạn có app nào?")<br/>
+                        ② Thẻ trả về danh sách: <code>[A0000000031010, priority=1]</code> (Visa) và <code>[A0000000041010, priority=2]</code> (MC)<br/>
+                        ③ Terminal so sánh với danh sách nó hỗ trợ → cả 2 đều được<br/>
+                        ④ Priority Indicator thẻ = 1 (Visa ưu tiên hơn) → terminal SELECT AID Visa<br/>
+                        ⑤ Thẻ phản hồi FCI — bắt đầu giao dịch Visa<br/>
+                        → Giống Android Intent resolution: "mở file .pdf bằng app nào?" [Mastercard, <em>M/Chip Requirements</em>, §4.1, 2022].</p>
+                </div>
+                <div class="tab-pane" id="t2c">
+                    <p>Cấu trúc AID: <strong>RID (5 byte)</strong> cấp bởi ISO/IEC 7816-5 + <strong>PIX (0–11 byte)</strong> do tổ chức phát hành định nghĩa. RID phổ biến: Visa <code>A000000003</code>, Mastercard <code>A000000004</code>, Amex <code>A000000025</code>, JCB <code>A000000065</code>, UnionPay <code>A000000333</code> [ISO/IEC 7816-5:2004].</p>
+                    <p>Hai phương pháp chọn ứng dụng:</p>
+                    <ul>
+                        <li><strong>PSE Method</strong>: Terminal gửi <code>SELECT 1PAY.SYS.DDF01</code> (contact) hoặc <code>SELECT 2PAY.SYS.DDF01</code> (contactless/PPSE). Thẻ trả về danh mục AID.</li>
+                        <li><strong>List of AIDs</strong>: Nếu PSE không hỗ trợ, terminal thử từng AID bằng SELECT trực tiếp.</li>
+                    </ul>
+                    <p>Thẻ phản hồi FCI chứa PDOL (Tag <span class="tag">9F38</span>) — danh sách dữ liệu terminal cần cung cấp cho lệnh GPO [EMVCo, Book 1, §12.3–12.4].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S3 -->
+        <div class="section-card" id="s3">
+            <div class="section-head"><span class="section-num">03</span><span class="section-title">Luồng Giao Dịch EMV Đầy Đủ (10 bước)</span><span class="badge b-t">Giao dịch</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t3a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t3b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t3c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t3a"><p>Sau khi chọn ứng dụng, giao dịch EMV tuân theo đúng <strong>10 bước cố định</strong>. Thẻ và terminal trao đổi dữ liệu, xác thực tính hợp lệ, kiểm tra hạn mức, và cuối cùng tạo quyết định: duyệt offline, hỏi ngân hàng online, hoặc từ chối [EMVCo, Book 3, v4.3, §6].</p></div>
+                <div class="tab-pane" id="t3b">
+                    <p>Hãy so sánh 10 bước EMV với <strong>vòng đời Android Activity</strong> — mỗi bước bắt buộc theo đúng thứ tự, không bỏ qua được [Visa, <em>Visa Chip Requirements</em>, §5–7, 2023].</p>
+                    <p><strong>Ví dụ cụ thể — mua cà phê 50.000 VND bằng thẻ chip:</strong><br/>
+                        ① <strong>SELECT AID</strong> → terminal hỏi thẻ "bạn là ai?" → thẻ: "Tôi là Visa A0000000031010"<br/>
+                        ② <strong>GPO</strong> → terminal gửi: số tiền 50000, ngày 20260527, terminal country 0704 → thẻ trả AIP, AFL<br/>
+                        ③ <strong>READ RECORD</strong> → terminal đọc PAN, ngày hết hạn, CDOL1, chứng chỉ RSA từ thẻ<br/>
+                        ④ <strong>DDA</strong> → terminal gửi số ngẫu nhiên (UN) → thẻ ký bằng ICC Private Key → terminal verify bằng ICC Public Key → thẻ thật ✓<br/>
+                        ⑤ <strong>Processing Restrictions</strong> → thẻ chưa hết hạn? đúng loại giao dịch? ✓<br/>
+                        ⑥ <strong>CVM</strong> → CVM List yêu cầu PIN? 50.000 VND &lt; 200.000 VND → No CVM ✓<br/>
+                        ⑦ <strong>TRM</strong> → 50.000 VND &lt; floor limit 2.000.000 VND → offline được ✓<br/>
+                        ⑧ <strong>TAA</strong> → TVR bit nào bật? không có lỗi → thẻ quyết định TC (offline approve)<br/>
+                        ⑨ <strong>GENERATE AC</strong> → terminal gửi CDOL1 data → thẻ tạo TC (8 byte)<br/>
+                        ⑩ <strong>Hoàn tất</strong> → màn hình hiện "Approved" — không cần gọi ngân hàng<br/>
+                        Tổng thời gian: &lt;2 giây [EMVCo, Book 3, §6].</p>
+                </div>
+                <div class="tab-pane" id="t3c">
+                    <ul>
+                        <li><strong>Bước 1 — Application Selection</strong>: SELECT AID → FCI với PDOL [Book 1, §12].</li>
+                        <li><strong>Bước 2 — GET PROCESSING OPTIONS (GPO)</strong>: Terminal gửi PDOL data. Thẻ trả AIP <span class="tag">82</span> và AFL <span class="tag">94</span> [Book 3, §6.4].</li>
+                        <li><strong>Bước 3 — READ RECORD</strong>: Đọc tất cả SFI/record trong AFL. Lấy PAN, Track 2, CDOL1/2, chứng chỉ RSA [Book 3, §10.2].</li>
+                        <li><strong>Bước 4 — ODA</strong>: SDA, DDA hoặc CDA — xác minh thẻ thật offline [Book 2, §5].</li>
+                        <li><strong>Bước 5 — Processing Restrictions</strong>: Kiểm tra ngày hiệu lực/hết hạn, AUC <span class="tag">9F07</span> [Book 3, §10.4].</li>
+                        <li><strong>Bước 6 — CVM</strong>: PIN, chữ ký hoặc No CVM theo CVM List <span class="tag">8E</span> [Book 3, §10.5].</li>
+                        <li><strong>Bước 7 — TRM</strong>: Floor limit, velocity, chọn online ngẫu nhiên [Book 3, §10.6].</li>
+                        <li><strong>Bước 8 — TAA</strong>: So sánh TVR <span class="tag">95</span> với IAC/TAC → quyết định ARQC/TC/AAC [Book 3, §10.7].</li>
+                        <li><strong>Bước 9 — GENERATE AC</strong>: Terminal gửi CDOL1 data. Thẻ trả cryptogram + CID <span class="tag">9F27</span> [Book 3, §10.8].</li>
+                        <li><strong>Bước 10 — Online/Hoàn Tất</strong>: Gửi ARQC lên issuer. Nhận ARPC + script. GENERATE AC lần 2 [Book 3, §10.9–10.10].</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- S4 -->
+        <div class="section-card" id="s4">
+            <div class="section-head"><span class="section-num">04</span><span class="section-title">Xác Thực Dữ Liệu Offline (SDA / DDA / CDA)</span><span class="badge b-s">Bảo mật</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t4a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t4b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t4c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t4a"><p>ODA cho phép terminal xác minh thẻ thật mà <strong>không cần gọi ngân hàng</strong>. Nó dùng mật mã khóa công khai (PKI): thẻ chứa chứng chỉ số ký bởi ngân hàng, ngân hàng ký bởi mạng thanh toán. Terminal kiểm tra toàn bộ chuỗi tin cậy offline [EMVCo, Book 2, v4.3, §5].</p></div>
+                <div class="tab-pane" id="t4b">
+                    <p>Bạn đã biết <strong>Android APK signing</strong>: khi cài app, Android verify chữ ký APK bằng developer certificate. ODA làm điều tương tự với thẻ — nhưng offline và dùng RSA 1024/2048-bit [EMVCo, Book 2, §5.1].</p>
+                    <p><strong>So sánh chuỗi chứng chỉ:</strong><br/>
+                        APK signing: <code>Google Root CA → Developer Certificate → APK signature</code><br/>
+                        EMV DDA: <code>Visa CA Public Key → Issuer PK Cert (Tag 90) → ICC PK Cert (Tag 9F46) → Dynamic Signature</code></p>
+                    <p><strong>Ví dụ DDA step-by-step — terminal verify thẻ Visa thật:</strong><br/>
+                        ① Terminal có Visa CA Public Key (RSA 2048-bit) cài sẵn trong firmware (giống Android có Google root cert)<br/>
+                        ② Đọc Tag <code>90</code> từ thẻ → <code>RSA_Decrypt(visaCAKey, cert90)</code> → lấy được Issuer (ngân hàng) Public Key<br/>
+                        ③ Đọc Tag <code>9F46</code> từ thẻ → <code>RSA_Decrypt(issuerKey, cert9F46)</code> → lấy được ICC Public Key<br/>
+                        ④ Terminal tạo UN = <code>A1B2C3D4</code> (random 4 byte)<br/>
+                        ⑤ Gửi INTERNAL AUTHENTICATE(UN) → thẻ ký bằng ICC Private Key: <code>sig = RSA_Sign(iccPrivateKey, hash(UN + data))</code><br/>
+                        ⑥ Terminal verify: <code>RSA_Verify(iccPublicKey, sig)</code> → thẻ thật ✓<br/>
+                        → Toàn bộ offline, &lt;100ms [Book 2, §5.2].</p>
+                </div>
+                <div class="tab-pane" id="t4c">
+                    <ul>
+                        <li><strong>SDA</strong>: Xác minh chữ ký RSA tĩnh (Tag <span class="tag">93</span>) trên dữ liệu cố định. Chống giả mạo dữ liệu nhưng không chống clone thẻ [Book 2, §5.1].</li>
+                        <li><strong>DDA</strong>: Terminal tạo Unpredictable Number (Tag <span class="tag">9F37</span>), gửi qua INTERNAL AUTHENTICATE. Thẻ ký bằng ICC Private Key (RSA). Terminal xác minh bằng ICC Public Key Certificate (Tag <span class="tag">9F46</span>). Chống clone hoàn toàn [Book 2, §5.2].</li>
+                        <li><strong>CDA</strong>: Kết hợp DDA + tạo cryptogram trong một GENERATE AC. Thẻ ký cả dynamic data và cryptogram trong một phép toán RSA, ràng buộc mạnh hơn [Book 2, §5.3].</li>
+                    </ul>
+                    <p>PKI 3 cấp: <strong>CA Root Key → Issuer Public Key Certificate</strong> <span class="tag">90</span> → <strong>ICC Public Key Certificate</strong> <span class="tag">9F46</span>. Kích thước khóa RSA: 1024 hoặc 2048 bit [EMVCo, Book 2, §4; ISO/IEC 9796-2:2010].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S5 -->
+        <div class="section-card" id="s5">
+            <div class="section-head"><span class="section-num">05</span><span class="section-title">Phương Thức Xác Minh Chủ Thẻ (CVM)</span><span class="badge b-t">Giao dịch</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t5a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t5b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t5c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t5a"><p>CVM là cách hệ thống thanh toán xác nhận người dùng thẻ là chủ thẻ hợp lệ. Các phương thức: nhập PIN, ký tên, hoặc không cần xác minh (contactless nhỏ) [EMVCo, Book 3, §10.5].</p></div>
+                <div class="tab-pane" id="t5b">
+                    <p>Hãy nghĩ đến <strong>Android BiometricPrompt API</strong>: bạn config với <code>setAllowedAuthenticators(BIOMETRIC_STRONG | DEVICE_CREDENTIAL)</code> — hệ thống thử biometric trước, fallback về PIN nếu thất bại. CVM List (Tag 8E) trên thẻ hoạt động giống hệt — là một <em>danh sách ưu tiên</em> các phương thức xác minh kèm điều kiện [EMVCo, Book 3, §10.5].</p>
+                    <p><strong>Ví dụ CVM List thực tế thẻ Visa Vietcombank:</strong><br/>
+                        CVM rule 1: <code>Online Enciphered PIN</code> — nếu terminal có PIN pad VÀ kết nối online VÀ số tiền &gt; 0 → thử nhập PIN online<br/>
+                        CVM rule 2: <code>Signature</code> — nếu PIN online fail → thử ký tên<br/>
+                        CVM rule 3: <code>No CVM Required</code> — nếu terminal không có PIN pad (unattended) → không cần xác minh</p>
+                    <p><strong>Áp dụng thực tế:</strong><br/>
+                        • Chạm thẻ 45.000 VND tại quán trà sữa (contactless, unattended) → Rule 3 → <strong>No CVM</strong><br/>
+                        • Cắm thẻ 2.500.000 VND tại siêu thị (attended, có PIN pad) → Rule 1 → <strong>nhập PIN</strong><br/>
+                        • Cắm thẻ tại khách sạn (không có PIN pad online) → Rule 1 fail → Rule 2 → <strong>ký phiếu</strong><br/>
+                        Kết quả lưu vào Tag <code>9F34</code> (CVM Results) — 3 byte ghi nhận phương thức và kết quả [Mastercard, <em>M/Chip Requirements</em>, §5.3, 2022].</p>
+                </div>
+                <div class="tab-pane" id="t5c">
+                    <p>Thẻ lưu <strong>CVM List</strong> (Tag <span class="tag">8E</span>) — danh sách ưu tiên các quy tắc CVM. Mỗi quy tắc: 2 byte mã CVM + 2 byte điều kiện + 4 byte ngưỡng số tiền [Book 3, §10.5.2].</p>
+                    <table>
+                        <tr><th>Mã (hex)</th><th>Phương Thức CVM</th><th>Ghi Chú</th></tr>
+                        <tr><td>01</td><td>Offline Plaintext PIN</td><td>PIN so sánh bên trong thẻ</td></tr>
+                        <tr><td>02</td><td>Offline Enciphered PIN</td><td>PIN mã hóa RSA gửi vào thẻ</td></tr>
+                        <tr><td>1E</td><td>Signature</td><td>Ký phiếu giấy</td></tr>
+                        <tr><td>1F</td><td>No CVM Required</td><td>Contactless giá trị thấp</td></tr>
+                        <tr><td>41</td><td>Online Enciphered PIN</td><td>PIN mã hóa gửi lên issuer</td></tr>
+                    </table>
+                    <p>Kết quả lưu trong CVM Results (Tag <span class="tag">9F34</span>): 3 byte ghi nhận phương thức, điều kiện và kết quả [Book 3, §10.5.4].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S6 -->
+        <div class="section-card" id="s6">
+            <div class="section-head"><span class="section-num">06</span><span class="section-title">Xử Lý PIN</span><span class="badge b-s">Bảo mật</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t6a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t6b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t6c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t6a"><p>PIN là mã bí mật 4–12 chữ số chứng minh bạn là chủ thẻ. Trong EMV, PIN được xác minh bên trong thẻ (offline) hoặc bởi ngân hàng qua mạng (online). Cách truyền PIN được quy định nghiêm ngặt [ISO 9564-1:2017, §5].</p></div>
+                <div class="tab-pane" id="t6b">
+                    <p>Trong Android, bạn mã hóa data nhạy cảm: <code>Cipher.getInstance("RSA/ECB/PKCS1Padding").doFinal(pinBlock)</code>. Offline Enciphered PIN làm đúng điều này — terminal mã hóa PIN bằng <strong>ICC Public Key</strong> của chip, chỉ chip mới giải mã được [ISO 9564-1:2017, §5].</p>
+                    <p><strong>Ví dụ Offline Enciphered PIN step-by-step:</strong><br/>
+                        ① Bạn nhập PIN "1234" vào bàn phím POS<br/>
+                        ② Terminal tạo PIN block (ISO Format 1, 8 byte): <code>21 04 12 34 FF FF FF FF</code><br/>
+                        &nbsp;&nbsp;&nbsp;(byte đầu = 0x2 format + 0x1 len; byte 2–5 = digits; còn lại = padding 0xF)<br/>
+                        ③ Terminal đọc ICC Public Key từ Tag <code>9F46</code> đã lấy ở bước READ RECORD<br/>
+                        ④ <code>encryptedPIN = RSA_Encrypt(iccPublicKey, pinBlock)</code><br/>
+                        ⑤ Terminal gửi lệnh: <code>VERIFY [84 22] [encrypted_pin_block]</code> vào chip<br/>
+                        ⑥ Chip giải mã bằng ICC Private Key → so sánh với PIN reference data lưu trong chip<br/>
+                        ⑦ Kết quả: SW = <code>9000</code> (đúng) hoặc <code>63C2</code> (sai, còn 2 lần), <code>6983</code> (PIN Try Counter = 0, thẻ bị khóa)<br/>
+                        → PIN chỉ xảy ra bên trong chip. Terminal và ngân hàng <strong>không bao giờ biết</strong> PIN đúng hay sai [Book 3, §10.5.3.4].</p>
+                </div>
+                <div class="tab-pane" id="t6c">
+                    <table>
+                        <tr><th>Format</th><th>Tên</th><th>Cấu Trúc</th><th>Ứng Dụng</th></tr>
+                        <tr><td>Format 0</td><td>ANSI X9.8</td><td>PIN XOR PAN</td><td>Online PIN (phổ biến nhất)</td></tr>
+                        <tr><td>Format 3</td><td>–</td><td>PIN XOR PAN + padding ngẫu nhiên</td><td>Một số mạng quốc tế</td></tr>
+                        <tr><td>Format 4</td><td>ISO 9564 AES</td><td>Khối AES 128-bit</td><td>Triển khai hiện đại</td></tr>
+                    </table>
+                    <p><strong>Offline Enciphered PIN</strong>: Terminal mã hóa PIN block bằng <strong>ICC Public Key</strong> (RSA, lấy từ Tag <span class="tag">9F46</span>). Gửi trong lệnh VERIFY. Chỉ khóa private thẻ mới giải mã được [Book 3, §10.5.3.4].</p>
+                    <p><strong>Online PIN</strong>: PIN block mã hóa bằng ZPK/PEK, gửi trong ISO 8583 Field 52 lên issuer. Thẻ không tham gia xác minh [ISO 9564-1:2017, §8.1].</p>
+                    <p><strong>PIN Try Counter</strong> (Tag <span class="tag">9F17</span>): Giảm 1 mỗi lần nhập sai. Về 0 → thẻ khóa [Book 3, §10.5.3].</p>
+                    <div class="note"><strong>Lưu ý:</strong> Visa cho phép bỏ qua offline PIN trong một số cấu hình; Mastercard M/Chip bắt buộc enciphered PIN tại mọi POS [Mastercard, M/Chip Requirements, §5.3].</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- S7 -->
+        <div class="section-card" id="s7">
+            <div class="section-head"><span class="section-num">07</span><span class="section-title">Quản Lý Rủi Ro Terminal (TRM)</span><span class="badge b-t">Giao dịch</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t7a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t7b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t7c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t7a"><p>TRM là tập hợp kiểm tra mà terminal thực hiện để quyết định giao dịch có cần ủy quyền online không. Dù thẻ qua tất cả kiểm tra offline, terminal vẫn có thể bắt buộc gọi online [EMVCo, Book 3, §10.6].</p></div>
+                <div class="tab-pane" id="t7b">
+                    <p>Hãy nghĩ về <strong>rate limiting + cache policy trong Android app</strong>: bạn có thể dùng cached data nếu mới hơn 5 phút, nhưng các request nhất định (thanh toán, account info) luôn phải gọi server. TRM là "cache policy" của terminal — quyết định khi nào cần gọi ngân hàng online [EMVCo, Book 3, §10.6].</p>
+                    <p><strong>Ví dụ cụ thể — terminal tại siêu thị lúc mạng yếu:</strong><br/>
+                        Giao dịch: rút 800.000 VND. Floor limit cài = 2.000.000 VND.<br/>
+                        <br/>
+                        <strong>Kiểm tra 1 — Floor Limit:</strong> 800.000 &lt; 2.000.000 → offline được ✓<br/>
+                        <strong>Kiểm tra 2 — Random Online Selection:</strong> Terminal được cài Target% = 10%<br/>
+                        &nbsp;→ Tạo số ngẫu nhiên 0–99 → ra số 7 → &lt; 10 → <em>buộc online ngay cả khi offline được</em><br/>
+                        <strong>Kiểm tra 3 — Velocity:</strong> ATC thẻ hiện tại = 0150, Last Online ATC = 0148<br/>
+                        &nbsp;→ Khoảng cách = 2 → bình thường ✓<br/>
+                        <strong>Kiểm tra 4 — Exception File:</strong> PAN không có trong danh sách đen ✓<br/>
+                        <br/>
+                        <strong>Kết quả:</strong> Dù offline được (floor limit pass), terminal vẫn phải gọi online vì bị chọn ngẫu nhiên. TVR byte 3 bit 3 = 1 (online required) [Book 3, §10.6.2].</p>
+                </div>
+                <div class="tab-pane" id="t7c">
+                    <ul>
+                        <li><strong>Floor Limit Checking</strong>: Nếu số tiền vượt Tag <span class="tag">9F1B</span>, TVR byte 1 bit 3 được bật. Floor limit = 0 buộc tất cả online [Book 3, §10.6.1].</li>
+                        <li><strong>Random Online Selection</strong>: Dưới floor limit, terminal vẫn chọn ngẫu nhiên theo Threshold Amount, Target%, Max Target% [Book 3, §10.6.2].</li>
+                        <li><strong>Velocity Checking</strong>: So sánh ATC <span class="tag">9F36</span> với Last Online ATC <span class="tag">9F13</span>. Khoảng cách vượt LCOL/UCOL → bật bit TVR [Book 3, §10.6.3].</li>
+                        <li><strong>Exception File</strong>: Danh sách thẻ bị chặn nội bộ. PAN có trong danh sách → từ chối [Book 4, §3.4].</li>
+                    </ul>
+                    <p>Kết quả ghi vào <strong>TSI</strong> (Tag <span class="tag">9B</span>) và <strong>TVR</strong> (Tag <span class="tag">95</span>) [Book 3, Annex A].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S8 -->
+        <div class="section-card" id="s8">
+            <div class="section-head"><span class="section-num">08</span><span class="section-title">Tạo Cryptogram (ARQC / TC / AAC)</span><span class="badge b-s">Bảo mật</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t8a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t8b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t8c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t8a"><p>Cryptogram là mã 8 byte duy nhất chip thẻ tạo ra bằng khóa bí mật để chứng minh thẻ thật đã tham gia giao dịch. Ba loại: <strong>ARQC</strong> (gọi online), <strong>TC</strong> (duyệt offline), <strong>AAC</strong> (từ chối) [EMVCo, Book 3, §6.5].</p></div>
+                <div class="tab-pane" id="t8b">
+                    <p>Bạn đã dùng <strong>HMAC</strong> trong Android để ký request: <code>Mac mac = Mac.getInstance("HmacSHA256"); mac.init(secretKey); byte[] sig = mac.doFinal(requestData);</code>. ARQC chính xác là HMAC — nhưng dùng 3DES-CBC-MAC thay SHA256, và input là toàn bộ dữ liệu giao dịch [EMVCo, Book 2, §8.1].</p>
+                    <p><strong>Ví dụ ARQC step-by-step với số thực tế:</strong><br/>
+                        Giao dịch: 150.000 VND (0x000000015000), ngày 26-05-27, ATC = 0x0042, UN = A1B2C3D4<br/>
+                        <br/>
+                        <strong>Bước 1 — Derive Session Key:</strong><br/>
+                        <code>DD_left  = [00 42 00 00 00 00 00 00]</code> (ATC pad 8 byte)<br/>
+                        <code>DD_right = [FF BD FF FF FF FF FF FF]</code> (ATC XOR FFFF pad)<br/>
+                        <code>SK = 3DES_Enc(IMK, DD_left) || 3DES_Enc(IMK, DD_right)</code><br/>
+                        <br/>
+                        <strong>Bước 2 — Tạo CDOL1 input data (theo thứ tự tag trong CDOL1):</strong><br/>
+                        <code>[9F02: 00 00 00 15 00 00] [9F1A: 07 04] [95: 00 00 00 00 00]</code><br/>
+                        <code>[9A: 26 05 27] [9C: 00] [9F37: A1 B2 C3 D4] [82: 00 00] [9F36: 00 42]</code><br/>
+                        <br/>
+                        <strong>Bước 3 — Tính MAC:</strong><br/>
+                        <code>ARQC = 3DES-CBC-MAC(sessionKey, cdol1_data_padded)</code><br/>
+                        <code>Kết quả: ARQC = 3D 8F 2A 1B 4C 5E 6F 7A</code> (8 byte, Tag 9F26)<br/>
+                        <br/>
+                        Ngân hàng nhận ARQC → làm lại bước 1-3 với IMK họ lưu trong HSM → nếu khớp = thẻ thật ✓ [Book 2, §8.1.1].</p>
+                </div>
+                <div class="tab-pane" id="t8c">
+                    <p><strong>Session Key Derivation</strong>: Dẫn xuất từ IMK + ATC (Tag <span class="tag">9F36</span>), đảm bảo mỗi giao dịch dùng khóa khác nhau [Book 2, §A1.3].</p>
+                    <p><strong>CDOL1 Input</strong> (Tag <span class="tag">8C</span>): <span class="tag">9F02</span> Amount · <span class="tag">9F03</span> Amount Other · <span class="tag">9F1A</span> Country Code · <span class="tag">95</span> TVR · <span class="tag">5F2A</span> Currency · <span class="tag">9A</span> Date · <span class="tag">9C</span> TxnType · <span class="tag">9F37</span> UN · <span class="tag">82</span> AIP · <span class="tag">9F36</span> ATC</p>
+                    <p><strong>CBC-MAC</strong> (ISO/IEC 9797-1 Alg.3) tính trên input đã padding bằng 3DES session key = 8-byte cryptogram [Book 2, §8.1.1].</p>
+                    <table>
+                        <tr><th>CID bit b8b7</th><th>Loại</th><th>Ý Nghĩa</th></tr>
+                        <tr><td>10</td><td>ARQC</td><td>Yêu cầu ủy quyền online</td></tr>
+                        <tr><td>01</td><td>TC</td><td>Duyệt offline</td></tr>
+                        <tr><td>00</td><td>AAC</td><td>Từ chối</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- S9 -->
+        <div class="section-card" id="s9">
+            <div class="section-head"><span class="section-num">09</span><span class="section-title">Online Processing &amp; ARPC</span><span class="badge b-t">Giao dịch</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t9a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t9b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t9c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t9a"><p>Khi terminal quyết định gọi online, nó gửi dữ liệu giao dịch kèm ARQC lên ngân hàng. Ngân hàng xác minh ARQC, đưa ra quyết định, và gửi lại <strong>ARPC</strong> (response cryptogram) để chứng minh phản hồi thật [EMVCo, Book 3, §10.9].</p></div>
+                <div class="tab-pane" id="t9b">
+                    <p>Luồng này giống <strong>Firebase Auth verify ID token</strong>: Android app gửi idToken lên backend → backend gọi Google để verify → Google xác nhận → backend cấp quyền. Online Processing y như vậy nhưng 4 bên thay vì 3 [Visa, <em>Visa Chip Requirements</em>, §7, 2023].</p>
+                    <p><strong>Ví dụ end-to-end với timestamp thực tế:</strong><br/>
+                        <code>T+0ms</code>: Terminal tạo ISO 8583 Field 55 chứa ARQC=<code>3D8F2A1B...</code>, ATC=0042, TVR, IAD<br/>
+                        <code>T+50ms</code>: Gửi đến Acquirer (VPBank) qua TCP/IP<br/>
+                        <code>T+120ms</code>: Acquirer forward đến VisaNet<br/>
+                        <code>T+200ms</code>: VisaNet route đến Issuer (Vietcombank)<br/>
+                        <code>T+250ms</code>: Vietcombank HSM: <em>verify ARQC → số dư OK → approve</em><br/>
+                        &nbsp;&nbsp;ARPC = <code>3DES(sessionKey, ARQC XOR "0000")</code> = <code>F2A1B3C4...</code><br/>
+                        <code>T+300ms</code>: Issuer response: Field 39="00" (approve), Field 91=ARPC<br/>
+                        <code>T+450ms</code>: Terminal nhận response<br/>
+                        <code>T+460ms</code>: Terminal gửi lệnh EXTERNAL AUTHENTICATE(ARPC) vào chip<br/>
+                        <code>T+470ms</code>: Chip xác minh ARPC → SW=9000 → ngân hàng thật ✓<br/>
+                        <code>T+500ms</code>: Màn hình: "Approved. Cảm ơn!" [Book 2, §8.2.1].</p>
+                </div>
+                <div class="tab-pane" id="t9c">
+                    <p><strong>ARPC Method 1</strong>: <code>ARPC = 3DES_Enc(session_key, ARQC XOR ARC || 000000000000)</code> — ARC là 2-byte Authorisation Response Code (<code>0000</code>=approve) [Book 2, §8.2.1].</p>
+                    <p><strong>ARPC Method 2 (Mastercard)</strong>: MAC trên khối gồm ARQC + ARC + Card Status Update (CSU) [Book 2, §8.2.2].</p>
+                    <p>ARPC đến terminal qua ISO 8583 Field 91/55 → terminal gửi vào thẻ qua EXTERNAL AUTHENTICATE → thẻ xác minh bằng session key [Book 3, §10.9.4].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S10 -->
+        <div class="section-card" id="s10">
+            <div class="section-head"><span class="section-num">10</span><span class="section-title">Issuer Script Processing</span><span class="badge b-t">Giao dịch</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t10a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t10b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t10c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t10a"><p>Issuer script là các lệnh ngân hàng gửi xuống thẻ trong giao dịch để cập nhật dữ liệu thẻ thời gian thực — đổi PIN, khóa thẻ, cập nhật hạn mức — không cần thay thẻ vật lý [EMVCo, Book 3, §10.10].</p></div>
+                <div class="tab-pane" id="t10b">
+                    <p>Hãy nghĩ về <strong>Firebase Remote Config</strong>: app Android đang chạy nhận config mới từ server và thay đổi hành vi mà không cần update app. Issuer Script làm điều tương tự với chip thẻ — ngân hàng "push lệnh" xuống thẻ trong khi giao dịch đang diễn ra [EMVCo, Book 3, §10.10].</p>
+                    <p><strong>Ví dụ thực tế — ngân hàng phát hiện gian lận:</strong><br/>
+                        Lúc 3:00 SA: thẻ Vietcombank của bạn bị dùng tại ATM ở Mỹ (bạn đang ngủ ở VN)<br/>
+                        Lúc 8:00 SA: bạn dùng thẻ tại ATM gần nhà<br/>
+                        <br/>
+                        Bình thường ATM sẽ duyệt, <strong>nhưng Vietcombank nhúng Script 72 trong response:</strong><br/>
+                        <code>// Field 72 trong ISO 8583 response:</code><br/>
+                        <code>72 [len] [Script Template:]</code><br/>
+                        <code>  84 [BLOCK APPLICATION]  // Lệnh khóa app</code><br/>
+                        <code>  8A 02 [Script Counter]   // Số thứ tự lệnh</code><br/>
+                        <code>  9F0D 05 [MAC of command] // MAC bảo vệ lệnh</code><br/>
+                        <br/>
+                        Sau GENERATE AC lần 2: terminal đưa script vào thẻ. Chip <strong>verify MAC</strong> → thực thi → Application Status = BLOCKED<br/>
+                        Lần dùng tiếp theo: thẻ trả SW = <code>6985</code> (Conditions Not Satisfied → bị khóa)<br/>
+                        → Bạn buộc phải gọi ngân hàng lấy thẻ mới. Kẻ gian ở Mỹ đã bị chặn ngay lập tức [Mastercard, <em>M/Chip Requirements</em>, §6.4, 2022].</p>
+                </div>
+                <div class="tab-pane" id="t10c">
+                    <ul>
+                        <li><strong>Script Template 71</strong> (Tag <span class="tag">71</span>): Thực thi <em>trước</em> GENERATE AC lần 2.</li>
+                        <li><strong>Script Template 72</strong> (Tag <span class="tag">72</span>): Thực thi <em>sau</em> GENERATE AC lần 2.</li>
+                    </ul>
+                    <p>Lệnh phổ biến: <strong>PIN Change/Unblock</strong> (PUT DATA), <strong>Application Block/Unblock</strong>, <strong>PUT DATA</strong> cập nhật bất kỳ data object.</p>
+                    <p>Lệnh script được bảo vệ bằng MAC dùng Secure Messaging keys. Thẻ xác minh MAC trước khi thực thi [Book 2, §9; Visa, §8, 2023].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S11 -->
+        <div class="section-card" id="s11">
+            <div class="section-head"><span class="section-num">11</span><span class="section-title">Contactless EMV &amp; ISO 14443</span><span class="badge b-c">Contactless</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t11a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t11b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t11c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t11a"><p>Thanh toán contactless dùng sóng radio 13,56 MHz giữa thẻ/điện thoại và terminal. Cùng nguyên tắc bảo mật EMV nhưng tối ưu cho tốc độ: một lần chạm điển hình 300–500 ms [ISO/IEC 14443-1:2016; EMVCo, Book D, v2.9, 2023].</p></div>
+                <div class="tab-pane" id="t11b">
+                    <p>Trong Android, bạn đã dùng <code>NfcAdapter</code> và <code>IsoDep</code> để giao tiếp với thẻ NFC. Khi chạm thẻ contactless vào terminal, đó chính xác là những gì đang xảy ra — terminal là "reader", thẻ là "tag" [ISO/IEC 14443-4:2018; EMVCo, Book D, v2.9, 2023].</p>
+                    <p><strong>Ví dụ — code Android đọc thẻ EMV contactless:</strong><br/>
+                        Nếu bạn viết app Android đọc thẻ EMV (ví dụ app POS trên điện thoại):</p>
+                    <pre style="background:#f5f5f5;padding:10px;border-radius:4px;font-size:.8rem;overflow-x:auto">// 1. Detect thẻ NFC ISO-DEP
+IsoDep isoDep = IsoDep.get(tag);
+isoDep.connect();
+isoDep.setTimeout(5000);
+
+// 2. Gửi SELECT PPSE (hỏi thẻ có app thanh toán nào)
+byte[] selectPPSE = hexToBytes("00A404000E325041592E5359532E444446303100");
+byte[] fciPPSE = isoDep.transceive(selectPPSE);
+// fciPPSE chứa TLV với danh sách AID
+
+// 3. Parse AID từ response và SELECT AID
+String aidHex = parseFirstAID(fciPPSE); // VD: "A0000000031010" (Visa)
+byte[] selectAID = buildSelectAID(aidHex);
+byte[] fciAID = isoDep.transceive(selectAID);
+// fciAID chứa PDOL — danh sách data terminal cần cung cấp
+
+// 4. Gửi GPO với PDOL data
+byte[] gpoCmd = buildGPO(pdol, terminalData);
+byte[] gpoResp = isoDep.transceive(gpoCmd); // AIP + AFL</pre>
+                    <p>Đây chính xác là những bước đầu tiên terminal EMV thực hiện khi bạn chạm thẻ [EMVCo, Book B, §3.3].</p>
+                </div>
+                <div class="tab-pane" id="t11c">
+                    <ul>
+                        <li><strong>Type A</strong>: Mã hóa Miller/Manchester. Anticollision theo bit. Ví dụ: Visa payWave, Mastercard PayPass.</li>
+                        <li><strong>Type B</strong>: Mã hóa NRZ. Anticollision theo slot. Một số thẻ căn cước.</li>
+                    </ul>
+                    <p>ISO 14443-4 định nghĩa giao thức <strong>T=CL</strong> — tương tự T=0/T=1 nhưng không dây. APDU trao đổi bên trong T=CL I-block [ISO/IEC 14443-4:2018].</p>
+                    <p><strong>PPSE</strong>: Terminal gửi <code>SELECT 2PAY.SYS.DDF01</code> để khám phá AID. Thẻ trả FCI chứa thư mục ứng dụng [EMVCo, Book A, §5.3.2, 2023].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S12 -->
+        <div class="section-card" id="s12">
+            <div class="section-head"><span class="section-num">12</span><span class="section-title">Contactless Kernels K1–K7</span><span class="badge b-c">Contactless</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t12a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t12b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t12c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t12a"><p>Contactless kernel là module phần mềm trong terminal xử lý giao dịch contactless cho một mạng thanh toán cụ thể. Mỗi mạng có kernel riêng với quy tắc và data object hơi khác nhau [EMVCo, Books C-1 đến C-7, 2023].</p></div>
+                <div class="tab-pane" id="t12b">
+                    <p>Hãy nghĩ về <strong>Android payment apps</strong>: Google Pay, Samsung Pay, ViettelPay — mỗi app xử lý thanh toán theo cách riêng nhưng đều dùng NFC. Contactless Kernel y như vậy, chỉ khác là nằm trong firmware của terminal thay vì app trên điện thoại [EMVCo, Books C-1 đến C-7, 2023].</p>
+                    <p><strong>Ví dụ luồng chọn kernel — chạm thẻ Mastercard tại Vinmart:</strong><br/>
+                        ① Terminal gửi SELECT PPSE → thẻ trả FCI có AID = <code>A000000004 1010</code><br/>
+                        ② Terminal đọc RID = <code>A000000004</code> → <em>"Đây là Mastercard"</em> → <strong>kích hoạt Kernel 3</strong><br/>
+                        ③ Kernel 3 (Mastercard) bắt đầu:<br/>
+                        &nbsp;&nbsp;• Đọc CTQ (Tag <code>9F6C</code>) — Mastercard-specific, Visa Kernel 2 không có tag này<br/>
+                        &nbsp;&nbsp;• Dùng CDA authentication (không phải fDDA như Visa)<br/>
+                        &nbsp;&nbsp;• Check M/Chip Advance AES support thay vì 3DES cũ<br/>
+                        <br/>
+                        <strong>Nếu thẻ Visa:</strong> Kernel 2 kích hoạt → dùng fDDA (Tag <code>9F4B</code>), không có CTQ<br/>
+                        <strong>Nếu thẻ UnionPay:</strong> Kernel 6 → flow hoàn toàn khác với Quick Pass spec<br/>
+                        <br/>
+                        Cùng một thẻ vật lý chạm vào terminal → luồng xử lý khác nhau tùy kernel. Đây là lý do mỗi kernel cần L2 certification riêng [EMVCo, Book B, §3.3].</p>
+                </div>
+                <div class="tab-pane" id="t12c">
+                    <table>
+                        <tr><th>Kernel</th><th>Mạng</th><th>Tên Sản Phẩm</th><th>Đặc Tả</th></tr>
+                        <tr><td>K1</td><td>JCB</td><td>J/Speedy</td><td>Book C-1</td></tr>
+                        <tr><td>K2</td><td>Visa</td><td>payWave / Visa Contactless</td><td>Book C-2 / VCPS v2.2</td></tr>
+                        <tr><td>K3</td><td>Mastercard</td><td>PayPass / Contactless</td><td>Book C-3 / M/Chip Advance</td></tr>
+                        <tr><td>K4</td><td>Amex</td><td>ExpressPay</td><td>Book C-4</td></tr>
+                        <tr><td>K5</td><td>Discover</td><td>D-PAS / Zip</td><td>Book C-5</td></tr>
+                        <tr><td>K6</td><td>UnionPay</td><td>QuickPass</td><td>Book C-6</td></tr>
+                        <tr><td>K7</td><td>Interac</td><td>Interac Flash</td><td>Book C-7</td></tr>
+                    </table>
+                    <p><strong>K2 vs K3</strong>: Visa K2 dùng fDDA (Tag <span class="tag">9F4B</span>); Mastercard K3 dùng CDA với GENERATE AC, hỗ trợ AES (M/Chip Advance), Tag <span class="tag">9F6C</span> (CTQ) [Book C-2/C-3, 2023].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S13 -->
+        <div class="section-card" id="s13">
+            <div class="section-head"><span class="section-num">13</span><span class="section-title">fDDA &amp; CDCVM</span><span class="badge b-c">Contactless</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t13a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t13b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t13c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t13a"><p><strong>fDDA</strong> là phương pháp xác thực thẻ contactless của Visa — chứng minh thẻ thật trong một lần chạm nhanh. <strong>CDCVM</strong> là cách điện thoại/đồng hồ xác minh danh tính bạn (Face ID, vân tay) để thanh toán trên ngưỡng CVM [EMVCo, Book C-2, v2.9, 2023].</p></div>
+                <div class="tab-pane" id="t13b">
+                    <p>CDCVM là cách Google Pay Android nói với terminal "người dùng đã xác minh rồi, không cần PIN." Trong Android code, đây là kết quả của <code>BiometricPrompt.AuthenticationCallback.onAuthenticationSucceeded()</code> [Visa, VCPS v2.2; Mastercard, M/Chip Advance, 2020].</p>
+                    <p><strong>Ví dụ step-by-step — thanh toán 8.000.000 VND bằng Google Pay Android:</strong><br/>
+                        ① Bạn giữ điện thoại gần terminal (chưa chạm)<br/>
+                        ② Terminal phát RF → điện thoại nhận → Google Pay app hiển thị payment sheet<br/>
+                        ③ Số tiền lớn → Google Pay gọi BiometricPrompt:<br/>
+                        <code>BiometricPrompt.authenticate(promptInfo, cancellationSignal, executor, callback)</code><br/>
+                        ④ Bạn xác thực bằng vân tay → <code>onAuthenticationSucceeded()</code><br/>
+                        ⑤ Google Pay set bit CDCVM trong CTQ:<br/>
+                        <code>Tag 9F6C (CTQ, 2 byte) = 0x4000</code><br/>
+                        &nbsp;&nbsp;(Byte 1 bit 7 = 1 = "CDCVM Performed"; bit 6 = 0 = "PIN entry not required")<br/>
+                        ⑥ Giờ bạn chạm điện thoại vào terminal<br/>
+                        ⑦ Kernel 3 đọc CTQ → CDCVM bit = 1 → <em>bỏ qua yêu cầu PIN</em><br/>
+                        ⑧ Giao dịch tiếp tục mà không cần bàn phím PIN<br/>
+                        <br/>
+                        <strong>Không có CDCVM (thẻ Mastercard vật lý cùng số tiền):</strong> Terminal phải yêu cầu PIN vì không có cách nào biết ai đang cầm thẻ [M/Chip Advance, §4, 2020].</p>
+                </div>
+                <div class="tab-pane" id="t13c">
+                    <p><strong>fDDA</strong>: Thẻ ký UN + dynamic data bằng ICC Private Key <em>trong GENERATE AC</em> (không cần INTERNAL AUTHENTICATE riêng). Chữ ký trả về trong Tag <span class="tag">9F4B</span>. Terminal xác minh bằng ICC Public Key. Giữ thời gian chạm &lt;500ms [Book C-2, §3.3; Book 2, §5.4].</p>
+                    <p><strong>CDCVM</strong>: Khi thiết bị xác thực thành công (sinh trắc học/passcode), bật bit CDCVM Performed trong CTQ (Tag <span class="tag">9F6C</span> — Mastercard). Terminal đọc cờ này, bỏ qua xử lý CVM [Book C-3, §3.2; M/Chip Advance, §4, 2020].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S14 -->
+        <div class="section-card" id="s14">
+            <div class="section-head"><span class="section-num">14</span><span class="section-title">Loại Terminal &amp; Khả Năng</span><span class="badge b-f">Nền tảng</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t14a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t14b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t14c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t14a"><p>EMV dùng data object cụ thể để thông báo cho thẻ biết terminal là loại gì và có thể làm gì: attended/unattended, online-only/offline [EMVCo, Book 4, §3].</p></div>
+                <div class="tab-pane" id="t14b">
+                    <p>Trong Android Manifest, bạn khai báo <code>&lt;uses-feature android:name="android.hardware.camera" android:required="true"/&gt;</code> để báo OS app cần gì. Terminal Type và Terminal Capabilities là "<strong>Manifest</strong>" của POS terminal — báo cho thẻ biết terminal có khả năng gì để thẻ chọn CVM phù hợp [EMVCo, Book 4, §3].</p>
+                    <p><strong>Ví dụ — máy bán nước tự động tại ga tàu (Unattended):</strong><br/>
+                        Terminal gửi trong GPO:<br/>
+                        <code>9F35 (Terminal Type) = 0x34</code> → Unattended, offline có online<br/>
+                        <code>9F33 (Terminal Capabilities) = 0xE04000</code>:<br/>
+                        &nbsp;&nbsp;Byte 1 = 0xE0 → có chip reader + contactless + magstripe reader<br/>
+                        &nbsp;&nbsp;Byte 2 = 0x40 → <strong>chỉ hỗ trợ No CVM</strong> (không có PIN pad, không có chỗ ký)<br/>
+                        &nbsp;&nbsp;Byte 3 = 0x00 → không cần ODA phức tạp<br/>
+                        <br/>
+                        Thẻ nhận Terminal Capabilities → duyệt qua CVM List:<br/>
+                        • Rule 1: Offline PIN → điều kiện: terminal phải có PIN pad → Byte 2 = 0x40 → <em>không có PIN pad</em> → skip<br/>
+                        • Rule 2: No CVM → điều kiện: Unattended → Byte Terminal Type = 0x34 → <em>đúng</em> → <strong>chọn No CVM</strong><br/>
+                        Kết quả: bạn chạm thẻ vào máy, mua chai nước 20.000 VND mà không cần PIN [Book 3, §10.5.2].</p>
+                </div>
+                <div class="tab-pane" id="t14c">
+                    <table>
+                        <tr><th>Terminal Type <span class="tag">9F35</span></th><th>Mô Tả</th></tr>
+                        <tr><td>11</td><td>Attended, online-only (POS tiêu chuẩn)</td></tr>
+                        <tr><td>14</td><td>Attended, offline có online</td></tr>
+                        <tr><td>21</td><td>Unattended, online-only (ATM)</td></tr>
+                        <tr><td>23</td><td>Unattended, offline-only (cổng transit)</td></tr>
+                        <tr><td>34</td><td>Unattended, offline có online (máy bán hàng tự động)</td></tr>
+                    </table>
+                    <p><strong>Terminal Capabilities</strong> <span class="tag">9F33</span> (3 byte): Byte 1=card input, Byte 2=CVM methods, Byte 3=security (SDA/DDA/CDA).</p>
+                    <p><strong>Additional Terminal Capabilities</strong> <span class="tag">9F40</span> (5 byte): Loại giao dịch, output, PIN pad [Book 4, §3.5].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S15 -->
+        <div class="section-card" id="s15">
+            <div class="section-head"><span class="section-num">15</span><span class="section-title">Cấu Trúc TLV &amp; BER-TLV</span><span class="badge b-f">Nền tảng</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t15a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t15b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t15c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t15a"><p>TLV = Tag-Length-Value — định dạng đóng gói dữ liệu xuyên suốt EMV. Mọi dữ liệu đều được gói: Tag (loại gì), Length (dài bao nhiêu), Value (dữ liệu thực) [ISO/IEC 7816-4:2020, §5.2].</p></div>
+                <div class="tab-pane" id="t15b">
+                    <p>Trong Android, bạn dùng <strong>JSON</strong> để truyền data: <code>{"pan":"4111111111111111","expiry":"2612"}</code>. TLV là phiên bản <strong>nhị phân</strong> của JSON — compact hơn, dùng byte tag thay vì string key, không cần quote hay dấu phẩy [ISO/IEC 7816-4:2020, §5.2].</p>
+                    <p><strong>So sánh JSON vs TLV:</strong></p>
+                    <pre style="background:#f5f5f5;padding:10px;border-radius:4px;font-size:.8rem;overflow-x:auto">// JSON biểu diễn PAN (26 bytes UTF-8)
+{"pan": "4111111111111111"}
+
+// TLV biểu diễn PAN (10 bytes binary)
+5A 08 41 11 11 11 11 11 11 1F
+│  │  └─── Value: PAN "4111111111111111" (BCD, F = padding)
+│  └─────── Length: 8 bytes
+└────────── Tag: 5A = "PAN"
+
+// TLV lồng nhau (như JSON object lồng nhau)
+6F 20           // FCI Template (constructed = có children)
+  84 07         //   AID
+    A0 00 00 00 03 10 10
+  A5 15         //   FCI Proprietary (constructed)
+    50 04       //     Application Label
+      56 49 53 41   // "VISA"
+    9F38 06     //     PDOL
+      9F02 06 9F1A 02 9F37 04</pre>
+                    <p><strong>Parse TLV trong Android (pseudocode):</strong><br/>
+                        <code>int i = 0;</code><br/>
+                        <code>while (i &lt; data.length) {</code><br/>
+                        <code>&nbsp;&nbsp;byte tag = data[i++]; // đọc tag</code><br/>
+                        <code>&nbsp;&nbsp;int len = data[i++]; // đọc length</code><br/>
+                        <code>&nbsp;&nbsp;byte[] value = Arrays.copyOfRange(data, i, i+len);</code><br/>
+                        <code>&nbsp;&nbsp;i += len; // skip đến tag tiếp theo</code><br/>
+                        <code>}</code><br/>
+                        Nếu tag là "constructed" (bit 6 của tag = 1, như 6F, A5) → value lại là TLV lồng nhau → parse đệ quy [ISO/IEC 8825-1:2015].</p>
+                </div>
+                <div class="tab-pane" id="t15c">
+                    <p><strong>BER-TLV</strong> (ISO/IEC 7816-4 §5.2): Tag 1–3 byte (b8b7=class, b6=constructed/primitive), Length 1–3 byte, Value raw bytes.</p>
+                    <p>FCI Template <span class="tag">6F</span> (constructed) lồng nhau:</p>
+                    <ul>
+                        <li><code>6F</code> FCI Template → <code>84</code> DF Name (AID) → <code>A5</code> FCI Proprietary → <code>50</code> Label · <code>9F38</code> PDOL · <code>87</code> Priority</li>
+                    </ul>
+                    <p>Parsing: đọc Tag → Length → tiêu thụ Length byte làm Value, đệ quy với constructed tag [ISO/IEC 8825-1:2015].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S16 -->
+        <div class="section-card" id="s16">
+            <div class="section-head"><span class="section-num">16</span><span class="section-title">Bảng Tag EMV Quan Trọng</span><span class="badge b-f">Nền tảng</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t16a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t16c')">🔬 Bảng Tag</button>
+                </div>
+                <div class="tab-pane active" id="t16a"><p>EMV dùng hàng trăm data object chuẩn hóa, mỗi cái có tag duy nhất. Dưới đây là các tag quan trọng nhất trong mọi giao dịch [EMVCo, Book 3, Annex A].</p></div>
+                <div class="tab-pane" id="t16c">
+                    <table>
+                        <tr><th>Tag</th><th>Tên</th><th>Byte</th><th>Mô Tả</th></tr>
+                        <tr><td>4F</td><td>AID</td><td>5–16</td><td>Application Identifier</td></tr>
+                        <tr><td>57</td><td>Track 2 Equivalent</td><td>≤19</td><td>PAN + expiry + service code</td></tr>
+                        <tr><td>5A</td><td>PAN</td><td>≤10</td><td>Số thẻ (BCD)</td></tr>
+                        <tr><td>5F24</td><td>Expiry Date</td><td>3</td><td>YYMMDD</td></tr>
+                        <tr><td>5F34</td><td>PAN Sequence Number</td><td>1</td><td>Phân biệt nhiều thẻ cùng PAN</td></tr>
+                        <tr><td>82</td><td>AIP</td><td>2</td><td>Bitmap tính năng được hỗ trợ</td></tr>
+                        <tr><td>8C</td><td>CDOL1</td><td>var</td><td>Dữ liệu cho GENERATE AC lần 1</td></tr>
+                        <tr><td>8E</td><td>CVM List</td><td>var</td><td>Quy tắc xác minh chủ thẻ</td></tr>
+                        <tr><td>90</td><td>Issuer PK Certificate</td><td>var</td><td>Chứng chỉ RSA ký bởi CA</td></tr>
+                        <tr><td>93</td><td>Signed Static App Data</td><td>var</td><td>Chữ ký SDA</td></tr>
+                        <tr><td>94</td><td>AFL</td><td>var</td><td>Danh sách record cần đọc</td></tr>
+                        <tr><td>95</td><td>TVR</td><td>5</td><td>Bitmap kết quả quản lý rủi ro</td></tr>
+                        <tr><td>9F02</td><td>Amount Authorised</td><td>6</td><td>Số tiền giao dịch</td></tr>
+                        <tr><td>9F10</td><td>IAD</td><td>≤32</td><td>Dữ liệu issuer-proprietary cho ARQC</td></tr>
+                        <tr><td>9F17</td><td>PIN Try Counter</td><td>1</td><td>Số lần nhập PIN còn lại</td></tr>
+                        <tr><td>9F1B</td><td>Terminal Floor Limit</td><td>4</td><td>Số tiền tối đa offline</td></tr>
+                        <tr><td>9F26</td><td>Application Cryptogram</td><td>8</td><td>Giá trị ARQC/TC/AAC</td></tr>
+                        <tr><td>9F27</td><td>CID</td><td>1</td><td>Chỉ thị loại cryptogram</td></tr>
+                        <tr><td>9F33</td><td>Terminal Capabilities</td><td>3</td><td>Bitmap tính năng terminal</td></tr>
+                        <tr><td>9F34</td><td>CVM Results</td><td>3</td><td>Kết quả CVM đã thực hiện</td></tr>
+                        <tr><td>9F35</td><td>Terminal Type</td><td>1</td><td>Attended/unattended, online/offline</td></tr>
+                        <tr><td>9F36</td><td>ATC</td><td>2</td><td>Bộ đếm tăng mỗi giao dịch</td></tr>
+                        <tr><td>9F37</td><td>Unpredictable Number</td><td>4</td><td>Nonce terminal cho DDA/fDDA</td></tr>
+                        <tr><td>9F38</td><td>PDOL</td><td>var</td><td>Danh sách dữ liệu terminal cho GPO</td></tr>
+                        <tr><td>9F46</td><td>ICC PK Certificate</td><td>var</td><td>Chứng chỉ RSA public key thẻ</td></tr>
+                        <tr><td>9F4B</td><td>Signed Dynamic App Data</td><td>var</td><td>Chữ ký fDDA/DDA</td></tr>
+                        <tr><td>9F6C</td><td>CTQ</td><td>2</td><td>Cờ contactless Mastercard (CDCVM)</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- S17 -->
+        <div class="section-card" id="s17">
+            <div class="section-head"><span class="section-num">17</span><span class="section-title">EMV PKI &amp; Chuỗi Chứng Chỉ</span><span class="badge b-s">Bảo mật</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t17a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t17b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t17c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t17a"><p>EMV dùng chuỗi tin cậy 3 cấp để xác minh thẻ thật offline. Đỉnh là mạng thanh toán (Visa), chứng nhận ngân hàng phát hành, ngân hàng chứng nhận chip thẻ [EMVCo, Book 2, §4].</p></div>
+                <div class="tab-pane" id="t17b">
+                    <p>Bạn đã implement <strong>SSL Certificate Pinning</strong> trong Android OkHttp: app chỉ chấp nhận HTTPS nếu server cert được ký bởi CA cụ thể. EMV PKI giống hệt — terminal chỉ chấp nhận thẻ nếu certificate chip được ký bởi CA Visa/Mastercard [EMVCo, Book 2, §4].</p>
+                    <p><strong>Ví dụ verify chuỗi chứng chỉ Visa (offline):</strong><br/>
+                        Terminal có: <strong>Visa CA Public Key</strong> (RSA 2048-bit, index = 0x09), cài sẵn trong firmware<br/>
+                        <br/>
+                        <strong>Bước 1 — Recover Issuer Public Key:</strong><br/>
+                        Đọc Tag <code>90</code> từ thẻ (248 byte certificate)<br/>
+                        <code>recovered = RSA_Decrypt(visaCAPublicKey_index09, cert_tag90)</code><br/>
+                        Parse recovered: header 0x6A, hash, Issuer Public Key data, padding 0xBC<br/>
+                        → Lấy được <strong>Issuer (Vietcombank) Public Key</strong> (RSA 1024-bit)<br/>
+                        <br/>
+                        <strong>Bước 2 — Recover ICC Public Key:</strong><br/>
+                        Đọc Tag <code>9F46</code> từ thẻ (128 byte certificate)<br/>
+                        <code>recovered2 = RSA_Decrypt(issuerPublicKey, cert_tag9F46)</code><br/>
+                        → Lấy được <strong>ICC (chip thẻ) Public Key</strong> (RSA 1024-bit)<br/>
+                        <br/>
+                        <strong>Bước 3 — Dynamic Authentication:</strong><br/>
+                        Dùng ICC Public Key để verify chữ ký DDA (INTERNAL AUTHENTICATE response)<br/>
+                        → Toàn bộ offline, &lt;100ms, không cần internet [Book 2, §4.1–4.3].</p>
+                </div>
+                <div class="tab-pane" id="t17c">
+                    <ul>
+                        <li><strong>Cấp 1 — CA Public Key</strong>: Thuộc mạng thanh toán. Nhận dạng bởi CA Public Key Index <span class="tag">8F</span>. Nạp sẵn vào terminal. Hỗ trợ key rollover [Book 2, §4.1].</li>
+                        <li><strong>Cấp 2 — Issuer PK Certificate</strong> <span class="tag">90</span>: Lưu trên thẻ. Mạng ký khóa RSA public của issuer bằng CA private key [Book 2, §4.2].</li>
+                        <li><strong>Cấp 3 — ICC PK Certificate</strong> <span class="tag">9F46</span>: Lưu trên thẻ. Issuer ký khóa RSA public thẻ. Dùng trong DDA/CDA [Book 2, §4.3].</li>
+                    </ul>
+                    <p>Phục hồi chứng chỉ: <code>Recovered = RSA_Enc(CA_PK, Certificate)</code>, xác minh hash nhúng bên trong [ISO/IEC 9796-2:2010, §9].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S18 -->
+        <div class="section-card" id="s18">
+            <div class="section-head"><span class="section-num">18</span><span class="section-title">Session Key Derivation (3DES &amp; AES)</span><span class="badge b-s">Bảo mật</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t18a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t18b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t18c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t18a"><p>Mỗi giao dịch EMV dùng một <strong>khóa duy nhất</strong> dẫn xuất từ master key và bộ đếm giao dịch. Dù khóa một giao dịch bị lộ, các giao dịch khác vẫn an toàn (key diversification) [EMVCo, Book 2, §A1].</p></div>
+                <div class="tab-pane" id="t18b">
+                    <p>Trong Android, <strong>Android Keystore + StrongBox</strong> lưu key không thể export — tất cả crypto xảy ra bên trong secure enclave. IMK trong HSM ngân hàng làm điều tương tự nhưng ở quy mô enterprise: một HSM lưu master key của hàng triệu thẻ [EMVCo, Book 2, §A1].</p>
+                    <p><strong>Ví dụ concrete bằng pseudocode:</strong></p>
+                    <pre style="background:#f5f5f5;padding:10px;border-radius:4px;font-size:.8rem;overflow-x:auto">// Phía chip thẻ (cùng logic phía HSM ngân hàng)
+int atc = 0x0042;  // Giao dịch thứ 66 của thẻ này
+
+// Bước 1: Tạo Derivation Data
+byte[] dd_left  = {(byte)(atc>>8), (byte)atc, 0,0,0,0,0,0};
+// dd_left  = [00 42 00 00 00 00 00 00]
+
+byte[] dd_right = {(byte)((atc>>8)^0xFF), (byte)(atc^0xFF),
+                   (byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,
+                   (byte)0xFF,(byte)0xFF};
+// dd_right = [FF BD FF FF FF FF FF FF]
+
+// Bước 2: Derive Session Key (IMK chỉ biết bởi chip + HSM ngân hàng)
+byte[] sk_left  = TripleDES_Encrypt(imk_16bytes, dd_left);
+byte[] sk_right = TripleDES_Encrypt(imk_16bytes, dd_right);
+byte[] sessionKey = concat(sk_left, sk_right); // 16 bytes
+
+// Bước 3: Dùng sessionKey tính ARQC
+byte[] arqc = TripleDES_CBCMAC(sessionKey, cdol1_input);</pre>
+                    <p>Giao dịch 0042 (ATC=66) dùng sessionKey khác giao dịch 0043 (ATC=67). Nếu key giao dịch 42 bị lộ → chỉ giao dịch 42 bị ảnh hưởng, các giao dịch khác vẫn an toàn [Book 2, §A1.3].</p>
+                </div>
+                <div class="tab-pane" id="t18c">
+                    <p><strong>3DES Derivation (Book 2, Annex A1.3)</strong>:</p>
+                    <ul>
+                        <li>DD_Left = ATC (2B) || 000000000000 (6B)</li>
+                        <li>DD_Right = (ATC XOR FFFF) || 000000000000</li>
+                        <li>SK = 3DES_Enc(IMK, DD_Left) || 3DES_Enc(IMK, DD_Right)</li>
+                    </ul>
+                    <p><strong>AES Derivation (M/Chip Advance, CVN22)</strong>: AES-128 CBC-MAC. Cấu trúc input tương tự nhưng cipher thay đổi. Nhanh hơn và bảo mật tương đương [M/Chip Advance, 2020; VCPS v2.2, Appendix B].</p>
+                    <div class="note"><strong>Lưu ý:</strong> Visa dùng nhiều CVN (10, 14, 18, 22) mỗi CVN chỉ định phương pháp dẫn xuất khác nhau. Tham chiếu issuer implementation guide cụ thể của từng mạng [Visa, Chip Requirements, Appendix A].</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- S19 -->
+        <div class="section-card" id="s19">
+            <div class="section-head"><span class="section-num">19</span><span class="section-title">EMV Tokenization</span><span class="badge b-s">Bảo mật</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t19a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t19b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t19c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t19a"><p>Tokenization thay thế số thẻ thật (PAN) bằng số giả (token) trong giao dịch. Token chỉ hoạt động trong phạm vi cụ thể — nếu bị đánh cắp, kẻ gian không dùng được ở nơi khác [EMVCo, <em>Payment Tokenisation</em>, v2.0, 2019].</p></div>
+                <div class="tab-pane" id="t19b">
+                    <p>Bạn đã dùng <strong>OAuth 2.0</strong> trong Android: thay vì gửi password mỗi request, app dùng access token có scope giới hạn và có thể revoke. EMV Tokenization y chang — DPAN (token) thay PAN thật, bị giới hạn theo thiết bị/merchant/thời gian [EMVCo, <em>Payment Tokenisation</em>, v2.0, 2019].</p>
+                    <p><strong>Ví dụ thêm thẻ vào Google Pay Android — step-by-step:</strong><br/>
+                        ① Bạn nhập PAN <code>4532 1234 5678 9010</code> trong Google Pay app<br/>
+                        ② Google Pay gọi Visa Token Service (VTS) API với PAN đã mã hóa<br/>
+                        ③ VTS xác minh PAN với Vietcombank → tạo DPAN: <code>4000 1234 0000 0001</code><br/>
+                        &nbsp;&nbsp;(cùng BIN 400012, phần sau là token — khác PAN thật)<br/>
+                        ④ VTS lưu: <code>DPAN 4000-1234-0000-0001 ↔ PAN 4532-1234-5678-9010</code><br/>
+                        &nbsp;&nbsp;Ánh xạ chỉ có trong vault của Visa Token Service<br/>
+                        ⑤ DPAN + Limited Use Key (LUK, khóa có hạn dùng) → nạp vào Google Pay app<br/>
+                        <br/>
+                        <strong>Khi thanh toán:</strong><br/>
+                        ⑥ Google Pay dùng DPAN + LUK tạo ARQC (giống thẻ thật)<br/>
+                        ⑦ Terminal gửi DPAN + ARQC lên Visa network<br/>
+                        ⑧ VTS nhận: verify LUK-based ARQC → map DPAN về PAN thật → forward Vietcombank<br/>
+                        ⑨ Vietcombank chỉ thấy PAN thật, xử lý bình thường<br/>
+                        <br/>
+                        Điện thoại bị đánh cắp → token DPAN bị lấy → kẻ gian không dùng được vì LUK bị giới hạn theo thiết bị [Mastercard, MDES for Mobile, 2022].</p>
+                </div>
+                <div class="tab-pane" id="t19c">
+                    <ul>
+                        <li><strong>TSP (Token Service Provider)</strong>: Cấp và quản lý token. Visa Token Service, Mastercard MDES.</li>
+                        <li><strong>Token Requestor</strong>: Apple Pay, Google Pay, merchant yêu cầu token.</li>
+                        <li><strong>DPAN</strong>: Cùng định dạng PAN (16 chữ số). Dải số token phân bổ bởi TSP.</li>
+                        <li><strong>Domain Restriction Controls</strong>: Giới hạn theo thiết bị, merchant, loại giao dịch, thời gian.</li>
+                        <li><strong>Cryptogram với Token</strong>: Thẻ dùng token thay PAN trong CDOL data. Issuer cần giải mã token về PAN để xác minh [Tokenisation v2.0, §4.3].</li>
+                    </ul>
+                    <p>Luồng: Token Requestor → TSP → DPAN ánh xạ PAN → thiết bị → giao dịch → TSP tra cứu PAN → issuer [Tokenisation v2.0, §5].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S20 -->
+        <div class="section-card" id="s20">
+            <div class="section-head"><span class="section-num">20</span><span class="section-title">HCE &amp; Thanh Toán Mobile NFC</span><span class="badge b-c">Contactless</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t20a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t20b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t20c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t20a"><p><strong>HCE (Host Card Emulation)</strong> cho phép điện thoại Android giả lập thẻ chip mà không cần Secure Element vật lý. Ứng dụng xử lý tất cả lệnh APDU và giao tiếp với terminal qua NFC [Android AOSP, <em>HCE</em>, 2023].</p></div>
+                <div class="tab-pane" id="t20b">
+                    <p>HCE là tính năng <strong>bạn có thể implement ngay trong Android app</strong> — không cần phần cứng đặc biệt. Đây là ví dụ code thực tế cách implement HCE đơn giản [Android AOSP, <em>HCE</em>, 2023].</p>
+                    <p><strong>Implement HCE tối giản trong Android:</strong></p>
+                    <pre style="background:#f5f5f5;padding:10px;border-radius:4px;font-size:.8rem;overflow-x:auto">// 1. AndroidManifest.xml — đăng ký HCE service và AID
+&lt;service android:name=".MyHceService"
+         android:exported="true"
+         android:permission="android.permission.BIND_NFC_SERVICE"&gt;
+  &lt;intent-filter&gt;
+    &lt;action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE"/&gt;
+  &lt;/intent-filter&gt;
+  &lt;meta-data android:name="android.nfc.cardemulation.host_apdu_service"
+             android:resource="@xml/apduservice"/&gt;
+&lt;/service&gt;
+
+// 2. res/xml/apduservice.xml — khai báo AID
+&lt;host-apdu-service&gt;
+  &lt;aid-group category="payment"&gt;
+    &lt;aid-filter android:name="A0000000031010"/&gt;  &lt;!-- Visa AID --&gt;
+  &lt;/aid-group&gt;
+&lt;/host-apdu-service&gt;
+
+// 3. MyHceService.java — xử lý APDU command từ terminal
+public class MyHceService extends HostApduService {
+  @Override
+  public byte[] processCommandApdu(byte[] apdu, Bundle extras) {
+    if (isSelectPPSE(apdu)) {
+      // Terminal hỏi "bạn có app nào?" — trả về danh sách AID
+      return buildPPSEResponse();
+    }
+    if (isSelectAID(apdu, "A0000000031010")) {
+      // Terminal chọn Visa app — trả FCI với PDOL
+      return buildFCIResponse();
+    }
+    if (isGPO(apdu)) {
+      // Terminal gửi terminal data — trả AIP + AFL
+      return buildGPOResponse(parseGPOData(apdu));
+    }
+    if (isGenerateAC(apdu)) {
+      // Quan trọng nhất: tạo ARQC/TC cryptogram
+      byte[] cdol1Data = extractCDOL1Data(apdu);
+      byte[] arqc = computeARQC(cdol1Data, sessionKey, atc);
+      return buildGenerateACResponse(arqc, ++atc);
+    }
+    return STATUS_FAILED; // SW = 6F00
+  }
+}</pre>
+                    <p>Đây chính xác là những gì Google Pay làm — nhưng với DPAN token thật và LUK từ Mastercard MDES cloud [Google Pay Security, 2023].</p>
+                </div>
+                <div class="tab-pane" id="t20c">
+                    <ul>
+                        <li><strong>SE (Secure Element)</strong>: Chip bảo mật vật lý. Apple Pay dùng SE trong iPhone. Bảo mật cao nhất.</li>
+                        <li><strong>HCE</strong>: Phần mềm giả lập SE trên CPU chính. Bảo mật phụ thuộc phần mềm + cloud.</li>
+                        <li><strong>TEE (ARM TrustZone)</strong>: Môi trường thực thi an toàn trong CPU. Bảo mật trung gian.</li>
+                        <li><strong>LUK (Limited Use Key)</strong>: Khóa giới hạn sử dụng cấp từ TSP cloud. Mỗi LUK chỉ dùng cho số giao dịch/thời gian nhất định [Visa Cloud-Based Payments v3.0; MDES for Mobile, 2022].</li>
+                    </ul>
+                    <p>Luồng HCE: Điện thoại kết nối internet → TSP → nhận token + LUK → khi thanh toán, app tạo ARQC bằng LUK → TSP xác minh LUK + giải mã token → issuer [MDES for Mobile, 2022].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S21 -->
+        <div class="section-card" id="s21">
+            <div class="section-head"><span class="section-num">21</span><span class="section-title">Cá Nhân Hóa Thẻ &amp; Key Injection</span><span class="badge b-i">Hạ tầng</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t21a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t21b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t21c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t21a"><p>Cá nhân hóa thẻ là quá trình nạp dữ liệu chủ thẻ vào chip trong sản xuất: số thẻ, ngày hết hạn, khóa mật mã, chứng chỉ RSA, hạn mức. Bước quan trọng nhất trong vòng đời thẻ [Thales, Card Personalization].</p></div>
+                <div class="tab-pane" id="t21b">
+                    <p>Hãy nghĩ về <strong>Android device provisioning</strong>: khi mua điện thoại mới từ Samsung, nhà máy cài sẵn Android OS, Google Play Services, và cấu hình sẵn cho model đó. Cá nhân hóa thẻ là bước tương tự — nhà máy "cài đặt" dữ liệu riêng cho từng chip thẻ [EMVCo, Book 3, §8].</p>
+                    <p><strong>Những gì được nạp vào chip thẻ Vietcombank Visa của bạn:</strong><br/>
+                        <strong>Data công khai</strong> (terminal có thể đọc):<br/>
+                        • Tag <code>5A</code> — PAN: <code>4532 1234 5678 9010</code><br/>
+                        • Tag <code>5F24</code> — Expiry: <code>28 12</code> (tháng 12/2028)<br/>
+                        • Tag <code>5F34</code> — PAN Sequence: <code>01</code><br/>
+                        • Tag <code>90</code> — Issuer PK Certificate: 248 bytes (Visa ký Vietcombank key)<br/>
+                        • Tag <code>9F46</code> — ICC PK Certificate: 128 bytes (Vietcombank ký chip key)<br/>
+                        • Tag <code>8E</code> — CVM List: quy tắc PIN/Signature/NoCVM<br/>
+                        <br/>
+                        <strong>Data bí mật</strong> (không thể đọc ra, chỉ chip biết):<br/>
+                        • <strong>IMK (Issuer Master Key) derived</strong>: 16 bytes — key để tạo ARQC. Vietcombank derive từ root IMK bằng PAN. Chip biết, Vietcombank HSM biết, không ai khác<br/>
+                        • <strong>ICC RSA Private Key</strong>: 1024-bit — key để ký DDA. Chỉ tồn tại bên trong chip, kể cả nhà sản xuất thẻ cũng không có bản copy<br/>
+                        • <strong>PIN Reference Data</strong>: PIN ban đầu đã hash<br/>
+                        → Chip thẻ = một "mini HSM" trong ví bạn [Thales, Card Personalization; Book 3, §8].</p>
+                </div>
+                <div class="tab-pane" id="t21c">
+                    <ul>
+                        <li><strong>PAN + PAN Sequence Number</strong>: Số thẻ và số thứ tự.</li>
+                        <li><strong>Application Cryptogram Master Key</strong>: IMK dẫn xuất từ IMK gốc issuer, dùng PAN làm diversification. Mỗi thẻ có IMK duy nhất.</li>
+                        <li><strong>ICC RSA Key Pair</strong>: Cặp khóa tạo cho mỗi thẻ. ICC Private Key → chip; ICC PK Certificate (Tag <span class="tag">9F46</span>) → được issuer ký.</li>
+                        <li><strong>Issuer PK Certificate</strong> <span class="tag">90</span>: Từ mạng thanh toán, nạp vào thẻ.</li>
+                        <li><strong>PIN Reference Data</strong>: PIN ban đầu (mã hóa) + PIN Try Counter.</li>
+                        <li><strong>CVM List, AUC, Floor Limit</strong>: Tham số kinh doanh issuer.</li>
+                    </ul>
+                    <p><strong>Key Injection cho Terminal</strong>: Terminal nhận TMK trong Key Injection Facility (KIF) an toàn → dẫn xuất TPK (PIN Encryption Key), TMK (MAC Key) v.v. Do acquirer quản lý [PCI PTS HSM v3.0].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S22 -->
+        <div class="section-card" id="s22">
+            <div class="section-head"><span class="section-num">22</span><span class="section-title">HSM (Hardware Security Module)</span><span class="badge b-i">Hạ tầng</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t22a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t22b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t22c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t22a"><p>HSM là thiết bị phần cứng chuyên dụng thực hiện các phép toán mật mã và lưu trữ khóa bí mật an toàn. Mọi nơi cần xử lý khóa nhạy cảm trong hệ thống thanh toán đều có HSM [PCI HSM v3.0].</p></div>
+                <div class="tab-pane" id="t22b">
+                    <p>Trong Android, <strong>StrongBox Keymaster</strong> (chip Titan M trên Pixel) là "HSM trong điện thoại" — private key không bao giờ ra khỏi chip, tất cả crypto xảy ra bên trong. HSM ngân hàng là phiên bản enterprise, lưu key của hàng triệu thẻ và xử lý hàng nghìn ARQC/giây [PCI HSM v3.0].</p>
+                    <p><strong>Ví dụ khi bạn quẹt thẻ Vietcombank tại Co.opmart — trace qua HSM:</strong><br/>
+                        ① POS gửi ISO 8583 đến Vietcombank Host Server<br/>
+                        ② Vietcombank server code (Java/Python) gọi HSM API:<br/>
+                        <code>// Gọi Thales payShield HSM qua PKCS#11 hoặc HSM-specific API</code><br/>
+                        <code>VerifyARQCRequest req = new VerifyARQCRequest()</code><br/>
+                        <code>&nbsp;&nbsp;.setPAN("4532123456789010")</code><br/>
+                        <code>&nbsp;&nbsp;.setATC(0x0042)</code><br/>
+                        <code>&nbsp;&nbsp;.setARQC(bytes("3D8F2A1B4C5E6F7A"))</code><br/>
+                        <code>&nbsp;&nbsp;.setIAD(iadBytes);</code><br/>
+                        <code>VerifyARQCResponse resp = hsmClient.verifyARQC(req);</code><br/>
+                        <br/>
+                        ③ Bên trong Thales payShield 10K HSM (tamper-proof hardware):<br/>
+                        &nbsp;&nbsp;• Tra cứu IMK của PAN 4532-1234-5678-9010 từ secure storage<br/>
+                        &nbsp;&nbsp;• Derive session key: <code>3DES(IMK, ATC=0042)</code><br/>
+                        &nbsp;&nbsp;• Tính ARQC': <code>3DES-CBCMAC(sessionKey, txn_data)</code><br/>
+                        &nbsp;&nbsp;• So sánh ARQC' với ARQC nhận được<br/>
+                        &nbsp;&nbsp;• Nếu khớp: tính ARPC và trả về<br/>
+                        ④ HSM trả: <code>{result: "MATCH", arpc: "F2A1B3..."}</code><br/>
+                        ⑤ Server gửi ARPC về POS trong ISO 8583 Field 91<br/>
+                        <br/>
+                        IMK không bao giờ rời HSM — như Android private key không rời StrongBox [Thales payShield 10K; NIST FIPS 140-2].</p>
+                </div>
+                <div class="tab-pane" id="t22c">
+                    <table>
+                        <tr><th>Vị Trí</th><th>Vai Trò</th><th>Chức Năng</th></tr>
+                        <tr><td>Issuer Host</td><td>Issuer HSM</td><td>Xác minh ARQC, tạo ARPC, dẫn xuất session key, online PIN</td></tr>
+                        <tr><td>Acquirer Host</td><td>Acquirer HSM</td><td>Translate PIN block giữa ZPK, MAC authorization message</td></tr>
+                        <tr><td>Personalization</td><td>Perso HSM</td><td>Tạo ICC RSA key pair, ký chứng chỉ ICC, dẫn xuất IMK từng thẻ</td></tr>
+                        <tr><td>Terminal KIF</td><td>Key Injection HSM</td><td>Nạp TMK vào terminal an toàn</td></tr>
+                    </table>
+                    <p><strong>Tiêu chuẩn</strong>: PCI HSM v3.0 + FIPS 140-2 Level 3/4. Nhà cung cấp: Thales (payShield 10K), Utimaco (Se-Series), nCipher (nShield) [PCI SSC, PCI HSM v3.0; NIST FIPS 140-2].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S23 -->
+        <div class="section-card" id="s23">
+            <div class="section-head"><span class="section-num">23</span><span class="section-title">Magnetic Stripe Fallback</span><span class="badge b-i">Hạ tầng</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t23a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t23b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t23c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t23a"><p>Fallback xảy ra khi chip không đọc được (thẻ lỗi, chip bẩn), terminal chuyển sang đọc dải từ. Rủi ro cao vì mất toàn bộ bảo vệ của chip EMV [EMVCo, Book 4, §7.4].</p></div>
+                <div class="tab-pane" id="t23b">
+                    <p>Hãy nghĩ về <strong>Android biometric fallback</strong>: bạn setup BiometricPrompt, khi fingerprint fail 5 lần → hệ thống fallback về PIN nhập tay. Fallback kém an toàn hơn nhưng vẫn hoạt động. Magnetic stripe fallback tương tự — mất toàn bộ bảo vệ của chip EMV [EMVCo, Book 4, §7.4].</p>
+                    <p><strong>Ví dụ: chip thẻ bị trầy xước tại siêu thị:</strong><br/>
+                        ① Cắm thẻ lần 1: terminal gửi RESET → không nhận ATR → "Chip error"<br/>
+                        ② Cắm thẻ lần 2: cùng kết quả — SW error <code>6F00</code><br/>
+                        ③ Cắm thẻ lần 3 (lần cuối theo quy định): vẫn fail<br/>
+                        ④ Terminal sau 3 lần fail: hiện "<strong>Vui lòng quẹt thẻ (Please Swipe)</strong>"<br/>
+                        ⑤ Bạn quẹt từ → terminal đọc Track 2: <code>4532123456789010=2812201000000000000</code><br/>
+                        &nbsp;&nbsp;(PAN=4532-1234-5678-9010, expiry=2812, service code=201, CVV tĩnh=100)<br/>
+                        <br/>
+                        <strong>Sự khác biệt với chip transaction:</strong><br/>
+                    <table style="font-size:.85rem;width:100%;border-collapse:collapse">
+                        <tr><th style="background:#3949ab;color:#fff;padding:6px">Chip EMV</th><th style="background:#3949ab;color:#fff;padding:6px">Magnetic Stripe Fallback</th></tr>
+                        <tr><td style="padding:6px;border:1px solid #ddd">ARQC thay đổi mỗi giao dịch</td><td style="padding:6px;border:1px solid #ddd;background:#fce4ec">CVV/CVC tĩnh, không đổi</td></tr>
+                        <tr><td style="padding:6px;border:1px solid #ddd">DDA xác minh thẻ thật</td><td style="padding:6px;border:1px solid #ddd;background:#fce4ec">Không có xác minh</td></tr>
+                        <tr><td style="padding:6px;border:1px solid #ddd">PIN offline (trong chip)</td><td style="padding:6px;border:1px solid #ddd;background:#fce4ec">Không có PIN offline</td></tr>
+                        <tr><td style="padding:6px;border:1px solid #ddd">ISO 8583 Field 22 = 05</td><td style="padding:6px;border:1px solid #ddd;background:#fce4ec">ISO 8583 Field 22 = 80 (fallback)</td></tr>
+                    </table>
+                    <br/>
+                    Issuer nhận Field 22=80 → có thể từ chối hoặc tăng cảnh giác. Liability shift sang merchant nếu chip bị giả mạo fallback [Mastercard, Chip Fallback Requirements, 2022].</p>
+                </div>
+                <div class="tab-pane" id="t23c">
+                    <ul>
+                        <li>Terminal phải thử đọc chip ít nhất <strong>3 lần</strong> trước khi cho phép fallback [Book 4, §7.4].</li>
+                        <li>Fallback ghi nhận trong POS Entry Mode (ISO 8583 Field 22) = <strong>80</strong> (fallback) thay vì 05 (chip) hoặc 07 (contactless).</li>
+                        <li>Issuer có thể từ chối mọi giao dịch fallback dựa trên Service Code và POS Entry Mode.</li>
+                        <li><strong>Liability Shift</strong>: Nếu chip bị giả mạo fallback, liability thuộc acquirer/merchant [Visa Chip Liability Shift; Mastercard Chip Liability Framework].</li>
+                    </ul>
+                    <p><strong>Service Code</strong> (ISO/IEC 7813:2006): Digit 1 = 2 hoặc 6 → thẻ có chip. Issuer cài Service Code 201 hoặc 601 để terminal biết thẻ có chip [§6.3].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S24 -->
+        <div class="section-card" id="s24">
+            <div class="section-head"><span class="section-num">24</span><span class="section-title">Acquirer Processing &amp; ISO 8583</span><span class="badge b-i">Hạ tầng</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t24a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t24b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t24c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t24a"><p>Sau khi terminal tạo ARQC, acquirer (ngân hàng merchant) đóng gói dữ liệu vào thông điệp tài chính ISO 8583 và gửi qua mạng thanh toán đến ngân hàng phát hành để xin ủy quyền [ISO 8583:2003].</p></div>
+                <div class="tab-pane" id="t24b">
+                    <p>ISO 8583 là <strong>binary TCP protocol</strong> của ngành thanh toán — như Retrofit API specification nhưng không phải JSON/REST mà là packed binary format. Mỗi field có vị trí byte cố định, không có key string [ISO 8583:2003].</p>
+                    <p><strong>Ví dụ — request mua hàng 150.000 VND tại Vinmart (hex bytes):</strong></p>
+                    <pre style="background:#f5f5f5;padding:10px;border-radius:4px;font-size:.8rem;overflow-x:auto">// Message Type Indicator (MTI) — loại message
+02 00                    // 0200 = Authorization Request
+
+// Primary Bitmap (8 bytes = 64 bits, mỗi bit = 1 field)
+F2 20 00 00 00 00 00 00  // Field 1,2,4,10 có dữ liệu
+
+// Field 2: PAN (16 digits)
+16                       // length = 16 digits
+45 32 12 34 56 78 90 10  // PAN BCD: 4532123456789010
+
+// Field 4: Transaction Amount
+00 00 00 00 15 00        // 000000015000 = 150.00 (cents)
+
+// Field 22: POS Entry Mode
+05                       // 05 = chip (EMV contact)
+// (80 = magstripe fallback, 07 = contactless)
+
+// Field 55: EMV Data (ISO 8583 Extension)
+[len] 9F26 08 3D8F2A1B4C5E6F7A   // ARQC
+      9F36 02 00 42               // ATC = 66
+      95   05 00 00 00 00 00      // TVR
+      9F10 0F ...                 // IAD (Issuer App Data)</pre>
+                    <p>Field 55 là "payload" EMV — acquirer parse TLV này và forward đến Visa/Mastercard network. Ngân hàng phát hành lấy ARQC từ Field 55 và gửi vào HSM để verify [Visa VisaNet; Mastercard CIS, 2022].</p>
+                </div>
+                <div class="tab-pane" id="t24c">
+                    <table>
+                        <tr><th>Field</th><th>Tên</th><th>Nội Dung EMV</th></tr>
+                        <tr><td>2</td><td>PAN</td><td>Số thẻ hoặc token DPAN</td></tr>
+                        <tr><td>4</td><td>Amount</td><td>Số tiền giao dịch (Tag 9F02)</td></tr>
+                        <tr><td>22</td><td>POS Entry Mode</td><td>05=chip, 07=contactless, 80=fallback</td></tr>
+                        <tr><td>52</td><td>PIN Data</td><td>Online PIN block (mã hóa)</td></tr>
+                        <tr><td>55</td><td>ICC Data (EMV Data)</td><td>ARQC, ATC, IAD, TVR — TLV đầy đủ</td></tr>
+                        <tr><td>91</td><td>Issuer Auth Data</td><td>ARPC từ issuer</td></tr>
+                        <tr><td>71/72</td><td>Issuer Script</td><td>Script lệnh issuer gửi xuống thẻ</td></tr>
+                    </table>
+                    <p><strong>Field 55</strong> là trường quan trọng nhất — chứa tất cả TLV tag từ chip. Kích thước tối đa 255 byte (ISO 8583 chuẩn) hoặc lớn hơn tùy mạng [Visa VisaNet; Mastercard CIS, 2022].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S25 -->
+        <div class="section-card" id="s25">
+            <div class="section-head"><span class="section-num">25</span><span class="section-title">Xử Lý Lỗi &amp; Ngoại Lệ</span><span class="badge b-i">Hạ tầng</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t25a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t25b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t25c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t25a"><p>Không phải giao dịch EMV nào cũng suôn sẻ. EMV định nghĩa cách xử lý từng tình huống lỗi: thẻ rút sớm, chip lỗi, mất kết nối, issuer timeout [EMVCo, Book 4, §7].</p></div>
+                <div class="tab-pane" id="t25b">
+                    <p>Trong Android, khi <code>Retrofit</code> ném <code>SocketTimeoutException</code>, bạn phải quyết định: retry, show error, hay dùng cached data. Terminal EMV đối mặt vấn đề tương tự — nhưng hậu quả là tiền thật [EMVCo, Book 3, §10.9.3].</p>
+                    <p><strong>Tình huống A — mất internet sau khi ARQC đã gửi:</strong><br/>
+                        ① Terminal gửi ISO 8583 authorization request (chứa ARQC)<br/>
+                        ② Mạng đứt — không nhận response trong 30 giây<br/>
+                        ③ Terminal timeout → đọc IAC-Default của thẻ:<br/>
+                        &nbsp;&nbsp;Nếu IAC-Default cho phép offline approve → thẻ tạo TC thứ 2 → "Approved offline"<br/>
+                        &nbsp;&nbsp;Nếu IAC-Default bắt buộc online → thẻ tạo AAC → "Declined"<br/>
+                        ④ Dù approve offline: terminal gửi batch reconciliation sau khi có mạng<br/>
+                        ⑤ Nếu bank từ chối trong reconciliation → tiền bị trừ rồi, cần dispute<br/>
+                        <br/>
+                        <strong>Tình huống B — người dùng rút thẻ sớm (impatient):</strong><br/>
+                        ① ARQC đã gửi online → bank đã xử lý, tiền đã tạm giữ<br/>
+                        ② Thẻ rút ra → terminal không thể đưa ARPC vào thẻ<br/>
+                        ③ Terminal gửi Reversal (ISO 8583 MTI 0400): "Hủy giao dịch vừa authorize"<br/>
+                        ④ Bank nhận reversal → release tiền tạm giữ<br/>
+                        ⑤ Nếu reversal fail (vẫn mất mạng) → tiền treo → cần manual dispute sau [Book 3, §10.9.3].</p>
+                </div>
+                <div class="tab-pane" id="t25c">
+                    <ul>
+                        <li><strong>Card Removed Early</strong>: Terminal hủy giao dịch. Nếu ARQC đã gửi online chưa nhận phản hồi → cần Reversal (ISO 8583 type 0400).</li>
+                        <li><strong>Online Timeout</strong>: Dựa trên IAC/TAC-Default → duyệt offline hoặc từ chối [Book 3, §10.9.3].</li>
+                        <li><strong>Card Decline Offline (AAC)</strong>: Thẻ tự tạo AAC do card risk management. Terminal từ chối ngay [Book 3, §10.8.2].</li>
+                        <li><strong>SW1SW2 Error</strong>: <code>6983</code>=PIN blocked, <code>6984</code>=reference data invalid, <code>6985</code>=conditions not satisfied [ISO/IEC 7816-4:2020, §5.1.3].</li>
+                        <li><strong>Script Error</strong>: Script Results (Tag <span class="tag">9F5B</span>). Giao dịch hiện tại không bị ảnh hưởng [Book 3, §10.10.2].</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- S26 -->
+        <div class="section-card" id="s26">
+            <div class="section-head"><span class="section-num">26</span><span class="section-title">Chứng Nhận EMV (L1 / L2 / L3)</span><span class="badge b-i">Hạ tầng</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t26a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t26b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t26c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t26a"><p>Trước khi triển khai, terminal phải qua <strong>3 cấp chứng nhận</strong>: phần cứng (L1), phần mềm kernel (L2), và ứng dụng merchant (L3) [EMVCo, Terminal Evaluation Programme].</p></div>
+                <div class="tab-pane" id="t26b">
+                    <p>Là Android developer, bạn biết Google Play có <strong>review process</strong>: submit APK → Google review → approve/reject. L1/L2/L3 certification là review process nghiêm ngặt hơn nhiều cho terminal thanh toán, vì liên quan đến tiền thật [EMVCo, Terminal Evaluation Programme].</p>
+                    <p><strong>Ví dụ — Ingenico ra mắt POS model mới tại Việt Nam:</strong><br/>
+                        <br/>
+                        <strong>L1 (phần cứng) — 2–4 tuần, cost ~$20K:</strong><br/>
+                        • Gửi hardware prototype đến UL Solutions (lab được EMVCo ủy quyền)<br/>
+                        • Test: NFC reader đạt tốc độ &lt;500ms không? Antenna đủ mạnh không?<br/>
+                        • ISO 7816 contact: timing đúng chuẩn? ATR response chuẩn không?<br/>
+                        • Pass → nhận L1 certificate (hardware approved)<br/>
+                        <br/>
+                        <strong>L2 (EMV kernel) — 3–6 tháng/kernel, cost ~$100K/kernel:</strong><br/>
+                        • Submit kernel binary + test vectors đến Visa Authorized Test Lab<br/>
+                        • Test case: 500+ scenarios — TLV parsing edge cases, TVR bit đúng không?, DDA flow chuẩn không?<br/>
+                        • Kernel 2 (Visa) cần test riêng, Kernel 3 (Mastercard) cần test riêng<br/>
+                        • Giống unit test nhưng 500+ test cases của Visa/Mastercard<br/>
+                        <br/>
+                        <strong>L3 (integration) — 1–3 tháng:</strong><br/>
+                        • Acquirer (VPBank, VietinBank) test end-to-end với host của họ<br/>
+                        • Kiểm tra Field 55 format đúng không? Reconciliation đúng không? UI flow đúng không?<br/>
+                        <br/>
+                        <strong>Tổng: 12–24 tháng, $300K–$500K</strong> — đó là lý do POS terminal đắt hơn máy Android nhiều [PCI SSC, PCI PTS v6.x].</p>
+                </div>
+                <div class="tab-pane" id="t26c">
+                    <table>
+                        <tr><th>Cấp</th><th>Phạm Vi</th><th>Thời Gian</th><th>Cơ Quan</th></tr>
+                        <tr><td>L1</td><td>Phần cứng: ISO 7816 (contact) + ISO 14443 (contactless)</td><td>2–4 tuần</td><td>EMVCo Approved Labs (UL, Bureau Veritas, TÜV)</td></tr>
+                        <tr><td>L2</td><td>Kernel EMV: TLV, ODA, CVM, TRM, cryptogram. Mỗi kernel (K2, K3...) cần L2 riêng</td><td>3–6 tháng/kernel</td><td>EMVCo + từng mạng thanh toán</td></tr>
+                        <tr><td>L3</td><td>Tích hợp ứng dụng merchant/acquirer: luồng end-to-end, kết nối host, UI</td><td>1–3 tháng</td><td>Acquirer / Payment Processor</td></tr>
+                    </table>
+                    <p><strong>PCI PTS</strong>: Ngoài L1/L2/L3, terminal cần PCI PTS cho bảo mật phần cứng — đặc biệt quan trọng cho PIN Entry Device (PED) [PCI SSC, PCI PTS v6.x].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- S27 -->
+        <div class="section-card" id="s27">
+            <div class="section-head"><span class="section-num">27</span><span class="section-title">EMV Transit (Giao Thông Công Cộng)</span><span class="badge b-c">Contactless</span></div>
+            <div class="section-body">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'t27a')">👶 Đơn giản</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t27b')">📌 Ví dụ</button>
+                    <button class="tab-btn" onclick="switchTab(this,'t27c')">🔬 Chuyên sâu</button>
+                </div>
+                <div class="tab-pane active" id="t27a"><p>EMV Transit áp dụng thanh toán EMV cho giao thông công cộng. Thách thức: hành khách cần chạm thẻ và đi qua cổng trong &lt;500ms — nhanh hơn POS thông thường, thường xử lý offline [EMVCo, Transit Implementation Guide, v2.0, 2019].</p></div>
+                <div class="tab-pane" id="t27b">
+                    <p>EMV Transit giống <strong>offline-first architecture</strong> trong Android: app dùng <strong>Room database</strong> làm source of truth, sync lên server sau khi có mạng. Cổng tàu điện ngầm approve giao dịch offline ngay, batch sync lên bank sau [EMVCo, Transit Implementation Guide, v2.0, 2019].</p>
+                    <p><strong>Ví dụ — bạn chạm thẻ Visa tại cổng Metro TP.HCM:</strong><br/>
+                        <br/>
+                        <strong>Tại cổng (offline hoàn toàn):</strong><br/>
+                        ① Chạm thẻ → cổng transit gửi GPO với:<br/>
+                        &nbsp;&nbsp;• Amount = 0 (số tiền chưa biết, tính sau)<br/>
+                        &nbsp;&nbsp;• Terminal Type = <code>23</code> (Unattended, offline-only)<br/>
+                        ② Thẻ thấy terminal offline → tạo <strong>TC</strong> (offline approve, không phải ARQC)<br/>
+                        ③ Cổng verify TC offline trong &lt;300ms → mở cổng ngay<br/>
+                        ④ Cổng lưu <code>{TC, ATC, PAN_truncated, timestamp}</code> vào local DB (như Room database)<br/>
+                        <br/>
+                        <strong>Sau 15 phút (batch sync):</strong><br/>
+                        ⑤ Cổng có mạng → gửi batch TCs lên acquirer (Napas)<br/>
+                        ⑥ Napas tính tiền vé: ví dụ 8.000 VND/lượt → forward Vietcombank<br/>
+                        ⑦ Vietcombank verify TC → debit 8.000 VND từ tài khoản bạn<br/>
+                        <br/>
+                        <strong>Nếu thẻ bị chặn (phát hiện trong hotlist sau khi đã mở cổng):</strong><br/>
+                        ⑧ Vietcombank decline TC trong settlement<br/>
+                        ⑨ Napas (transit operator) chịu lỗ — đây là "liability" của transit<br/>
+                        → Đó là lý do transit luôn có whitelist/hotlist cập nhật thường xuyên [Visa Global Transit Program].</p>
+                </div>
+                <div class="tab-pane" id="t27c">
+                    <ul>
+                        <li><strong>Offline-First</strong>: Cổng transit chạy offline. Duyệt TC ngay nếu thẻ đạt kiểm tra offline. Gửi batch sau (mỗi 15–60 phút hoặc cuối ngày).</li>
+                        <li><strong>No CVM</strong>: Transit luôn dùng No CVM để đảm bảo tốc độ.</li>
+                        <li><strong>Aggregated Transactions</strong>: Nhiều tap cùng thẻ trong ngày gộp thành một giao dịch (daily cap) [Transport for London; Visa Transit Solutions].</li>
+                        <li><strong>Whitelist/Hotlist</strong>: Cổng duy trì danh sách thẻ bị chặn (hotlist) và thẻ tin cậy (whitelist).</li>
+                        <li><strong>Transit Offline Limit</strong>: Ngưỡng offline riêng cho transit, khác với POS [EMVCo Transit Framework].</li>
+                    </ul>
+                    <p>Đã triển khai tại: London (TfL), New York (MTA), Sydney, Singapore, Tokyo. Việt Nam: metro TP.HCM và Hà Nội đang triển khai [Visa Global Transit Program; Mastercard City Key].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- REFS -->
+        <div class="section-card" id="refs">
+            <div class="section-head"><span class="section-num">📚</span><span class="section-title">Tài Liệu Tham Khảo</span></div>
+            <div class="section-body">
+                <ul class="refs-list">
+                    <li>[1] EMVCo — <em>EMV® IC Card Specifications, Book 1–4</em>, v4.3, 2011. https://www.emvco.com/emv-technologies/contact/</li>
+                    <li>[2] EMVCo — <em>EMV® Contactless Specifications, Books A–D &amp; C-1 to C-7</em>, v2.9, 2023. https://www.emvco.com/emv-technologies/contactless/</li>
+                    <li>[3] EMVCo — <em>EMV® Payment Tokenisation Specification</em>, v2.0, 2019. https://www.emvco.com/emv-technologies/payment-tokenisation/</li>
+                    <li>[4] EMVCo — <em>Contactless Transit Implementation Guide</em>, v2.0, 2019. https://www.emvco.com/</li>
+                    <li>[5] ISO/IEC 7816-4:2020 — Identification cards — IC cards — Part 4. https://www.iso.org/standard/77180.html</li>
+                    <li>[6] ISO/IEC 14443-4:2018 — Proximity cards — Transmission protocol. https://www.iso.org/standard/73598.html</li>
+                    <li>[7] ISO/IEC 9797-1:2011 — Message Authentication Codes. https://www.iso.org/standard/50375.html</li>
+                    <li>[8] ISO/IEC 9796-2:2010 — Digital signature schemes. https://www.iso.org/standard/54788.html</li>
+                    <li>[9] ISO 9564-1:2017 — PIN management and security. https://www.iso.org/standard/67723.html</li>
+                    <li>[10] ISO 8583:2003 — Financial transaction card messages. https://www.iso.org/standard/31628.html</li>
+                    <li>[11] Visa — <em>Visa Chip Requirements</em>, 2023. https://developer.visa.com/</li>
+                    <li>[12] Visa — <em>Visa Contactless Payment Specification (VCPS)</em>, v2.2. https://developer.visa.com/</li>
+                    <li>[13] Mastercard — <em>M/Chip Requirements for Contact and Contactless</em>, 2022. https://developer.mastercard.com/</li>
+                    <li>[14] Mastercard — <em>M/Chip Advance Technical Specifications</em>, 2020. https://developer.mastercard.com/</li>
+                    <li>[15] Mastercard — <em>MDES for Mobile</em>, 2022. https://developer.mastercard.com/</li>
+                    <li>[16] PCI SSC — <em>PCI HSM v3.0</em>. https://www.pcisecuritystandards.org/</li>
+                    <li>[17] PCI SSC — <em>PCI PTS v6.x</em>. https://www.pcisecuritystandards.org/</li>
+                    <li>[18] NIST — <em>FIPS 140-2</em>. https://csrc.nist.gov/publications/detail/fips/140/2/final</li>
+                    <li>[19] Android AOSP — <em>Host-based Card Emulation</em>, 2023. https://developer.android.com/guide/topics/connectivity/nfc/hce</li>
+                    <li>[20] Apple — <em>Apple Pay Security Overview</em>, 2023. https://support.apple.com/en-us/HT203027</li>
+                </ul>
+            </div>
+        </div>
+
+    </main>
+</div><!-- /layout -->
+
+<button id="back-top" onclick="scrollToTop()" title="Lên đầu trang">↑</button>
+
+<script>
+    // Progress bar
+    window.addEventListener('scroll',()=>{
+      const el=document.documentElement;
+      const pct=(el.scrollTop/(el.scrollHeight-el.clientHeight))*100;
+      document.getElementById('progress-bar').style.width=pct+'%';
+      document.getElementById('back-top').classList.toggle('show',el.scrollTop>300);
+      highlightNav();
+    });
+
+    // Active nav
+    function highlightNav(){
+      const cards=document.querySelectorAll('.section-card');
+      let active=null;
+      cards.forEach(c=>{
+        if(c.getBoundingClientRect().top<=80)active=c.id;
+      });
+      document.querySelectorAll('.nav-link').forEach(a=>{
+        a.classList.toggle('active',a.dataset.id===active);
+      });
+    }
+
+    // Tabs
+    function switchTab(btn,paneId){
+      const body=btn.closest('.section-body');
+      body.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      body.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(paneId).classList.add('active');
+    }
+
+    // Search
+    function filterSections(q){
+      q=q.toLowerCase().trim();
+      document.querySelectorAll('.section-card').forEach(card=>{
+        if(!q){card.classList.remove('hidden');return;}
+        const txt=card.textContent.toLowerCase();
+        card.classList.toggle('hidden',!txt.includes(q));
+      });
+    }
+
+    // Expand all
+    function expandAll(){
+      document.querySelectorAll('.section-body').forEach(body=>{
+        body.querySelectorAll('.tab-pane').forEach(p=>p.classList.add('active'));
+      });
+    }
+
+    // Back to top
+    function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
+
+    // Sidebar mobile
+    function toggleSidebar(){
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar on nav click (mobile)
+    document.querySelectorAll('.nav-link').forEach(a=>{
+      a.addEventListener('click',()=>{
+        if(window.innerWidth<=768)
+          document.getElementById('sidebar').classList.remove('open');
+      });
+    });
+</script>
+</body>
+</html>
