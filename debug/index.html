@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hướng dẫn debug với AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Lora:ital,wght@0,500;1,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+          --bg: #F7F5F0;
+          --card: #FFFFFF;
+          --text: #1A1A18;
+          --muted: #6B6860;
+          --hint: #A5A39E;
+          --border: rgba(0,0,0,0.1);
+          --border-strong: rgba(0,0,0,0.18);
+          --purple: #534AB7;
+          --purple-bg: #EEEDFE;
+          --purple-text: #26215C;
+          --green-bg: #EAF3DE;
+          --green-text: #27500A;
+          --red-bg: #FCEBEB;
+          --red-text: #A32D2D;
+          --code-bg: #F1EFE8;
+          --accent: #534AB7;
+        }
+
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --bg: #18181A;
+            --card: #222224;
+            --text: #E8E6E0;
+            --muted: #9A9890;
+            --hint: #5A5856;
+            --border: rgba(255,255,255,0.08);
+            --border-strong: rgba(255,255,255,0.14);
+            --purple: #7F77DD;
+            --purple-bg: #26215C;
+            --purple-text: #CECBF6;
+            --green-bg: #173404;
+            --green-text: #C0DD97;
+            --red-bg: #501313;
+            --red-text: #F7C1C1;
+            --code-bg: #2A2A2C;
+            --accent: #7F77DD;
+          }
+        }
+
+        body {
+          background: var(--bg);
+          color: var(--text);
+          font-family: 'DM Sans', sans-serif;
+          font-size: 15px;
+          line-height: 1.65;
+          min-height: 100vh;
+          padding: 2rem 1rem 4rem;
+        }
+
+        .container {
+          max-width: 680px;
+          margin: 0 auto;
+        }
+
+        header {
+          margin-bottom: 2.5rem;
+          padding-bottom: 1.5rem;
+          border-bottom: 0.5px solid var(--border-strong);
+        }
+
+        header .eyebrow {
+          font-family: 'IBM Plex Mono', monospace;
+          font-size: 11px;
+          color: var(--accent);
+          letter-spacing: .12em;
+          text-transform: uppercase;
+          margin-bottom: 10px;
+        }
+
+        header h1 {
+          font-family: 'Lora', serif;
+          font-size: 28px;
+          font-weight: 500;
+          line-height: 1.3;
+          color: var(--text);
+        }
+
+        header p {
+          margin-top: 8px;
+          font-size: 14px;
+          color: var(--muted);
+        }
+
+        .progress-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-bottom: 1.5rem;
+        }
+
+        .dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: var(--border-strong);
+          transition: background .25s, transform .2s;
+          cursor: pointer;
+          flex-shrink: 0;
+        }
+        .dot.done { background: #1D9E75; }
+        .dot.active { background: var(--accent); transform: scale(1.35); }
+
+        .progress-label {
+          font-size: 12px;
+          color: var(--hint);
+          margin-left: 8px;
+          font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .card {
+          background: var(--card);
+          border: 0.5px solid var(--border-strong);
+          border-radius: 16px;
+          padding: 1.75rem 2rem;
+          min-height: 380px;
+          animation: fadeSlide .25s ease;
+        }
+
+        @keyframes fadeSlide {
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-meta {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 14px;
+        }
+
+        .step-num {
+          font-family: 'IBM Plex Mono', monospace;
+          font-size: 11px;
+          color: var(--hint);
+          letter-spacing: .08em;
+        }
+
+        .step-title {
+          font-family: 'Lora', serif;
+          font-size: 20px;
+          font-weight: 500;
+          color: var(--text);
+          margin-bottom: 1rem;
+        }
+
+        .desc {
+          font-size: 13px;
+          color: var(--muted);
+          margin-bottom: 1.25rem;
+          font-style: italic;
+          font-family: 'Lora', serif;
+        }
+
+        .pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 11px;
+          font-weight: 500;
+          padding: 3px 10px;
+          border-radius: 20px;
+          margin-bottom: 6px;
+          font-family: 'IBM Plex Mono', monospace;
+          letter-spacing: .04em;
+        }
+        .pill-bad  { background: var(--red-bg);   color: var(--red-text); }
+        .pill-good { background: var(--green-bg); color: var(--green-text); }
+
+        .code-block {
+          background: var(--code-bg);
+          border: 0.5px solid var(--border);
+          border-radius: 8px;
+          padding: 12px 14px;
+          font-family: 'IBM Plex Mono', monospace;
+          font-size: 12px;
+          color: var(--text);
+          line-height: 1.75;
+          white-space: pre;
+          overflow-x: auto;
+          margin: 0 0 14px;
+        }
+
+        .label {
+          font-family: 'IBM Plex Mono', monospace;
+          font-size: 10px;
+          letter-spacing: .1em;
+          text-transform: uppercase;
+          color: var(--hint);
+          margin: 16px 0 6px;
+        }
+
+        .why {
+          font-size: 13px;
+          color: var(--muted);
+          line-height: 1.6;
+        }
+        .why code {
+          font-family: 'IBM Plex Mono', monospace;
+          font-size: 11px;
+          background: var(--code-bg);
+          padding: 1px 5px;
+          border-radius: 4px;
+          color: var(--text);
+        }
+
+        .tip-box {
+          margin-top: 1.25rem;
+          padding: 12px 14px;
+          background: var(--purple-bg);
+          border-radius: 10px;
+          font-size: 13px;
+          color: var(--purple-text);
+          line-height: 1.55;
+        }
+
+        nav {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 1rem;
+        }
+
+        .nav-btn {
+          padding: 9px 20px;
+          font-size: 13px;
+          font-family: 'DM Sans', sans-serif;
+          border-radius: 10px;
+          border: 0.5px solid var(--border-strong);
+          background: transparent;
+          color: var(--text);
+          cursor: pointer;
+          transition: background .15s, opacity .15s;
+        }
+        .nav-btn:hover:not(:disabled) { background: var(--code-bg); }
+        .nav-btn:disabled { opacity: .3; cursor: default; }
+        .nav-btn.primary {
+          background: var(--accent);
+          color: #fff;
+          border-color: transparent;
+        }
+        .nav-btn.primary:hover { opacity: .88; }
+
+        .nav-info {
+          font-family: 'IBM Plex Mono', monospace;
+          font-size: 11px;
+          color: var(--hint);
+        }
+
+        footer {
+          margin-top: 2.5rem;
+          padding-top: 1.5rem;
+          border-top: 0.5px solid var(--border);
+          font-size: 12px;
+          color: var(--hint);
+          text-align: center;
+          font-family: 'IBM Plex Mono', monospace;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <div class="eyebrow">Kỹ năng lập trình</div>
+        <h1>Debug hiệu quả với AI</h1>
+        <p>Ví dụ thực tế: lỗi <code style="font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--code-bg);padding:2px 6px;border-radius:4px;">KeyError: 'user_id'</code> trong FastAPI — Python 3.11</p>
+    </header>
+
+    <div class="progress-row" id="dots"></div>
+
+    <div class="card" id="card-body"></div>
+
+    <nav>
+        <button class="nav-btn" id="btn-prev" onclick="go(-1)">← Trước</button>
+        <span class="nav-info" id="nav-info"></span>
+        <button class="nav-btn primary" id="btn-next" onclick="go(1)">Tiếp →</button>
+    </nav>
+
+    <footer>Dùng phím ← → để điều hướng &nbsp;·&nbsp; 6 bước · 1 ví dụ xuyên suốt</footer>
+
+</div>
+
+<script>
+    const steps = [
+      {
+        title: "Cung cấp đầy đủ context",
+        desc: "Kịch bản: bạn đang build API bằng FastAPI, gặp lỗi khi xử lý dữ liệu user.",
+        bad: { label: "Sai — quá mơ hồ", code: `code bị lỗi key gì đó, giúp tôi với` },
+        good: { label: "Đúng — đủ thông tin", code: `Môi trường: Python 3.11, FastAPI 0.104, Ubuntu 22.04\nLỗi xảy ra khi gọi endpoint GET /user/{id}` },
+        why: `AI cần biết phiên bản để gợi ý đúng API — <code>dict.get()</code> hoạt động khác nhau giữa các version. Thiếu context = AI đoán mò, câu trả lời sẽ không chính xác.`
+      },
+      {
+        title: "Paste error message đầy đủ",
+        desc: "Tiếp tục kịch bản: terminal báo lỗi — hãy paste nguyên xi, đừng tóm tắt.",
+        bad: { label: "Sai — tóm tắt lại", code: `lỗi KeyError liên quan đến user_id` },
+        good: { label: "Đúng — paste nguyên xi", code: `Traceback (most recent call last):\n  File "main.py", line 47, in get_user\n    return data["user_id"]\nKeyError: 'user_id'` },
+        why: `Số dòng <code>line 47</code> và tên key <code>'user_id'</code> trong stacktrace là đầu mối quan trọng nhất. Tóm tắt lại = mất thông tin, AI không thể khoanh vùng chính xác.`
+      },
+      {
+        title: "Mô tả kỳ vọng vs thực tế",
+        desc: "Nói rõ bạn mong muốn gì và thực tế nhận được gì — đây là bước nhiều người bỏ qua nhất.",
+        bad: { label: "Sai — không rõ kỳ vọng", code: `hàm get_user bị lỗi, không chạy được` },
+        good: { label: "Đúng — cụ thể, có so sánh", code: `Kỳ vọng: hàm trả về {"user_id": 123, "name": "An"}\nThực tế:  KeyError: 'user_id'\n\nKhi print(data) thì thấy: {"id": 123, "name": "An"}\n→ DB trả về key "id", không phải "user_id"` },
+        why: `Câu này gần như đã tự giải quyết vấn đề. AI (và bản thân bạn) nhìn vào là biết ngay: key sai tên. Không cần đoán thêm.`
+      },
+      {
+        title: "Rút gọn code tối thiểu",
+        desc: "Paste đúng đoạn gây lỗi — không paste cả file 300 dòng.",
+        bad: { label: "Sai — paste cả file", code: `import fastapi, sqlalchemy, pydantic, os, logging...\n\n# ... 300 dòng code ...` },
+        good: { label: "Đúng — chỉ đoạn liên quan", code: `@app.get("/user/{id}")\nasync def get_user(id: int):\n    data = await db.fetch_one(\n        "SELECT * FROM users WHERE id = :id", {"id": id}\n    )\n    return data["user_id"]  # <-- lỗi ở đây` },
+        why: `Code ngắn = AI tập trung đúng chỗ + trả lời nhanh hơn. Quá trình tự rút gọn thường giúp bạn tự tìm ra bug trước khi kịp hỏi AI.`
+      },
+      {
+        title: "Hỏi nguyên nhân gốc rễ",
+        desc: "Đừng chỉ xin fix — hãy hỏi tại sao. Hiểu = không lặp lại lần sau.",
+        bad: { label: "Sai — chỉ xin fix", code: `sửa lỗi này cho tôi` },
+        good: { label: "Đúng — hỏi nguyên nhân", code: `Tại sao DB trả về key "id" thay vì "user_id"?\nCách fix đúng là đổi tên trong SQL query hay\ntrong code Python? Có cách nào an toàn hơn\nđể truy cập key và tránh KeyError không?` },
+        why: `Fix mù quáng = lỗi tương tự xuất hiện lại. Hiểu nguyên nhân giúp bạn viết code tốt hơn lần sau — ví dụ: dùng <code>data.get("user_id")</code> thay vì <code>data["user_id"]</code>.`
+      },
+      {
+        title: "Iterate trong cùng conversation",
+        desc: "Fix đầu tiên chưa xong? Tiếp tục ngay trong cùng cuộc hội thoại — đừng mở chat mới.",
+        bad: { label: "Sai — mở conversation mới", code: `[chat mới]: "tôi bị lỗi KeyError..."\n→ phải giải thích lại từ đầu` },
+        good: { label: "Đúng — paste output mới vào đây", code: `Vẫn còn lỗi sau khi sửa:\nAttributeError: 'NoneType' has no attribute 'get'\n\n→ Có vẻ db.fetch_one() trả về None\n   khi không tìm thấy user_id=999.\n   Cần xử lý trường hợp này thế nào?` },
+        why: `AI đang giữ toàn bộ lịch sử: code gốc, lỗi đầu, fix đã thử. Mở chat mới = mất hết context, phải giải thích lại từ đầu. Giữ nguyên conversation = AI hiểu diễn tiến, fix chính xác hơn.`,
+        tip: `Tóm lại — câu hỏi debug lý tưởng:\n"Môi trường: Python 3.11, FastAPI. Lỗi: [stacktrace]. Code: [đoạn ngắn]. Kỳ vọng: X. Thực tế: Y. Đã thử: Z. Tại sao xảy ra và fix đúng cách là gì?"`
+      }
+    ];
+
+    let cur = 0;
+
+    function render() {
+      const s = steps[cur];
+
+      const dotsEl = document.getElementById('dots');
+      dotsEl.innerHTML = steps.map((_, i) => {
+        const cls = i < cur ? 'done' : i === cur ? 'active' : '';
+        return `<div class="dot ${cls}" onclick="jump(${i})" title="Bước ${i+1}"></div>`;
+      }).join('') + `<span class="progress-label">${s.title}</span>`;
+
+      const tipHtml = s.tip ? `<div class="tip-box"><strong style="font-family:'IBM Plex Mono',monospace;font-size:11px;display:block;margin-bottom:6px;letter-spacing:.06em">TEMPLATE HOÀN CHỈNH</strong>${s.tip}</div>` : '';
+
+      document.getElementById('card-body').innerHTML = `
+        <div class="step-meta">
+          <span class="step-num">BƯỚC ${cur+1} / ${steps.length}</span>
+        </div>
+        <div class="step-title">${s.title}</div>
+        <div class="desc">${s.desc}</div>
+
+        <span class="pill pill-bad">✕ ${s.bad.label}</span>
+        <div class="code-block">${esc(s.bad.code)}</div>
+
+        <span class="pill pill-good">✓ ${s.good.label}</span>
+        <div class="code-block">${esc(s.good.code)}</div>
+
+        <div class="label">Tại sao quan trọng</div>
+        <div class="why">${s.why}</div>
+        ${tipHtml}
+      `;
+
+      document.getElementById('btn-prev').disabled = cur === 0;
+      document.getElementById('btn-next').disabled = cur === steps.length - 1;
+      document.getElementById('btn-next').textContent = cur === steps.length - 1 ? 'Hoàn thành ✓' : 'Tiếp →';
+      document.getElementById('nav-info').textContent = `${cur+1} / ${steps.length}`;
+    }
+
+    function esc(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function go(dir) {
+      const next = cur + dir;
+      if (next < 0 || next >= steps.length) return;
+      cur = next;
+      render();
+    }
+
+    function jump(i) {
+      cur = i;
+      render();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight') go(1);
+      if (e.key === 'ArrowLeft') go(-1);
+    });
+
+    render();
+</script>
+</body>
+</html>
