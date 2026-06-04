@@ -1,23 +1,2097 @@
-<!doctype html>
-<html lang="vi">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>EMV - Home</title>
-    <meta http-equiv="refresh" content="0; url=/EMV/emv/">
-    <style>
-      body{font-family:Arial,Helvetica,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#f6f8ff;color:#1a237e}
-      .box{max-width:720px;padding:28px;border-radius:12px;background:#fff;box-shadow:0 6px 30px rgba(6,17,84,.08);text-align:center}
-      a{color:#3949ab;font-weight:700;text-decoration:none}
-    </style>
-  </head>
-  <body>
-    <div class="box">
-      <h1>Chuyển hướng tới tài liệu EMV</h1>
-      <p>Nếu trang không tự động chuyển, bấm vào liên kết sau để mở phần EMV:</p>
-      <p><a href="/EMV/emv/">Mở EMV (host/emv)</a> • <a href="/EMV/emv.html">Mở emv.html</a> • <a href="/EMV/python/">Học Python</a></p>
-      <p style="margin-top:12px;color:#546e7a">Lưu ý: GitHub Pages có thể cần vài phút để cập nhật lần push mới.</p>
-    </div>
-  </body>
-</html>
 
+​<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hướng Dẫn Sử Dụng Claude AI Hiệu Quả</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ===== 2026 Color Trend: "Quiet Intelligence" =====
+       Future Dusk · Butter Yellow · Transformative Teal · Warm Cream */
+    :root{
+      --dusk:#4C5578;          /* primary — Future Dusk (2026) */
+      --dusk-deep:#363D5C;
+      --butter:#F4D58D;        /* accent warm */
+      --butter-soft:#FBE9BE;
+      --teal:#1F7A75;          /* link / highlight */
+      --teal-soft:#D7ECEA;
+      --cream:#F7F2E8;         /* page bg */
+      --paper:#FFFDF8;         /* card bg */
+      --ink:#1B1E2E;           /* body text */
+      --ink-soft:#5A5E72;
+      --line:#E6DFD0;
+      --good-bg:#E8F0E4; --good-bd:#5C8A4E;
+      --bad-bg:#F7E4DC;  --bad-bd:#B85C3E;
+      --note-bg:#FBE9BE; --note-bd:#C8941F;
+      --code-bg:#1B1E2E; --code-fg:#E8E4D3;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth;scroll-padding-top:24px}
+    body{
+      font-family:'Inter','Segoe UI',system-ui,sans-serif;
+      font-size:16px; line-height:1.7; color:var(--ink);
+      background:var(--cream);
+      margin:0; padding:0;
+      -webkit-font-smoothing:antialiased;
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding:48px 32px 80px}
+    .hero{
+      background:linear-gradient(135deg,var(--dusk) 0%,var(--dusk-deep) 100%);
+      color:var(--paper);
+      padding:56px 48px;
+      border-radius:20px;
+      margin-bottom:40px;
+      position:relative; overflow:hidden;
+      box-shadow:0 12px 40px -12px rgba(76,85,120,.35);
+    }
+    .hero::after{
+      content:""; position:absolute; right:-60px; top:-60px;
+      width:240px; height:240px; border-radius:50%;
+      background:radial-gradient(circle,var(--butter) 0%,transparent 70%);
+      opacity:.35;
+    }
+    .hero h1{
+      font-family:'Fraunces',Georgia,serif;
+      font-weight:600; font-size:clamp(28px,4vw,44px);
+      line-height:1.15; margin:0 0 14px;
+      color:var(--paper); border:none; padding:0;
+      letter-spacing:-.02em;
+    }
+    .hero .meta{color:var(--butter-soft); font-size:15px; margin:0; position:relative; z-index:1}
+    .hero .meta strong{color:var(--butter)}
+
+    h1,h2,h3,h4{font-family:'Fraunces',Georgia,serif; letter-spacing:-.01em; color:var(--dusk-deep)}
+    h2{
+      font-size:28px; font-weight:600; margin:56px 0 18px;
+      padding-bottom:10px; border-bottom:1px solid var(--line);
+      position:relative;
+    }
+    h2::before{
+      content:""; position:absolute; left:0; bottom:-1px;
+      width:56px; height:3px; background:var(--butter); border-radius:2px;
+    }
+    h3{font-size:21px; font-weight:600; margin:32px 0 12px; color:var(--dusk)}
+    h4{font-size:17px; font-weight:600; color:var(--dusk)}
+    p{margin:12px 0}
+    a{color:var(--teal); text-decoration:none; border-bottom:1px solid transparent; transition:border-color .15s}
+    a:hover{border-bottom-color:var(--teal)}
+    strong{color:var(--dusk-deep)}
+    em{color:var(--ink-soft)}
+
+    code{
+      font-family:'JetBrains Mono',Consolas,monospace; font-size:.9em;
+      background:var(--butter-soft); color:var(--dusk-deep);
+      padding:2px 7px; border-radius:5px;
+      border:1px solid rgba(200,148,31,.18);
+    }
+    pre{
+      font-family:'JetBrains Mono',Consolas,monospace; font-size:14px;
+      background:var(--code-bg); color:var(--code-fg);
+      padding:18px 22px; border-radius:12px;
+      overflow-x:auto; line-height:1.55;
+      border:none; margin:16px 0;
+      box-shadow:0 4px 16px -8px rgba(27,30,46,.4);
+    }
+    pre code{background:none; color:inherit; padding:0; border:none}
+
+    table{
+      border-collapse:separate; border-spacing:0;
+      width:100%; margin:20px 0; background:var(--paper);
+      border-radius:12px; overflow:hidden;
+      box-shadow:0 2px 12px -6px rgba(76,85,120,.15);
+    }
+    th,td{padding:14px 16px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line)}
+    tr:last-child td{border-bottom:none}
+    th{background:var(--dusk); color:var(--paper); font-weight:600; font-size:14px; letter-spacing:.02em; text-transform:uppercase}
+    tr:nth-child(even) td{background:rgba(244,213,141,.06)}
+
+    .note,.good,.bad{
+      padding:14px 18px; margin:14px 0;
+      border-radius:10px; border-left:4px solid;
+    }
+    .note{background:var(--note-bg); border-color:var(--note-bd); color:#5C4A18}
+    .good{background:var(--good-bg); border-color:var(--good-bd); color:#2E4A24}
+    .bad{background:var(--bad-bg); border-color:var(--bad-bd); color:#5C2A18}
+    .note strong,.good strong,.bad strong{color:inherit}
+
+    ul,ol{padding-left:24px}
+    ul li,ol li{margin:8px 0}
+
+    .meta{color:var(--ink-soft); font-size:14px}
+
+    .toc{
+      background:var(--paper);
+      padding:24px 28px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      margin:24px 0 40px;
+      box-shadow:0 4px 20px -10px rgba(76,85,120,.12);
+    }
+    .toc>strong{
+      display:block; font-family:'Fraunces',Georgia,serif;
+      font-size:18px; color:var(--dusk-deep); margin-bottom:14px;
+      font-weight:600;
+    }
+    .toc ol{columns:2; column-gap:32px; padding-left:20px; margin:0}
+    .toc li{break-inside:avoid; margin:6px 0}
+    .toc a{color:var(--dusk); border:none}
+    .toc a:hover{color:var(--teal)}
+
+    footer{
+      margin-top:64px; padding-top:24px;
+      border-top:1px solid var(--line);
+      font-size:14px; color:var(--ink-soft);
+    }
+    footer a{color:var(--teal)}
+
+    @media (max-width:720px){
+      .wrap{padding:24px 18px 60px}
+      .hero{padding:36px 24px; border-radius:14px}
+      .toc ol{columns:1}
+      h2{font-size:24px} h3{font-size:18px}
+      pre{font-size:13px; padding:14px 16px}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <h1>Hướng Dẫn Sử Dụng Claude AI Hiệu Quả</h1>
+    <p class="meta">Tài liệu tổng hợp từ nguồn chính thức: <strong>claude.com</strong>, <strong>platform.claude.com/docs</strong> và <strong>support.claude.com</strong> (Anthropic).</p>
+  </header>
+
+  <div class="toc">
+    <strong>Mục lục</strong>
+    <ol>
+      <li><a href="#gioi-thieu">Claude AI là gì? (Ý nghĩa)</a></li>
+      <li><a href="#mo-hinh">Các mô hình Claude</a></li>
+      <li><a href="#bat-dau">Cách bắt đầu sử dụng Claude</a></li>
+      <li><a href="#nguyen-tac">Nguyên tắc viết prompt hiệu quả</a></li>
+      <li><a href="#ky-thuat">Các kỹ thuật prompt chuyên sâu</a></li>
+      <li><a href="#long-context">Làm việc với tài liệu dài (long context)</a></li>
+      <li><a href="#ung-dung">Các trường hợp sử dụng phổ biến</a></li>
+      <li><a href="#luu-y">Lưu ý sử dụng đúng và an toàn</a></li>
+      <li><a href="#thuat-ngu">Thuật ngữ AI quan trọng (Guardrails, RAG, Hooks)</a></li>
+      <li><a href="#tao-skill">Cách tạo Agent Skill đầy đủ</a></li>
+      <li><a href="#debug">Cách debug với AI hiệu quả</a></li>
+      <li><a href="#api-messages">Claude API — Messages API</a></li>
+      <li><a href="#tool-use">Tool use / Function calling</a></li>
+      <li><a href="#streaming">Streaming responses</a></li>
+      <li><a href="#vision">Vision (xử lý ảnh)</a></li>
+      <li><a href="#pdf">PDF support</a></li>
+      <li><a href="#files-api">Files API</a></li>
+      <li><a href="#citations">Citations (trích dẫn tự động)</a></li>
+      <li><a href="#prompt-caching">Prompt Caching</a></li>
+      <li><a href="#batch">Batch API</a></li>
+      <li><a href="#mcp">MCP &amp; MCP Connector</a></li>
+      <li><a href="#claude-code">Claude Code (CLI/IDE/Web)</a></li>
+      <li><a href="#reduce-hallucination">Giảm hallucination</a></li>
+      <li><a href="#consistency">Tăng tính nhất quán &amp; giữ nhân vật</a></li>
+      <li><a href="#debug-vidu">Bộ ví dụ debug thực tế (mở rộng)</a></li>
+    </ol>
+  </div>
+
+  <h2 id="gioi-thieu">1. Claude AI là gì? (Ý nghĩa)</h2>
+  <p><strong>Claude AI</strong> là trợ lý trí tuệ nhân tạo do <strong>Anthropic</strong> phát triển, được định vị chính thức là <em>"The AI for Problem Solvers"</em> – một đối tác tư duy giúp giải quyết các vấn đề phức tạp trong nhiều lĩnh vực (theo trang giới thiệu sản phẩm <code>claude.com/product/overview</code>).</p>
+  <p>Claude xuất sắc ở bốn nhóm năng lực chính:</p>
+  <ul>
+    <li><strong>Viết và phân tích (Writing &amp; Analysis):</strong> phát triển văn phong riêng, cải thiện chất lượng viết, brainstorm ý tưởng, soạn tài liệu chuyên sâu như đề xuất dự án, case study.</li>
+    <li><strong>Học tập và nghiên cứu (Learning &amp; Research):</strong> giải thích chủ đề phức tạp, tổng hợp thông tin từ tài liệu được tải lên, tìm kiếm web và tạo tài liệu học có trích dẫn.</li>
+    <li><strong>Lập trình (Coding):</strong> gỡ lỗi, giải thích khái niệm, tối ưu thuật toán, phân tích codebase và phát triển phần mềm cộng tác.</li>
+    <li><strong>Giải quyết vấn đề (Problem-Solving):</strong> chia nhỏ vấn đề có hệ thống, nghiên cứu đa nguồn, phân tích tình huống kinh doanh.</li>
+  </ul>
+
+  <h2 id="mo-hinh">2. Các mô hình Claude</h2>
+  <p>Anthropic cung cấp ba dòng mô hình chính, phục vụ các nhu cầu khác nhau:</p>
+  <table>
+    <tr><th>Mô hình</th><th>Đặc điểm</th><th>Trường hợp dùng phù hợp</th></tr>
+    <tr><td><strong>Claude Opus</strong></td><td>Mô hình mạnh nhất, suy luận sâu, agentic dài hạn</td><td>Lập trình phức tạp, nghiên cứu, công việc agent dài hạn</td></tr>
+    <tr><td><strong>Claude Sonnet</strong></td><td>Cân bằng giữa hiệu năng và chi phí</td><td>Hầu hết tác vụ công việc hằng ngày</td></tr>
+    <tr><td><strong>Claude Haiku</strong></td><td>Nhanh, hiệu quả về chi phí</td><td>Tác vụ ngắn, độ trễ thấp, khối lượng lớn</td></tr>
+  </table>
+  <p>Claude có thể truy cập qua: <strong>web</strong> (claude.ai), <strong>ứng dụng desktop</strong> (macOS, Windows), <strong>ứng dụng di động</strong> (iOS, Android), <strong>extension trình duyệt</strong>, và <strong>API</strong> dành cho lập trình viên.</p>
+
+  <h2 id="bat-dau">3. Cách bắt đầu sử dụng Claude</h2>
+  <ol>
+    <li>Truy cập <code>claude.ai</code> hoặc tải ứng dụng desktop/mobile chính thức.</li>
+    <li>Đăng ký tài khoản bằng email hoặc tài khoản Google.</li>
+    <li>Chọn mô hình phù hợp (Opus / Sonnet / Haiku) theo nhu cầu công việc.</li>
+    <li>Bắt đầu hội thoại bằng cách nhập câu hỏi rõ ràng, có thể tải kèm tài liệu (PDF, ảnh, mã nguồn) để Claude phân tích.</li>
+    <li>Với lập trình viên: đăng ký API qua <code>platform.claude.com</code> (Claude Console) để tích hợp vào sản phẩm.</li>
+  </ol>
+
+  <h2 id="nguyen-tac">4. Nguyên tắc viết prompt hiệu quả (How to use correctly)</h2>
+  <p>Theo tài liệu chính thức <em>Prompting best practices</em> trên <code>platform.claude.com/docs</code>, để sử dụng Claude hiệu quả cần tuân thủ các nguyên tắc sau:</p>
+
+  <h3>4.1. Hãy rõ ràng và trực tiếp (Be clear and direct)</h3>
+  <p><em>"Hãy coi Claude như một nhân viên xuất sắc nhưng mới, chưa biết quy tắc và quy trình của bạn. Càng mô tả chính xác điều bạn muốn, kết quả càng tốt."</em></p>
+  <p><strong>Quy tắc vàng:</strong> Đưa prompt của bạn cho một đồng nghiệp không biết bối cảnh đọc thử. Nếu họ bối rối, Claude cũng sẽ bối rối.</p>
+  <div class="bad"><strong>Kém hiệu quả:</strong><br><code>Create an analytics dashboard</code></div>
+  <div class="good"><strong>Hiệu quả hơn:</strong><br><code>Create an analytics dashboard. Include as many relevant features and interactions as possible. Go beyond the basics to create a fully-featured implementation.</code></div>
+
+  <h3>4.2. Bổ sung ngữ cảnh để cải thiện kết quả</h3>
+  <p>Giải thích <em>lý do</em> đằng sau yêu cầu giúp Claude hiểu mục tiêu và phản hồi chính xác hơn.</p>
+  <div class="bad"><strong>Kém hiệu quả:</strong> <code>NEVER use ellipses</code></div>
+  <div class="good"><strong>Hiệu quả hơn:</strong> <code>Your response will be read aloud by a text-to-speech engine, so never use ellipses since the text-to-speech engine will not know how to pronounce them.</code></div>
+
+  <h3>4.3. Dùng ví dụ (few-shot / multishot prompting)</h3>
+  <p>Ví dụ là một trong những cách đáng tin cậy nhất để định hướng định dạng, giọng văn và cấu trúc đầu ra. Nên có <strong>3–5 ví dụ</strong>, đảm bảo:</p>
+  <ul>
+    <li><strong>Liên quan (Relevant):</strong> sát với trường hợp thực tế.</li>
+    <li><strong>Đa dạng (Diverse):</strong> bao phủ các trường hợp biên.</li>
+    <li><strong>Có cấu trúc (Structured):</strong> bọc trong thẻ <code>&lt;example&gt;</code> / <code>&lt;examples&gt;</code>.</li>
+  </ul>
+
+  <h3>4.4. Cấu trúc prompt bằng thẻ XML</h3>
+  <p>Thẻ XML giúp Claude phân biệt rõ ràng giữa các phần: hướng dẫn, ngữ cảnh, ví dụ, dữ liệu đầu vào.</p>
+  <pre>&lt;instructions&gt;...&lt;/instructions&gt;
+&lt;context&gt;...&lt;/context&gt;
+&lt;input&gt;...&lt;/input&gt;</pre>
+
+  <h3>4.5. Gán vai trò (role) cho Claude</h3>
+  <p>Đặt vai trò trong system prompt giúp tập trung hành vi và giọng văn:</p>
+  <pre>system="You are a helpful coding assistant specializing in Python."</pre>
+
+  <h2 id="ky-thuat">5. Các kỹ thuật prompt chuyên sâu</h2>
+
+  <h3>5.1. Điều chỉnh "effort" (mức độ suy nghĩ)</h3>
+  <p>Tham số <code>effort</code> cho phép cân đối giữa trí thông minh và chi phí token:</p>
+  <table>
+    <tr><th>Mức</th><th>Khi nào dùng</th></tr>
+    <tr><td><code>max</code></td><td>Tác vụ cực kỳ đòi hỏi trí tuệ; có thể bị "overthinking".</td></tr>
+    <tr><td><code>xhigh</code></td><td>Tốt nhất cho coding và agentic.</td></tr>
+    <tr><td><code>high</code></td><td>Tối thiểu cho các tác vụ nhạy cảm về trí tuệ.</td></tr>
+    <tr><td><code>medium</code></td><td>Cân bằng chi phí và năng lực.</td></tr>
+    <tr><td><code>low</code></td><td>Tác vụ ngắn, độ trễ thấp, không yêu cầu suy luận sâu.</td></tr>
+  </table>
+
+  <h3>5.2. Extended Thinking (suy luận mở rộng)</h3>
+  <p>Trên Claude Opus 4.8, thinking <strong>tắt</strong> mặc định; bật bằng <code>thinking: {type: "adaptive"}</code>. Chỉ bật khi tác vụ cần lập luận nhiều bước, vì sẽ tăng độ trễ.</p>
+
+  <h3>5.3. Hướng dẫn theo nghĩa đen</h3>
+  <p>Claude Opus 4.8 diễn giải prompt theo nghĩa đen. Nếu muốn áp dụng rộng, hãy nói rõ phạm vi (ví dụ: <em>"Apply this formatting to every section, not just the first one"</em>).</p>
+
+  <h3>5.4. Kiểm soát giọng văn</h3>
+  <p>Nếu sản phẩm cần giọng ấm áp/hội thoại:</p>
+  <pre>Use a warm, collaborative tone. Acknowledge the user's framing before answering.</pre>
+
+  <h2 id="long-context">6. Làm việc với tài liệu dài (Long context prompting)</h2>
+  <p>Khi xử lý đầu vào lớn (20k+ tokens), tuân theo các quy tắc:</p>
+  <ul>
+    <li><strong>Đặt dữ liệu dài ở đầu prompt</strong>, phía trên câu hỏi và hướng dẫn. Theo Anthropic, đặt câu hỏi ở cuối có thể cải thiện chất lượng phản hồi tới <strong>30%</strong>.</li>
+    <li><strong>Bọc mỗi tài liệu</strong> trong thẻ <code>&lt;document&gt;</code> với <code>&lt;source&gt;</code> và <code>&lt;document_content&gt;</code>.</li>
+    <li><strong>Yêu cầu Claude trích dẫn</strong> các đoạn liên quan trước khi trả lời, giúp lọc nhiễu.</li>
+  </ul>
+  <pre>&lt;documents&gt;
+  &lt;document index="1"&gt;
+    &lt;source&gt;annual_report_2023.pdf&lt;/source&gt;
+    &lt;document_content&gt;{{ANNUAL_REPORT}}&lt;/document_content&gt;
+  &lt;/document&gt;
+&lt;/documents&gt;
+
+Analyze the annual report. Identify strategic advantages.</pre>
+
+  <h2 id="ung-dung">7. Các trường hợp sử dụng phổ biến</h2>
+  <p>Theo Anthropic, các tổ chức triển khai Claude cho:</p>
+  <ul>
+    <li>Xây dựng <strong>AI Agents</strong> tự động hóa quy trình</li>
+    <li>Sáng tạo nội dung (content creation)</li>
+    <li>Hỗ trợ khách hàng (customer support)</li>
+    <li>Phân tích tài chính (financial analysis)</li>
+    <li>Nghiên cứu pháp lý (legal research)</li>
+    <li>Ứng dụng y tế (healthcare)</li>
+    <li>Tự động hóa quy trình doanh nghiệp</li>
+  </ul>
+
+  <h2 id="luu-y">8. Lưu ý sử dụng đúng và an toàn</h2>
+  <div class="note">
+    <ul>
+      <li><strong>Kiểm tra knowledge cutoff:</strong> mỗi mô hình có ngày cắt dữ liệu huấn luyện riêng; Claude có thể không biết các sự kiện sau ngày đó. Tham khảo trang chính thức trên <code>support.claude.com</code>.</li>
+      <li><strong>Đánh giá thực nghiệm:</strong> luôn xác định tiêu chí thành công và xây dựng bộ test trước khi tinh chỉnh prompt (xem mục <em>Define success criteria and build evaluations</em> trong tài liệu).</li>
+      <li><strong>Không phải mọi vấn đề đều giải bằng prompt:</strong> độ trễ và chi phí thường được tối ưu tốt hơn bằng cách chọn mô hình phù hợp.</li>
+      <li><strong>Kiểm chứng đầu ra:</strong> Claude có thể mắc lỗi; luôn xác minh thông tin quan trọng, đặc biệt khi liên quan đến pháp lý, y tế, tài chính.</li>
+      <li><strong>Bảo mật dữ liệu:</strong> không dán thông tin nhạy cảm vào prompt khi chưa kiểm tra chính sách lưu trữ dữ liệu của Anthropic.</li>
+    </ul>
+  </div>
+
+  <h2 id="thuat-ngu">9. Thuật ngữ AI quan trọng</h2>
+
+  <h3>9.1. Guardrails (Rào chắn an toàn)</h3>
+  <p><strong>Guardrails</strong> là tập các biện pháp kỹ thuật và chính sách nhằm đảm bảo Claude được sử dụng <em>an toàn, có trách nhiệm và đúng mục đích</em>. Theo Anthropic, guardrails trải dài toàn bộ vòng đời mô hình — từ huấn luyện đến triển khai thực tế.</p>
+  <p><strong>Các thành phần chính (theo tài liệu chính thức):</strong></p>
+  <ul>
+    <li><strong>Usage Policy</strong> – khung định nghĩa Claude <em>được</em> và <em>không được</em> dùng cho việc gì (an toàn trẻ em, bầu cử, an ninh mạng, y tế, tài chính…).</li>
+    <li><strong>Unified Harm Framework</strong> – đánh giá tác hại tiềm năng theo 5 chiều: vật lý, tâm lý, kinh tế, xã hội, quyền tự chủ cá nhân.</li>
+    <li><strong>Structured Outputs</strong> – đảm bảo Claude trả về JSON đúng schema.</li>
+    <li><strong>Harmlessness Screens</strong> – dùng mô hình nhẹ (như Claude Haiku 4.5) để tiền-kiểm tra đầu vào trước khi gửi tới hội thoại chính.</li>
+    <li><strong>Input Validation</strong> – lọc các mẫu prompt injection đã biết trước khi tới Claude.</li>
+    <li><strong>Mitigate jailbreaks &amp; prompt injection</strong> – các hướng dẫn trong mục <em>Test and Evaluate → Strengthen Guardrails</em> của tài liệu chính thức.</li>
+  </ul>
+  <div class="note"><strong>Khi nào cần?</strong> Bất kỳ ứng dụng nào dùng Claude trong sản xuất, đặc biệt nhận đầu vào từ người dùng cuối, cần thiết lập guardrails để hạn chế lạm dụng, jailbreak và rò rỉ prompt.</div>
+
+  <h3>9.2. RAG (Retrieval Augmented Generation)</h3>
+  <p>Theo Trung tâm Hỗ trợ Claude (<code>support.claude.com</code>), <strong>RAG</strong> là kỹ thuật cho phép Claude <em>"lưu trữ và truy cập lượng kiến thức lớn hơn nhiều so với trước"</em>. Thay vì nạp toàn bộ nội dung cùng lúc, Claude <strong>tìm kiếm thông minh</strong> trong tài liệu được tải lên để chỉ truy xuất phần liên quan nhất.</p>
+  <table>
+    <tr><th>Đặc điểm</th><th>Mô tả chính thức</th></tr>
+    <tr><td>Dung lượng</td><td>Mở rộng tới <strong>10 lần</strong> so với context window thông thường</td></tr>
+    <tr><td>Độ chính xác</td><td>"Giữ nhất quán với xử lý in-context"</td></tr>
+    <tr><td>Kích hoạt</td><td><strong>Tự động</strong> khi kiến thức dự án vượt giới hạn context</td></tr>
+    <tr><td>Công cụ</td><td>Claude dùng <em>"project knowledge search tool"</em> để truy xuất</td></tr>
+  </table>
+  <p><strong>Best practices từ Anthropic:</strong> tải tài liệu đầy đủ ngay từ đầu; đặt tên file rõ ràng, có ý nghĩa; nhóm nội dung liên quan vào cùng project; tham chiếu tài liệu cụ thể khi đặt câu hỏi.</p>
+  <p><strong>Contextual Retrieval</strong> – kỹ thuật nâng cao của Anthropic kết hợp <em>Contextual Embeddings</em> + <em>Contextual BM25</em> để cải thiện hiệu năng truy xuất (xem blog <code>anthropic.com/news/contextual-retrieval</code>).</p>
+
+  <h3>9.3. Glossary chính thức của Anthropic</h3>
+  <p>Tổng hợp đầy đủ từ <code>platform.claude.com/docs/en/docs/resources/glossary</code>:</p>
+  <table>
+    <tr><th>Thuật ngữ</th><th>Định nghĩa chính thức (tóm tắt)</th></tr>
+    <tr><td><strong>Context window</strong></td><td>Lượng văn bản mô hình có thể "nhìn lại" và tham chiếu khi sinh nội dung mới — "bộ nhớ làm việc" của model. Khác với dữ liệu huấn luyện. Context window lớn cho phép xử lý prompt phức tạp/dài hơn.</td></tr>
+    <tr><td><strong>Tokens</strong></td><td>Đơn vị nhỏ nhất của ngôn ngữ model — có thể là từ, từ con (subword), ký tự, hoặc byte. Với Claude, 1 token ≈ 3.5 ký tự tiếng Anh (thay đổi theo ngôn ngữ).</td></tr>
+    <tr><td><strong>LLM</strong></td><td>Large Language Model — mô hình AI ngôn ngữ có rất nhiều tham số, huấn luyện trên lượng văn bản khổng lồ, có thể sinh văn bản giống người, trả lời, tóm tắt…</td></tr>
+    <tr><td><strong>Pretraining</strong></td><td>Quá trình huấn luyện ban đầu trên kho văn bản lớn không gán nhãn. Claude dùng pretraining tự hồi quy: dự đoán từ tiếp theo dựa trên ngữ cảnh trước đó.</td></tr>
+    <tr><td><strong>Fine-tuning</strong></td><td>Huấn luyện bổ sung mô hình đã pretrain với dữ liệu mới để model bắt chước mẫu/đặc tính của tập dữ liệu fine-tune. Claude đã được fine-tune để trở thành trợ lý hữu ích.</td></tr>
+    <tr><td><strong>RLHF</strong></td><td>Reinforcement Learning from Human Feedback — kỹ thuật huấn luyện mô hình theo sở thích con người bằng cách xếp hạng các mẫu output. Claude được train bằng RLHF để hữu ích hơn.</td></tr>
+    <tr><td><strong>HHH</strong></td><td>Ba mục tiêu của Anthropic: <strong>Helpful</strong> (hữu ích), <strong>Honest</strong> (trung thực, không hallucination), <strong>Harmless</strong> (không gây hại).</td></tr>
+    <tr><td><strong>Temperature</strong></td><td>Tham số kiểm soát mức ngẫu nhiên khi sinh văn bản. Cao → sáng tạo/đa dạng. Thấp → bảo thủ/xác định hơn. Lưu ý: ngay cả temperature=0 cũng không đảm bảo determinism tuyệt đối.</td></tr>
+    <tr><td><strong>Latency</strong></td><td>Thời gian từ lúc gửi prompt đến khi nhận output. Quan trọng cho ứng dụng real-time, chatbot.</td></tr>
+    <tr><td><strong>TTFT</strong></td><td>Time To First Token — thời gian sinh ra token đầu tiên sau khi nhận prompt. Chỉ số quan trọng cho UX tương tác.</td></tr>
+    <tr><td><strong>RAG</strong></td><td>Retrieval Augmented Generation — kết hợp truy xuất thông tin với sinh ngôn ngữ. Tài liệu liên quan được truy xuất khi có truy vấn và đưa vào context cùng prompt. Xem chi tiết ở §9.2.</td></tr>
+    <tr><td><strong>MCP</strong></td><td>Model Context Protocol — giao thức mở chuẩn hóa cách ứng dụng cung cấp context cho LLM. Anthropic ví như <em>"cổng USB-C cho ứng dụng AI"</em> — kết nối model với nguồn dữ liệu và tool theo cách thống nhất.</td></tr>
+    <tr><td><strong>MCP connector</strong></td><td>Tính năng cho phép người dùng API kết nối trực tiếp tới MCP server từ Messages API mà không cần tự xây MCP client. Hỗ trợ tool calling, đang ở beta.</td></tr>
+  </table>
+
+  <h3>9.4. Các thuật ngữ Claude-specific khác (từ tài liệu chính thức)</h3>
+  <table>
+    <tr><th>Thuật ngữ</th><th>Mô tả</th></tr>
+    <tr><td><strong>Agent Skills</strong></td><td>Năng lực dạng module mở rộng chức năng Claude, đóng gói instructions + metadata + resources. Xem §10.</td></tr>
+    <tr><td><strong>Progressive Disclosure</strong></td><td>Cơ chế nạp Skill 3 cấp (metadata → instructions → resources) để tiết kiệm context window.</td></tr>
+    <tr><td><strong>Extended Thinking / Adaptive Thinking</strong></td><td>Chế độ suy luận mở rộng, bật bằng <code>thinking: {type: "adaptive"}</code>. Trên Opus 4.8 mặc định tắt.</td></tr>
+    <tr><td><strong>Effort</strong></td><td>Tham số cân đối trí tuệ vs token: <code>max</code> / <code>xhigh</code> / <code>high</code> / <code>medium</code> / <code>low</code>. Xem §5.1.</td></tr>
+    <tr><td><strong>Subagent</strong></td><td>Agent con được spawn từ agent chính để xử lý song song công việc độc lập (ví dụ fan-out đọc nhiều file).</td></tr>
+    <tr><td><strong>Tool use</strong></td><td>Khả năng Claude gọi các function/tool bên ngoài (web search, code execution, file ops, MCP tool) trong vòng lặp hội thoại.</td></tr>
+    <tr><td><strong>Computer use</strong></td><td>Khả năng đặc biệt cho phép Claude thao tác trực tiếp với màn hình máy tính (nhìn, click, gõ phím). Hoạt động tốt nhất ở 1080p.</td></tr>
+    <tr><td><strong>Code execution tool</strong></td><td>Sandbox để Claude chạy code (Python) trên VM của Anthropic — nền tảng để chạy Skills qua API.</td></tr>
+    <tr><td><strong>Knowledge cutoff</strong></td><td>Ngày cắt dữ liệu huấn luyện — mỗi version Claude có ngày riêng. Claude có thể không biết sự kiện sau ngày này.</td></tr>
+    <tr><td><strong>Prompt caching</strong></td><td>Cơ chế cache các phần prompt lặp lại (system prompt, tài liệu lớn) trong 5 phút để giảm chi phí và độ trễ.</td></tr>
+    <tr><td><strong>Structured outputs</strong></td><td>Đảm bảo Claude trả về JSON đúng schema đã định nghĩa — một thành phần guardrails.</td></tr>
+    <tr><td><strong>Prompt injection</strong></td><td>Tấn công khi nội dung không tin cậy chèn chỉ thị vào prompt nhằm ghi đè hướng dẫn gốc. Anthropic có hướng dẫn mitigation riêng trong mục <em>Strengthen Guardrails</em>.</td></tr>
+    <tr><td><strong>Jailbreak</strong></td><td>Nỗ lực vượt qua guardrails để khiến model làm việc trái chính sách. Có doc riêng về cách giảm thiểu.</td></tr>
+    <tr><td><strong>Hallucination</strong></td><td>Hiện tượng model bịa thông tin không có thật. RAG và prompt grounding (yêu cầu trích dẫn) giúp giảm.</td></tr>
+    <tr><td><strong>Hooks</strong></td><td>Lệnh tự động chạy tại các điểm trong vòng đời Claude Code. Xem §9.5.</td></tr>
+    <tr><td><strong>Guardrails</strong></td><td>Các biện pháp đảm bảo Claude dùng an toàn/đúng mục đích. Xem §9.1.</td></tr>
+    <tr><td><strong>Plan mode</strong></td><td>Chế độ trong Claude Code để lập kế hoạch trước khi thực thi — chỉ đọc, không sửa file cho đến khi user duyệt.</td></tr>
+    <tr><td><strong>Worktree</strong></td><td>Git worktree cô lập để Claude làm việc trên bản sao riêng của repo, an toàn cho thay đổi thử nghiệm.</td></tr>
+    <tr><td><strong>Auto memory</strong></td><td>Hệ thống bộ nhớ file-based bền vững giúp Claude Code nhớ thông tin người dùng/dự án qua các phiên.</td></tr>
+    <tr><td><strong>CLAUDE.md</strong></td><td>File hướng dẫn dự án Claude Code đọc tự động khi khởi động phiên — chứa quy ước codebase, lệnh build/test, lưu ý.</td></tr>
+    <tr><td><strong>Slash commands</strong></td><td>Lệnh dạng <code>/&lt;name&gt;</code> trong Claude Code để gọi skill hoặc tính năng (ví dụ <code>/review</code>, <code>/init</code>).</td></tr>
+  </table>
+
+  <h3>9.5. Hooks (trong Claude Code)</h3>
+  <p>Theo tài liệu chính thức <code>code.claude.com/docs/en/hooks</code>: <strong>Hooks</strong> là <em>"lệnh shell, HTTP endpoint, LLM prompt hoặc MCP tool do người dùng định nghĩa, tự động chạy tại các điểm cụ thể trong vòng đời của Claude Code"</em>.</p>
+  <p><strong>Ba nhịp kích hoạt (cadence):</strong></p>
+  <ul>
+    <li><strong>Mỗi session:</strong> <code>SessionStart</code>, <code>SessionEnd</code></li>
+    <li><strong>Mỗi lượt (turn):</strong> <code>UserPromptSubmit</code>, <code>Stop</code>, <code>StopFailure</code></li>
+    <li><strong>Mỗi lần gọi tool:</strong> <code>PreToolUse</code>, <code>PostToolUse</code>, <code>PostToolUseFailure</code></li>
+  </ul>
+  <p><strong>Các event tiêu biểu khác:</strong> <code>PermissionRequest</code>, <code>PermissionDenied</code>, <code>PostToolBatch</code>, <code>Notification</code>, <code>SubagentStart/Stop</code>, <code>TaskCreated/Completed</code>, <code>InstructionsLoaded</code>, <code>FileChanged</code>, <code>PreCompact/PostCompact</code>.</p>
+  <p><strong>Cấu trúc cấu hình</strong> (trong <code>.claude/settings.json</code>):</p>
+  <pre>{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(rm *)",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/block-rm.sh"
+          }
+        ]
+      }
+    ]
+  }
+}</pre>
+  <p><strong>5 loại handler:</strong> <code>command</code> (shell), <code>http</code> (gọi endpoint), <code>mcp_tool</code> (gọi MCP), <code>prompt</code> (gọi LLM nhỏ), <code>agent</code> (spawn agent xác minh).</p>
+  <p><strong>Exit code quy ước:</strong> <code>0</code> = thành công (đọc stdout JSON); <code>2</code> = chặn (stderr là lý do); khác = lỗi không-chặn.</p>
+
+  <h2 id="tao-skill">10. Cách tạo Agent Skill đầy đủ</h2>
+  <p>Theo tài liệu chính thức tại <code>platform.claude.com/docs/en/agents-and-tools/agent-skills/overview</code>: <strong>Agent Skills</strong> là <em>"các năng lực dạng module mở rộng chức năng của Claude. Mỗi Skill đóng gói chỉ dẫn, metadata và tài nguyên tùy chọn (script, template) mà Claude tự động dùng khi phù hợp"</em>.</p>
+
+  <h3>10.1. Kiến trúc 3 cấp (Progressive Disclosure)</h3>
+  <table>
+    <tr><th>Cấp</th><th>Khi nào nạp</th><th>Chi phí token</th><th>Nội dung</th></tr>
+    <tr><td><strong>Level 1: Metadata</strong></td><td>Luôn nạp (startup)</td><td>~100 token/Skill</td><td><code>name</code>, <code>description</code> trong YAML frontmatter</td></tr>
+    <tr><td><strong>Level 2: Instructions</strong></td><td>Khi Skill được kích hoạt</td><td>Dưới 5k token</td><td>Nội dung chính của <code>SKILL.md</code></td></tr>
+    <tr><td><strong>Level 3: Resources</strong></td><td>Khi cần</td><td>Gần như không giới hạn</td><td>File bundle, script chạy qua bash</td></tr>
+  </table>
+
+  <h3>10.2. Cấu trúc thư mục Skill</h3>
+  <pre>pdf-skill/
+├── SKILL.md           ← bắt buộc, chứa frontmatter + hướng dẫn chính
+├── FORMS.md           ← tài liệu phụ (chỉ đọc khi cần)
+├── REFERENCE.md       ← tham chiếu API chi tiết
+└── scripts/
+    └── fill_form.py   ← script chạy qua bash</pre>
+
+  <h3>10.3. Định dạng SKILL.md chuẩn</h3>
+  <pre>---
+name: pdf-processing
+description: Extract text and tables from PDF files, fill forms, merge documents. Use when working with PDF files or when the user mentions PDFs, forms, or document extraction.
+---
+
+# PDF Processing
+
+## Instructions
+[Hướng dẫn rõ ràng, từng bước cho Claude]
+
+## Quick start
+Use pdfplumber to extract text from PDFs:
+
+```python
+import pdfplumber
+with pdfplumber.open("document.pdf") as pdf:
+    text = pdf.pages[0].extract_text()
+```
+
+For advanced form filling, see [FORMS.md](FORMS.md).
+
+## Examples
+[Ví dụ cụ thể về cách sử dụng]</pre>
+
+  <h3>10.4. Quy tắc bắt buộc cho trường frontmatter</h3>
+  <ul>
+    <li><strong><code>name</code></strong>: tối đa 64 ký tự; chỉ chữ thường, số, dấu gạch nối; <em>không</em> chứa "anthropic" hoặc "claude"; không chứa XML tag.</li>
+    <li><strong><code>description</code></strong>: bắt buộc không rỗng; tối đa 1024 ký tự; phải nói rõ <em>Skill làm gì</em> VÀ <em>khi nào nên dùng</em>.</li>
+  </ul>
+
+  <h3>10.5. Các bước tạo Skill từ đầu</h3>
+  <ol>
+    <li><strong>Xác định mục đích</strong>: Skill giải quyết domain nào? Khi nào Claude nên kích hoạt?</li>
+    <li><strong>Tạo thư mục</strong>: ví dụ <code>~/.claude/skills/my-skill/</code> (cá nhân) hoặc <code>.claude/skills/my-skill/</code> (project) trong Claude Code.</li>
+    <li><strong>Viết <code>SKILL.md</code></strong> với YAML frontmatter (<code>name</code> + <code>description</code> mô tả khi nào kích hoạt).</li>
+    <li><strong>Viết phần hướng dẫn chính</strong>: rõ ràng, có ví dụ, có quick start.</li>
+    <li><strong>Bundle thêm tài nguyên</strong> nếu cần: file markdown phụ, script Python/bash, schema, template.</li>
+    <li><strong>Tham chiếu cẩn thận</strong>: trong SKILL.md, link tới các file phụ bằng đường dẫn tương đối (Claude sẽ đọc qua bash khi cần).</li>
+    <li><strong>Test</strong>: mở Claude Code, đặt prompt liên quan, kiểm tra Skill có được kích hoạt đúng không.</li>
+    <li><strong>Triển khai</strong>: Claude Code → đặt vào filesystem; claude.ai → upload zip qua Settings → Features; Claude API → upload qua endpoint <code>/v1/skills</code>.</li>
+  </ol>
+
+  <h3>10.6. Phạm vi chia sẻ</h3>
+  <table>
+    <tr><th>Nền tảng</th><th>Phạm vi</th></tr>
+    <tr><td>claude.ai</td><td>Cá nhân — mỗi thành viên upload riêng</td></tr>
+    <tr><td>Claude API</td><td>Workspace-wide — toàn bộ workspace truy cập được</td></tr>
+    <tr><td>Claude Code</td><td>Cá nhân (<code>~/.claude/skills/</code>) hoặc project (<code>.claude/skills/</code>); có thể chia sẻ qua Plugins</td></tr>
+  </table>
+
+  <h3>10.7. Cảnh báo bảo mật</h3>
+  <div class="note">Anthropic khuyến cáo: <strong>"Chỉ dùng Skill từ nguồn tin cậy — do bạn tự tạo hoặc lấy từ Anthropic."</strong> Skill độc hại có thể chỉ đạo Claude gọi tool theo cách không khớp với mục đích khai báo, dẫn tới rò rỉ dữ liệu hoặc truy cập hệ thống trái phép. Audit kỹ mọi file bundle (SKILL.md, scripts, images) trước khi dùng.</div>
+
+  <h2 id="debug-skill">10.8. Ví dụ thực tế: Debug một Skill từng bước</h2>
+  <p>Tình huống thực tế: bạn vừa tạo một custom Skill tên <code>pdf-invoice-extractor</code> để trích xuất dữ liệu hóa đơn PDF, nhưng Claude <strong>không tự động kích hoạt</strong> Skill khi bạn yêu cầu. Dưới đây là quy trình debug chuẩn dựa trên tài liệu chính thức.</p>
+
+  <h3>Bước 1 — Triệu chứng &amp; thu thập thông tin</h3>
+  <div class="bad"><strong>Triệu chứng:</strong> Prompt "Trích các dòng hóa đơn từ file này" — Claude trả lời bằng kiến thức chung, không gọi Skill, không đọc <code>SKILL.md</code>.</div>
+  <p>Kiểm tra:</p>
+  <ul>
+    <li>Vị trí Skill: <code>.claude/skills/pdf-invoice-extractor/SKILL.md</code> ✅ tồn tại</li>
+    <li>Trong Claude Code gõ <code>/skills</code> để liệt kê — Skill có hiện trong danh sách không?</li>
+  </ul>
+
+  <h3>Bước 2 — Kiểm tra YAML frontmatter</h3>
+  <p>Đây là <strong>lỗi phổ biến nhất</strong>. Mở <code>SKILL.md</code>:</p>
+  <div class="bad"><strong>Sai (file gốc):</strong>
+    <pre>---
+name: PDF_Invoice_Extractor
+description: Extracts invoices.
+---</pre>
+    Lỗi: <code>name</code> có chữ HOA và dấu gạch dưới (vi phạm "chỉ chữ thường, số, gạch nối"); <code>description</code> quá ngắn, không nói <em>khi nào</em> dùng.</div>
+  <div class="good"><strong>Sửa lại theo chuẩn:</strong>
+    <pre>---
+name: pdf-invoice-extractor
+description: Extract line items, totals, vendor info, and dates from PDF invoices. Use when the user uploads a PDF invoice, asks to parse a hóa đơn, or mentions extracting invoice/billing data from PDFs.
+---</pre></div>
+  <p><em>Lý do (theo tài liệu):</em> <code>description</code> phải nói rõ <strong>Skill làm gì VÀ khi nào dùng</strong> — đây là tín hiệu duy nhất Claude dùng để quyết định kích hoạt (Level 1 metadata).</p>
+
+  <h3>Bước 3 — Test lại kích hoạt</h3>
+  <p>Khởi động lại session (để Claude nạp metadata mới), thử prompt:</p>
+  <pre>"Đây là invoice.pdf, trích các line items và tổng tiền."</pre>
+  <p>Quan sát: Claude có chạy <code>bash: cat .claude/skills/pdf-invoice-extractor/SKILL.md</code> không? Nếu có → Skill đã được kích hoạt (Level 2 instructions đã nạp).</p>
+
+  <h3>Bước 4 — Skill kích hoạt nhưng kết quả sai</h3>
+  <div class="bad"><strong>Triệu chứng mới:</strong> Claude đọc Skill, chạy script <code>scripts/extract.py</code> nhưng output rỗng.</div>
+  <p>Mở script và <code>SKILL.md</code> phần Instructions. Áp dụng nguyên tắc debug ở §11:</p>
+  <ol>
+    <li><strong>Cung cấp ngữ cảnh đầy đủ</strong> — paste output thực tế của bash + log script:
+      <pre>$ python scripts/extract.py invoice.pdf
+[]
+$ echo $?
+0</pre>
+    </li>
+    <li><strong>Bọc bằng XML</strong> để hỏi Claude:
+      <pre>&lt;skill_md&gt;{{NỘI_DUNG_SKILL.md}}&lt;/skill_md&gt;
+&lt;script&gt;{{NỘI_DUNG_extract.py}}&lt;/script&gt;
+&lt;actual_output&gt;[]&lt;/actual_output&gt;
+&lt;expected&gt;Mảng line items với description, qty, price&lt;/expected&gt;
+
+Skill chạy không lỗi nhưng trả mảng rỗng. Liệt kê 3 giả thuyết nguyên nhân,
+mỗi giả thuyết kèm cách kiểm chứng cụ thể.</pre>
+    </li>
+  </ol>
+
+  <h3>Bước 5 — Kiểm chứng giả thuyết</h3>
+  <p>Giả sử Claude đề xuất 3 hypothesis:</p>
+  <ol>
+    <li>PDF là scan (image-based) → <code>pdfplumber</code> không trích được text → cần OCR.</li>
+    <li>Regex line item không khớp định dạng hóa đơn Việt Nam (dấu phẩy phân tách thập phân).</li>
+    <li>Script lọc theo từ khóa tiếng Anh ("Item", "Qty") — file thực dùng tiếng Việt.</li>
+  </ol>
+  <p>Kiểm chứng từng cái, ví dụ với H1:</p>
+  <pre>$ python -c "import pdfplumber; \
+  print(repr(pdfplumber.open('invoice.pdf').pages[0].extract_text()))"
+''</pre>
+  <p>→ Chuỗi rỗng. <strong>Root cause là H1</strong> — PDF scan, cần OCR (Tesseract).</p>
+
+  <h3>Bước 6 — Sửa root cause, không che triệu chứng</h3>
+  <div class="bad"><strong>Sai:</strong> Thêm <code>try/except</code> trả về mảng giả để "không lỗi".</div>
+  <div class="good"><strong>Đúng:</strong> Thêm fallback OCR vào <code>extract.py</code>, đồng thời cập nhật <code>SKILL.md</code>:
+    <pre>## Quick start
+
+1. Try text extraction first via `pdfplumber`.
+2. If `extract_text()` returns empty, run OCR fallback:
+   `python scripts/ocr_extract.py &lt;file.pdf&gt;`
+3. Parse line items with locale-aware regex (supports `1.234,56` and `1,234.56`).
+
+## Examples
+- Vietnamese invoice (scan) → OCR path
+- US invoice (digital) → pdfplumber path</pre></div>
+
+  <h3>Bước 7 — Thêm regression test</h3>
+  <p>Tạo <code>tests/test_extract.py</code> với cả 2 mẫu (digital + scan) để lần sau Claude/CI tự xác minh:</p>
+  <pre>def test_digital_invoice():
+    assert len(extract("fixtures/digital_vn.pdf")) &gt; 0
+
+def test_scanned_invoice():
+    assert len(extract("fixtures/scanned_vn.pdf")) &gt; 0</pre>
+
+  <h3>Bước 8 — Bảo vệ bằng Hook (tùy chọn)</h3>
+  <p>Để tránh Claude vô tình chạy script Skill trên file ngoài thư mục dự kiến, cấu hình <code>PreToolUse</code> hook trong <code>.claude/settings.json</code>:</p>
+  <pre>{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Bash",
+      "hooks": [{
+        "type": "command",
+        "if": "Bash(python scripts/extract.py *)",
+        "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/check-pdf-path.sh"
+      }]
+    }]
+  }
+}</pre>
+
+  <h3>Checklist debug Skill nhanh</h3>
+  <div class="note">
+    <ul>
+      <li>☐ <code>name</code> đúng chuẩn (lowercase, số, dấu gạch nối, ≤64 ký tự, không chứa "claude"/"anthropic")?</li>
+      <li>☐ <code>description</code> có nói <em>khi nào</em> kích hoạt không?</li>
+      <li>☐ Đã restart session sau khi sửa frontmatter? (Metadata chỉ nạp ở startup)</li>
+      <li>☐ Skill có hiện trong <code>/skills</code>?</li>
+      <li>☐ Claude có thực sự đọc <code>SKILL.md</code> qua bash? (Nếu không → vấn đề ở metadata)</li>
+      <li>☐ Script chạy độc lập có ra kết quả đúng không? (Tách bug Skill ra khỏi bug script)</li>
+      <li>☐ Đường dẫn tài nguyên tham chiếu là <strong>tương đối</strong> với SKILL.md?</li>
+      <li>☐ Có regression test chưa?</li>
+    </ul>
+  </div>
+
+  <h2 id="debug">11. Cách debug với AI hiệu quả</h2>
+  <p>Tổng hợp từ tài liệu <em>Prompting best practices</em> và <em>Code review harnesses</em> chính thức của Anthropic:</p>
+
+  <h3>11.1. Cung cấp ngữ cảnh đầy đủ</h3>
+  <ul>
+    <li>Dán <strong>thông báo lỗi đầy đủ</strong> (stack trace, log) thay vì tóm tắt.</li>
+    <li>Mô tả <strong>hành vi mong đợi</strong> và <strong>hành vi thực tế</strong>.</li>
+    <li>Nêu các bước tái hiện lỗi (steps to reproduce).</li>
+    <li>Cung cấp <strong>môi trường</strong>: OS, version ngôn ngữ/runtime, version thư viện.</li>
+  </ul>
+
+  <h3>11.2. Cấu trúc input bằng XML</h3>
+  <pre>&lt;error&gt;
+TypeError: Cannot read property 'map' of undefined
+  at UserList.render (UserList.tsx:42)
+&lt;/error&gt;
+
+&lt;code&gt;
+{{ĐOẠN_MÃ_LIÊN_QUAN}}
+&lt;/code&gt;
+
+&lt;expected&gt;Render danh sách user&lt;/expected&gt;
+&lt;actual&gt;Crash khi users là undefined&lt;/actual&gt;</pre>
+
+  <h3>11.3. Tăng "effort" cho tác vụ debug phức tạp</h3>
+  <p>Theo tài liệu chính thức: <em>"Bắt đầu ở mức <code>xhigh</code> cho coding và agentic. Với hầu hết tác vụ nhạy cảm về trí tuệ, tối thiểu là <code>high</code>."</em> Nếu thấy Claude suy luận hời hợt với vấn đề phức tạp → <strong>tăng effort</strong> thay vì cố gắng "prompt vòng quanh".</p>
+
+  <h3>11.4. Yêu cầu bao phủ (coverage), không tự lọc</h3>
+  <p>Anthropic khuyến nghị prompt trực tiếp cho code review/debug:</p>
+  <pre>Report every issue you find, including ones you are uncertain about or
+consider low-severity. Do not filter for importance or confidence at this
+stage - a separate verification step will do that. Your goal here is
+coverage: it is better to surface a finding that later gets filtered out
+than to silently drop a real bug. For each finding, include your
+confidence level and an estimated severity so a downstream filter can rank them.</pre>
+
+  <h3>11.5. Bật Extended Thinking cho bug khó</h3>
+  <p>Trên Claude Opus 4.8, mặc định thinking tắt. Bật <code>thinking: {type: "adaptive"}</code> khi bug đòi hỏi lập luận đa bước. Với UI tương tác, có thể prompt:</p>
+  <pre>This task involves multi-step reasoning. Think carefully through the problem before responding.</pre>
+
+  <h3>11.6. Yêu cầu trích dẫn trước khi kết luận</h3>
+  <p>Trong long context (file lớn, log dài), yêu cầu Claude <strong>trích các đoạn liên quan trước</strong>, rồi mới phân tích — giúp lọc nhiễu và kiểm chứng được lập luận.</p>
+
+  <h3>11.7. Quy trình debug đề xuất với Claude Code</h3>
+  <ol>
+    <li><strong>Mô tả triệu chứng</strong>: paste lỗi/log + mô tả tái hiện.</li>
+    <li><strong>Để Claude khoanh vùng</strong>: yêu cầu liệt kê các file/hàm khả nghi.</li>
+    <li><strong>Trích dẫn</strong>: yêu cầu Claude quote đoạn code có thể là nguyên nhân.</li>
+    <li><strong>Đưa ra giả thuyết</strong>: yêu cầu liệt kê 2–3 hypothesis kèm cách kiểm chứng.</li>
+    <li><strong>Kiểm chứng từng giả thuyết</strong>: chạy test, thêm log, hoặc viết test case tái hiện.</li>
+    <li><strong>Sửa root cause, không che triệu chứng</strong>: tránh bypass kiểm tra an toàn (như <code>--no-verify</code>).</li>
+    <li><strong>Viết regression test</strong> để chống tái phát.</li>
+  </ol>
+
+  <h3>11.8. Dùng Hooks để debug an toàn hơn</h3>
+  <p>Có thể cấu hình <code>PreToolUse</code> hook để chặn các lệnh nguy hiểm khi Claude debug trên môi trường thật (ví dụ chặn <code>rm -rf</code>, chặn push lên main), giúp ngăn AI gây hậu quả ngoài ý muốn.</p>
+
+  <h3>11.9. Những điều nên tránh</h3>
+  <div class="bad">
+    <ul>
+      <li><strong>Không</strong> chỉ dán đoạn lỗi mà không kèm code.</li>
+      <li><strong>Không</strong> chấp nhận fix đầu tiên — yêu cầu Claude giải thích <em>nguyên nhân gốc</em>.</li>
+      <li><strong>Không</strong> dùng prompt mơ hồ như "fix this" — luôn nêu rõ hành vi mong đợi.</li>
+      <li><strong>Không</strong> tin tuyệt đối — luôn chạy test và đọc diff trước khi commit.</li>
+    </ul>
+  </div>
+
+  <h2 id="api-messages">12. Claude API — Messages API</h2>
+  <p>Theo <code>platform.claude.com/docs/en/api/messages</code>, endpoint chính là <strong>POST <code>/v1/messages</code></strong>.</p>
+
+  <h3>12.1. Tham số bắt buộc</h3>
+  <table>
+    <tr><th>Tham số</th><th>Kiểu</th><th>Mô tả</th></tr>
+    <tr><td><code>model</code></td><td>string</td><td>VD: <code>claude-opus-4-8</code>, <code>claude-sonnet-4-6</code>, <code>claude-haiku-4-5</code></td></tr>
+    <tr><td><code>messages</code></td><td>array</td><td>Mảng object có <code>role</code> ("user"/"assistant") và <code>content</code></td></tr>
+    <tr><td><code>max_tokens</code></td><td>number</td><td>Số token tối đa sẽ sinh — giới hạn theo model</td></tr>
+  </table>
+
+  <h3>12.2. Tham số tùy chọn chính</h3>
+  <table>
+    <tr><th>Tham số</th><th>Mô tả</th></tr>
+    <tr><td><code>system</code></td><td>System prompt — chuỗi hoặc mảng block</td></tr>
+    <tr><td><code>temperature</code></td><td>Mặc định 1.0 (0 = xác định, 1 = sáng tạo)</td></tr>
+    <tr><td><code>top_p</code> / <code>top_k</code></td><td>Nucleus / top-K sampling (nâng cao)</td></tr>
+    <tr><td><code>stop_sequences</code></td><td>Mảng chuỗi dừng tự định nghĩa</td></tr>
+    <tr><td><code>stream</code></td><td>Bật SSE streaming</td></tr>
+    <tr><td><code>thinking</code></td><td>Object cấu hình extended thinking (vd <code>{type:"adaptive"}</code>)</td></tr>
+  </table>
+
+  <h3>12.3. Ví dụ cURL chính thức</h3>
+  <pre>curl https://api.anthropic.com/v1/messages \
+  -H 'Content-Type: application/json' \
+  -H 'anthropic-version: 2023-06-01' \
+  -H "X-Api-Key: $ANTHROPIC_API_KEY" \
+  -d '{
+    "model": "claude-opus-4-6",
+    "max_tokens": 1024,
+    "messages": [{"role": "user", "content": "Hello, Claude"}],
+    "system": "You are a helpful assistant.",
+    "temperature": 1.0,
+    "top_p": 0.7
+  }'</pre>
+
+  <h3>12.4. Ví dụ Python (SDK chính thức)</h3>
+  <pre>import anthropic
+
+client = anthropic.Anthropic(api_key="YOUR_API_KEY")
+
+message = client.messages.create(
+    model="claude-opus-4-6",
+    max_tokens=1024,
+    system="You are a helpful assistant.",
+    messages=[
+        {"role": "user", "content": "Explain quantum computing in simple terms"}
+    ],
+    temperature=1.0,
+    top_p=0.7
+)
+print(message.content[0].text)</pre>
+
+  <h3>12.5. Response mẫu</h3>
+  <pre>{
+  "id": "msg_013Zva2CMHLNnXjNJJKqJ2EF",
+  "type": "message",
+  "role": "assistant",
+  "content": [{"type": "text", "text": "Hi! My name is Claude."}],
+  "model": "claude-opus-4-6",
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 2095,
+    "output_tokens": 503,
+    "cache_creation_input_tokens": 2051,
+    "cache_read_input_tokens": 2051
+  }
+}</pre>
+
+  <h3>12.6. Multi-turn conversation</h3>
+  <pre>messages = [
+    {"role": "user", "content": "Hello there."},
+    {"role": "assistant", "content": "Hi, I'm Claude. How can I help you?"},
+    {"role": "user", "content": "Can you explain LLMs in plain English?"}
+]
+response = client.messages.create(
+    model="claude-opus-4-6",
+    max_tokens=1024,
+    messages=messages
+)</pre>
+
+  <div class="note"><strong>Ghi chú quan trọng:</strong> Đặt <code>max_tokens=0</code> để chỉ warm-up cache mà không sinh output. Một request giới hạn 100.000 messages.</div>
+
+  <h2 id="tool-use">13. Tool use / Function calling</h2>
+  <p>Theo <code>platform.claude.com/docs/en/build-with-claude/tool-use/overview</code>: <em>Tool use cho phép Claude gọi function bạn định nghĩa (client tools) hoặc tool Anthropic cung cấp (server tools).</em></p>
+
+  <h3>13.1. Hai loại tool</h3>
+  <table>
+    <tr><th>Loại</th><th>Nơi chạy</th><th>Cách hoạt động</th></tr>
+    <tr><td><strong>Client tools</strong></td><td>Ứng dụng của bạn</td><td>Claude trả <code>stop_reason: "tool_use"</code> + block <code>tool_use</code>; code bạn thực thi rồi gửi lại <code>tool_result</code></td></tr>
+    <tr><td><strong>Server tools</strong></td><td>Hạ tầng Anthropic</td><td>Vd <code>web_search</code>, <code>code_execution</code>, <code>web_fetch</code> — bạn thấy kết quả luôn</td></tr>
+  </table>
+
+  <h3>13.2. Ví dụ server tool (web search) — Python</h3>
+  <pre>import anthropic
+client = anthropic.Anthropic()
+response = client.messages.create(
+    model="claude-opus-4-8",
+    max_tokens=1024,
+    tools=[{"type": "web_search_20260209", "name": "web_search"}],
+    messages=[{"role": "user", "content": "What's the latest on the Mars rover?"}],
+)
+print(response.content)</pre>
+
+  <h3>13.3. <code>tool_choice</code></h3>
+  <ul>
+    <li><code>{"type": "auto"}</code> (mặc định): Claude tự quyết định gọi tool hay không.</li>
+    <li><code>{"type": "any"}</code>: bắt buộc gọi một tool (không trả text trực tiếp).</li>
+    <li><code>{"type": "tool", "name": "X"}</code>: bắt buộc gọi đúng tool X.</li>
+    <li><code>{"type": "none"}</code>: cấm dùng tool.</li>
+  </ul>
+
+  <h3>13.4. Strict tool use</h3>
+  <p>Thêm <code>strict: true</code> vào tool definition để bảo đảm tool call <strong>luôn khớp schema</strong>.</p>
+
+  <h3>13.5. Token cost của tool use (Opus 4.8)</h3>
+  <table>
+    <tr><th>tool_choice</th><th>Tokens system prompt thêm</th></tr>
+    <tr><td><code>auto</code>, <code>none</code></td><td>290 tokens</td></tr>
+    <tr><td><code>any</code>, <code>tool</code></td><td>410 tokens</td></tr>
+  </table>
+
+  <h3>13.6. Ví dụ client tool đầy đủ (vòng lặp 2 bước)</h3>
+  <p><strong>Bước 1 — Định nghĩa tool và gửi câu hỏi:</strong></p>
+  <pre>tools = [{
+    "name": "get_weather",
+    "description": "Get current weather for a city. Use when user asks about weather.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "location": {"type": "string", "description": "City name, e.g. 'Hanoi'"},
+            "unit": {"type": "string", "enum": ["celsius","fahrenheit"]}
+        },
+        "required": ["location"]
+    }
+}]
+
+resp = client.messages.create(
+    model="claude-opus-4-8", max_tokens=1024,
+    tools=tools,
+    messages=[{"role":"user","content":"Thời tiết Hà Nội hôm nay?"}]
+)
+# resp.stop_reason == "tool_use"
+# resp.content chứa block tool_use với input={"location":"Hanoi","unit":"celsius"}</pre>
+  <p><strong>Giải thích:</strong> Claude phát hiện câu hỏi khớp tool, trả về <code>stop_reason: "tool_use"</code> và một block <code>tool_use</code> với <code>id</code>, <code>name</code>, <code>input</code> (đã điền tham số từ ngữ cảnh).</p>
+
+  <p><strong>Bước 2 — Code thực thi tool và gửi <code>tool_result</code> ngược lại:</strong></p>
+  <pre>tool_use = next(b for b in resp.content if b.type == "tool_use")
+result = my_weather_api(tool_use.input["location"])   # code BẠN chạy
+
+final = client.messages.create(
+    model="claude-opus-4-8", max_tokens=1024, tools=tools,
+    messages=[
+        {"role":"user","content":"Thời tiết Hà Nội hôm nay?"},
+        {"role":"assistant","content": resp.content},
+        {"role":"user","content":[{
+            "type":"tool_result",
+            "tool_use_id": tool_use.id,
+            "content": str(result)   # "28°C, mây rải rác"
+        }]}
+    ]
+)
+print(final.content[0].text)   # "Hôm nay Hà Nội 28°C, mây rải rác."</pre>
+  <p><strong>Giải thích:</strong> Bạn phải gửi lại <strong>cả message assistant chứa tool_use lẫn message user chứa tool_result</strong> để Claude có ngữ cảnh đầy đủ. <code>tool_use_id</code> phải khớp chính xác. Đây là "agentic loop" cơ bản — có thể lặp nhiều vòng nếu Claude cần gọi tool tiếp.</p>
+
+  <h3>13.7. Steer hành vi gọi tool qua system prompt</h3>
+  <ul>
+    <li>Tăng dùng tool: <em>"Use the tools to investigate before responding."</em></li>
+    <li>Bắt buộc dùng trước: <em>"Always call a tool first before responding."</em></li>
+    <li>Bảo thủ: <em>"Use your judgment about whether to call a tool or respond directly."</em></li>
+  </ul>
+
+  <h2 id="streaming">14. Streaming responses</h2>
+  <p>Đặt <code>"stream": true</code> để nhận response qua Server-Sent Events (SSE).</p>
+
+  <h3>14.1. Ví dụ Python (SDK)</h3>
+  <pre>import anthropic
+client = anthropic.Anthropic()
+
+with client.messages.stream(
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Hello"}],
+    model="claude-opus-4-8",
+) as stream:
+    for text in stream.text_stream:
+        print(text, end="", flush=True)</pre>
+
+  <h3>14.2. Ví dụ TypeScript</h3>
+  <pre>import Anthropic from "@anthropic-ai/sdk";
+const client = new Anthropic();
+
+await client.messages
+  .stream({
+    messages: [{ role: "user", content: "Hello" }],
+    model: "claude-opus-4-8",
+    max_tokens: 1024
+  })
+  .on("text", (text) =&gt; { console.log(text); });</pre>
+
+  <h3>14.3. Các event SSE chính</h3>
+  <ul>
+    <li><code>message_start</code> — bắt đầu message</li>
+    <li><code>content_block_start</code> — mở một content block (text/tool_use/citation…)</li>
+    <li><code>content_block_delta</code> — phần tăng dần (vd <code>text_delta</code>, <code>citations_delta</code>, <code>input_json_delta</code> cho tool input)</li>
+    <li><code>content_block_stop</code> — đóng content block</li>
+    <li><code>message_delta</code> — cập nhật metadata (stop_reason, usage)</li>
+    <li><code>message_stop</code> — kết thúc</li>
+  </ul>
+
+  <h2 id="vision">15. Vision (xử lý ảnh)</h2>
+  <p>Theo <code>platform.claude.com/docs/en/build-with-claude/vision</code>:</p>
+
+  <h3>15.1. Giới hạn</h3>
+  <table>
+    <tr><th>Hạng mục</th><th>Giới hạn</th></tr>
+    <tr><td>Số ảnh / message trên claude.ai</td><td>20</td></tr>
+    <tr><td>Số ảnh / request API (model 200k context)</td><td>100</td></tr>
+    <tr><td>Số ảnh / request API (model khác)</td><td>600</td></tr>
+    <tr><td>Kích thước tối đa mỗi ảnh</td><td>8000×8000 px (giảm còn 2000×2000 nếu &gt;20 ảnh)</td></tr>
+    <tr><td>Dung lượng / ảnh (base64) qua API</td><td>10 MB (5 MB trên Bedrock/Vertex)</td></tr>
+    <tr><td>Tổng request size</td><td>32 MB (standard endpoint)</td></tr>
+  </table>
+
+  <h3>15.2. Cách gửi ảnh</h3>
+  <ul>
+    <li><strong>Base64:</strong> <code>{"type":"image","source":{"type":"base64","media_type":"image/jpeg","data":"..."}}</code></li>
+    <li><strong>URL:</strong> <code>{"type":"image","source":{"type":"url","url":"https://..."}}</code></li>
+    <li><strong>file_id (Files API):</strong> <code>{"type":"image","source":{"type":"file","file_id":"file_..."}}</code></li>
+  </ul>
+
+  <h3>15.3. Ví dụ Python đầy đủ — gửi ảnh base64</h3>
+  <pre>import anthropic, base64, httpx
+
+img_data = base64.standard_b64encode(
+    httpx.get("https://example.com/chart.png").content
+).decode("utf-8")
+
+client = anthropic.Anthropic()
+msg = client.messages.create(
+    model="claude-opus-4-8", max_tokens=1024,
+    messages=[{"role":"user","content":[
+        {"type":"image","source":{
+            "type":"base64",
+            "media_type":"image/png",
+            "data": img_data
+        }},
+        {"type":"text","text":"Biểu đồ này thể hiện xu hướng gì?"}
+    ]}]
+)
+print(msg.content[0].text)</pre>
+  <p><strong>Giải thích:</strong> Ảnh đặt <strong>trước</strong> text trong cùng một message <code>user</code> để Claude phân tích ảnh trước khi đọc câu hỏi — best practice chính thức. <code>media_type</code> phải khớp định dạng thực (jpeg/png/gif/webp). Nếu ảnh public trên internet, dùng <code>source.type = "url"</code> để khỏi phải base64-encode.</p>
+
+  <h3>15.4. Ví dụ so sánh nhiều ảnh</h3>
+  <pre>messages=[{"role":"user","content":[
+    {"type":"text","text":"Đây là ảnh A:"},
+    {"type":"image","source":{...A...}},
+    {"type":"text","text":"Và đây là ảnh B:"},
+    {"type":"image","source":{...B...}},
+    {"type":"text","text":"Khác biệt chính giữa A và B?"}
+]}]</pre>
+  <p><strong>Giải thích:</strong> Có thể chèn nhiều ảnh xen kẽ text trong một message để Claude so sánh. Nhãn "ảnh A/ảnh B" trước mỗi ảnh giúp Claude tham chiếu chính xác khi trả lời.</p>
+
+  <h2 id="pdf">16. PDF support</h2>
+  <p>Theo <code>platform.claude.com/docs/en/build-with-claude/pdf-support</code>:</p>
+
+  <h3>16.1. Giới hạn</h3>
+  <ul>
+    <li>Max request: <strong>32 MB</strong></li>
+    <li>Max pages / request: <strong>600 trang</strong> (100 với model 200k context)</li>
+    <li>Format: PDF chuẩn, không mật khẩu/mã hóa</li>
+  </ul>
+
+  <h3>16.2. Cơ chế xử lý</h3>
+  <ol>
+    <li>Hệ thống chuyển mỗi trang thành ảnh + trích text.</li>
+    <li>Claude phân tích cả text và ảnh để hiểu biểu đồ, sơ đồ, layout.</li>
+    <li>Claude trả lời có thể tham chiếu cả nội dung text và hình ảnh.</li>
+  </ol>
+
+  <h3>16.3. Ba cách gửi PDF</h3>
+  <p><strong>Cách 1 — URL:</strong></p>
+  <pre>{
+  "type": "document",
+  "source": {"type": "url", "url": "https://.../doc.pdf"}
+}</pre>
+  <p><strong>Cách 2 — Base64:</strong></p>
+  <pre>{
+  "type": "document",
+  "source": {
+    "type": "base64",
+    "media_type": "application/pdf",
+    "data": "&lt;BASE64_DATA&gt;"
+  }
+}</pre>
+  <p><strong>Cách 3 — file_id (Files API):</strong></p>
+  <pre>{
+  "type": "document",
+  "source": {"type": "file", "file_id": "file_abc123"}
+}</pre>
+
+  <h3>16.4. Chi phí ước tính</h3>
+  <ul>
+    <li>Text token: 1.500–3.000 token/trang tùy mật độ</li>
+    <li>Image token: tính theo công thức ảnh (do mỗi trang còn được encode thành ảnh)</li>
+  </ul>
+
+  <h3>16.5. Best practices chính thức</h3>
+  <ul>
+    <li>Đặt PDF <strong>trước text</strong> trong request</li>
+    <li>Dùng font chuẩn, text rõ ràng, xoay đúng hướng</li>
+    <li>Dùng số trang logic (PDF viewer) khi prompt</li>
+    <li>Chia nhỏ PDF lớn; bật prompt caching nếu phân tích lặp lại</li>
+  </ul>
+
+  <h2 id="files-api">17. Files API</h2>
+  <p>Header beta bắt buộc: <code>anthropic-beta: files-api-2025-04-14</code>. Theo <code>platform.claude.com/docs/en/build-with-claude/files</code>: upload một lần, dùng nhiều lần qua <code>file_id</code>.</p>
+
+  <h3>17.1. Giới hạn</h3>
+  <ul>
+    <li>Tối đa <strong>500 MB</strong>/file</li>
+    <li>Tổng storage <strong>500 GB</strong>/organization</li>
+    <li>Rate limit: ~100 req/phút (beta)</li>
+    <li>Operation upload/download/list/get/delete <strong>miễn phí</strong> — chỉ tính phí khi dùng trong Messages</li>
+  </ul>
+
+  <h3>17.2. Upload (Python)</h3>
+  <pre>uploaded = client.beta.files.upload(
+    file=("document.pdf", open("/path/to/document.pdf", "rb"), "application/pdf"),
+)
+print(uploaded.id)  # file_011CNha8iCJcU1wXNR6q4V8w</pre>
+
+  <h3>17.3. Dùng file_id trong Messages</h3>
+  <pre>response = client.beta.messages.create(
+    model="claude-opus-4-8",
+    max_tokens=1024,
+    messages=[{
+        "role": "user",
+        "content": [
+            {"type": "text", "text": "Please summarize this document."},
+            {"type": "document",
+             "source": {"type": "file", "file_id": file_id}}
+        ],
+    }],
+    betas=["files-api-2025-04-14"],
+)</pre>
+
+  <h3>17.4. Các thao tác quản lý</h3>
+  <pre>client.beta.files.list()
+client.beta.files.retrieve_metadata(file_id)
+client.beta.files.delete(file_id)
+client.beta.files.download(file_id).write_to_file("out.txt")  # chỉ file tạo bởi Skills/code execution</pre>
+
+  <h3>17.5. Loại file hỗ trợ</h3>
+  <table>
+    <tr><th>File</th><th>MIME</th><th>Content block</th></tr>
+    <tr><td>PDF</td><td>application/pdf</td><td>document</td></tr>
+    <tr><td>Text</td><td>text/plain</td><td>document</td></tr>
+    <tr><td>Image</td><td>image/jpeg, png, gif, webp</td><td>image</td></tr>
+    <tr><td>Dataset (code exec)</td><td>varies</td><td>container_upload</td></tr>
+  </table>
+
+  <h2 id="citations">18. Citations (trích dẫn tự động)</h2>
+  <p>Bật bằng <code>"citations": {"enabled": true}</code> trên document block. Hỗ trợ ZDR. Mọi model hoạt động hiện tại đều hỗ trợ, trừ Haiku 3.</p>
+
+  <h3>18.1. Ưu điểm so với prompt-based citation</h3>
+  <ul>
+    <li><strong>Tiết kiệm chi phí</strong>: <code>cited_text</code> không tính vào output tokens.</li>
+    <li><strong>Đáng tin cậy</strong>: citation là pointer hợp lệ vào tài liệu nguồn.</li>
+    <li><strong>Chất lượng cao hơn</strong>: eval cho thấy chọn quote liên quan hơn rõ rệt.</li>
+  </ul>
+
+  <h3>18.2. Ba loại document &amp; định dạng citation</h3>
+  <table>
+    <tr><th>Loại</th><th>Chunking</th><th>Định dạng citation</th></tr>
+    <tr><td>Plain text</td><td>Theo câu</td><td><code>char_location</code> (index 0-based)</td></tr>
+    <tr><td>PDF</td><td>Theo câu</td><td><code>page_location</code> (page 1-based)</td></tr>
+    <tr><td>Custom content</td><td>Không chunk thêm</td><td><code>content_block_location</code> (block index 0-based)</td></tr>
+  </table>
+
+  <h3>18.3. Ví dụ Python</h3>
+  <pre>response = client.messages.create(
+    model="claude-opus-4-8", max_tokens=1024,
+    messages=[{
+        "role": "user",
+        "content": [
+            {"type": "document",
+             "source": {"type": "text", "media_type": "text/plain",
+                        "data": "The grass is green. The sky is blue."},
+             "title": "My Document",
+             "context": "This is a trustworthy document.",
+             "citations": {"enabled": True}},
+            {"type": "text", "text": "What color is the grass and sky?"}
+        ],
+    }],
+)</pre>
+
+  <h3>18.4. Response thực tế khi bật citations</h3>
+  <pre>{
+  "content": [
+    {"type":"text","text":"Theo tài liệu, "},
+    {
+      "type":"text",
+      "text":"cỏ màu xanh",
+      "citations":[{
+        "type":"char_location",
+        "cited_text":"The grass is green.",
+        "document_index": 0,
+        "document_title":"My Document",
+        "start_char_index": 0,
+        "end_char_index": 20
+      }]
+    },
+    {"type":"text","text":" và "},
+    {
+      "type":"text",
+      "text":"bầu trời xanh",
+      "citations":[{
+        "type":"char_location",
+        "cited_text":"The sky is blue.",
+        "document_index": 0,
+        "document_title":"My Document",
+        "start_char_index": 20,
+        "end_char_index": 36
+      }]
+    }
+  ]
+}</pre>
+  <p><strong>Giải thích:</strong> Response gồm <strong>nhiều text block xen kẽ</strong>. Block nào có <code>citations</code> là claim có nguồn — block không có citations chỉ là "chất kết dính" văn phong (vd "Theo tài liệu," / "và"). Trường <code>cited_text</code> là quote nguyên văn từ document, <strong>không tính vào output tokens</strong>. <code>document_index</code> trỏ về thứ tự document trong request gốc, <code>start_char_index</code>/<code>end_char_index</code> (hoặc <code>start_page_number</code> với PDF) cho phép app frontend highlight đúng vị trí.</p>
+
+  <h3>18.5. Cảnh báo</h3>
+  <div class="bad">Citations <strong>không tương thích</strong> với Structured Outputs — API sẽ trả lỗi 400 nếu bật cả hai.</div>
+
+  <h2 id="prompt-caching">19. Prompt Caching</h2>
+  <p>Theo <code>platform.claude.com/docs/en/build-with-claude/prompt-caching</code>: giảm chi phí và độ trễ bằng cách cache phần prefix ổn định.</p>
+
+  <h3>19.1. Hai TTL</h3>
+  <ul>
+    <li><strong>5 phút (mặc định):</strong> refresh miễn phí khi dùng lại trong window</li>
+    <li><strong>1 giờ:</strong> giá ghi cache = 2× base input</li>
+  </ul>
+
+  <h3>19.2. Cú pháp</h3>
+  <pre>// 5 phút (default)
+{"cache_control": {"type": "ephemeral"}}
+
+// 1 giờ
+{"cache_control": {"type": "ephemeral", "ttl": "1h"}}</pre>
+
+  <h3>19.3. Nguyên tắc tối ưu cache hit</h3>
+  <p>Đặt <code>cache_control</code> trên <strong>block cuối cùng còn giữ nguyên</strong> giữa các request.</p>
+  <div class="bad"><strong>Sai</strong> — breakpoint trên content thay đổi:
+    <pre>messages=[
+    {"role":"user","content":"Static context"},
+    {"role":"user","content": f"Current time: {datetime.now()}"}  # ← cache ở đây = miss
+]</pre></div>
+  <div class="good"><strong>Đúng</strong> — breakpoint trên content ổn định:
+    <pre>messages=[
+    {"role":"user","content":"Static context",
+     "cache_control":{"type":"ephemeral"}},  # ← cache ở đây = hit
+    {"role":"user","content": f"Current time: {datetime.now()}"}
+]</pre></div>
+
+  <h3>19.4. Pricing (Opus 4.8, /Mtok)</h3>
+  <table>
+    <tr><th>Operation</th><th>Giá</th></tr>
+    <tr><td>Base input</td><td>$5</td></tr>
+    <tr><td>5m cache write</td><td>$6.25 (1.25×)</td></tr>
+    <tr><td>1h cache write</td><td>$10 (2×)</td></tr>
+    <tr><td>Cache hit/refresh</td><td>$0.50 (0.1×)</td></tr>
+    <tr><td>Output</td><td>$25</td></tr>
+  </table>
+
+  <h3>19.5. Ngưỡng tối thiểu</h3>
+  <ul>
+    <li>Opus 4.8, Sonnet 4.6/4.5: 1.024 tokens</li>
+    <li>Opus 4.7/4.6/4.5, Haiku 4.5: 4.096 tokens</li>
+  </ul>
+
+  <h3>19.6. Monitoring qua <code>usage</code></h3>
+  <pre>print(response.usage)
+# cache_creation_input_tokens: token ghi vào cache
+# cache_read_input_tokens: token đọc từ cache
+# input_tokens: token sau breakpoint cuối (không cache)</pre>
+
+  <h3>19.7. Pre-warming cache</h3>
+  <pre>client.messages.create(
+    model="claude-opus-4-8",
+    max_tokens=0,  # không sinh output, không tính phí output
+    system=[{"type":"text","text":"Long system prompt...",
+             "cache_control":{"type":"ephemeral"}}],
+    messages=[{"role":"user","content":"warmup"}]
+)</pre>
+
+  <h3>19.8. Giới hạn</h3>
+  <ul>
+    <li>Lookback window: 20 block</li>
+    <li>Tối đa 4 explicit breakpoint/request</li>
+    <li>Cache cô lập theo org &amp; workspace</li>
+  </ul>
+
+  <h2 id="batch">20. Batch API</h2>
+  <p>Theo <code>platform.claude.com/docs/en/build-with-claude/batch-processing</code>: xử lý bất đồng bộ khối lượng lớn, <strong>giảm 50% chi phí</strong>, hầu hết batch xong trong &lt;1 giờ.</p>
+
+  <h3>20.1. Khi nào nên dùng</h3>
+  <ul>
+    <li>Eval quy mô lớn</li>
+    <li>Content moderation hàng loạt</li>
+    <li>Phân tích dataset, sinh insights</li>
+    <li>Không cần response real-time</li>
+  </ul>
+
+  <h3>20.2. Quy trình</h3>
+  <ol>
+    <li>Tạo batch với mảng request, mỗi cái có <code>custom_id</code></li>
+    <li>Hệ thống xử lý bất đồng bộ, độc lập từng request</li>
+    <li>Poll status đến khi xong, rồi lấy kết quả</li>
+  </ol>
+
+  <h3>20.3. Ví dụ tạo batch (Python)</h3>
+  <pre>message_batch = client.messages.batches.create(
+    requests=[
+        {
+            "custom_id": "doc1",
+            "params": {
+                "model": "claude-opus-4-8",
+                "max_tokens": 1024,
+                "messages": [{"role":"user","content":"Summarize doc 1"}]
+            }
+        },
+        {
+            "custom_id": "doc2",
+            "params": {
+                "model": "claude-opus-4-8",
+                "max_tokens": 1024,
+                "messages": [{"role":"user","content":"Summarize doc 2"}]
+            }
+        }
+    ]
+)</pre>
+  <div class="note">Batch API <strong>không</strong> đủ điều kiện ZDR.</div>
+
+  <h2 id="mcp">21. MCP &amp; MCP Connector</h2>
+
+  <h3>21.1. MCP là gì</h3>
+  <p>Theo <code>modelcontextprotocol.io</code>: <em>"MCP là chuẩn mở để kết nối ứng dụng AI với hệ thống ngoài. Hãy nghĩ về MCP như cổng USB-C cho ứng dụng AI."</em></p>
+  <p>MCP cho phép Claude/ChatGPT/VS Code/Cursor… kết nối tới:</p>
+  <ul>
+    <li><strong>Data sources</strong>: file local, database</li>
+    <li><strong>Tools</strong>: search engine, calculator, API</li>
+    <li><strong>Workflows</strong>: prompt chuyên biệt</li>
+  </ul>
+
+  <h3>21.2. Use case thực tế (theo docs)</h3>
+  <ul>
+    <li>Claude Code sinh full web app từ design Figma qua MCP</li>
+    <li>Agent đọc Google Calendar + Notion → trợ lý cá nhân hóa</li>
+    <li>Chatbot doanh nghiệp kết nối nhiều database</li>
+    <li>AI tạo thiết kế 3D trong Blender → in 3D</li>
+  </ul>
+
+  <h3>21.3. MCP Connector (Claude API)</h3>
+  <p>Header beta hiện tại: <code>anthropic-beta: mcp-client-2025-11-20</code> (bản cũ <code>2025-04-04</code> đã deprecated).</p>
+  <p>Hai thành phần trong request:</p>
+  <ul>
+    <li><code>mcp_servers</code>: mảng định nghĩa server (url, name, authorization_token)</li>
+    <li><code>tools</code>: chứa <code>mcp_toolset</code> cấu hình tool nào bật/tắt</li>
+  </ul>
+
+  <h3>21.4. Ví dụ MCP Connector — Python</h3>
+  <pre>response = client.beta.messages.create(
+    model="claude-opus-4-8",
+    max_tokens=1000,
+    messages=[{"role":"user","content":"What tools do you have available?"}],
+    mcp_servers=[{
+        "type":"url",
+        "url":"https://example-server.modelcontextprotocol.io/sse",
+        "name":"example-mcp",
+        "authorization_token":"YOUR_TOKEN"
+    }],
+    tools=[{"type":"mcp_toolset","mcp_server_name":"example-mcp"}],
+    betas=["mcp-client-2025-11-20"],
+)</pre>
+
+  <h3>21.5. Pattern phổ biến</h3>
+  <p><strong>Allowlist</strong> (chỉ bật tool cụ thể):</p>
+  <pre>{
+  "type":"mcp_toolset",
+  "mcp_server_name":"google-calendar-mcp",
+  "default_config":{"enabled": false},
+  "configs":{
+    "search_events":{"enabled": true},
+    "create_event":{"enabled": true}
+  }
+}</pre>
+  <p><strong>Denylist</strong> (chặn tool nguy hiểm — khuyến nghị cho read-only assistant):</p>
+  <pre>{
+  "type":"mcp_toolset",
+  "mcp_server_name":"google-calendar-mcp",
+  "configs":{
+    "delete_all_events":{"enabled": false},
+    "share_calendar_publicly":{"enabled": false}
+  }
+}</pre>
+
+  <h3>21.6. Giới hạn MCP Connector</h3>
+  <ul>
+    <li>Hiện chỉ hỗ trợ <strong>tool calls</strong> (không prompts/resources qua connector — phải dùng client-side helper)</li>
+    <li>MCP server phải public qua HTTPS (Streamable HTTP hoặc SSE), không hỗ trợ local STDIO trực tiếp</li>
+    <li>Không có trên Bedrock/Vertex AI</li>
+    <li>Không đủ điều kiện ZDR</li>
+  </ul>
+
+  <h3>21.7. Response blocks MCP</h3>
+  <pre>{
+  "type": "mcp_tool_use",
+  "id": "mcptoolu_014Q35RayjACSWkSj4X2yov1",
+  "name": "echo",
+  "server_name": "example-mcp",
+  "input": {"param1": "value1"}
+}
+{
+  "type": "mcp_tool_result",
+  "tool_use_id": "mcptoolu_014Q...",
+  "is_error": false,
+  "content": [{"type":"text","text":"Hello"}]
+}</pre>
+
+  <h2 id="claude-code">22. Claude Code (CLI/IDE/Web)</h2>
+  <p>Theo <code>code.claude.com/docs/en/overview</code>: <em>"Claude Code là công cụ coding agentic — đọc codebase, sửa file, chạy lệnh, tích hợp với tool dev. Có mặt trong terminal, IDE, desktop app, browser."</em></p>
+
+  <h3>22.1. Cài đặt (chính thức)</h3>
+  <table>
+    <tr><th>Nền tảng</th><th>Lệnh</th></tr>
+    <tr><td>macOS/Linux/WSL</td><td><code>curl -fsSL https://claude.ai/install.sh | bash</code></td></tr>
+    <tr><td>Windows PowerShell</td><td><code>irm https://claude.ai/install.ps1 | iex</code></td></tr>
+    <tr><td>Windows CMD</td><td><code>curl -fsSL https://claude.ai/install.cmd -o install.cmd &amp;&amp; install.cmd</code></td></tr>
+    <tr><td>Homebrew</td><td><code>brew install --cask claude-code</code></td></tr>
+    <tr><td>WinGet</td><td><code>winget install Anthropic.ClaudeCode</code></td></tr>
+    <tr><td>VS Code/Cursor</td><td>Cài extension "Claude Code" từ Marketplace</td></tr>
+    <tr><td>JetBrains</td><td>Plugin "Claude Code" trên JetBrains Marketplace</td></tr>
+  </table>
+  <p>Native install <strong>tự update</strong>; Homebrew/WinGet cần upgrade thủ công.</p>
+
+  <h3>22.2. Khởi động</h3>
+  <pre>cd your-project
+claude          # khởi động phiên trong thư mục dự án</pre>
+
+  <h3>22.3. Năng lực chính (chính thức)</h3>
+  <ul>
+    <li><strong>Tự động hóa</strong>: viết test, sửa lint, resolve merge conflict, update dependencies, viết release notes</li>
+    <li><strong>Build feature &amp; fix bug</strong>: lập kế hoạch, viết code đa file, verify</li>
+    <li><strong>Git workflow</strong>: stage, commit, branch, mở PR (<code>gh</code>/<code>glab</code>)</li>
+    <li><strong>MCP</strong>: kết nối Google Drive, Jira, Slack, custom tool</li>
+    <li><strong>Customize</strong>: <code>CLAUDE.md</code>, Skills, Hooks, auto memory</li>
+    <li><strong>Agent teams</strong>: nhiều agent song song, sub-agents, background agents, Agent SDK</li>
+    <li><strong>Pipe/script</strong>: <code>tail -200 app.log | claude -p "..."</code></li>
+    <li><strong>Schedule</strong>: Routines (cloud), Desktop scheduled tasks, <code>/loop</code></li>
+    <li><strong>Work anywhere</strong>: Remote Control, Dispatch, <code>--teleport</code>, Slack integration</li>
+  </ul>
+
+  <h3>22.4. Các surface tích hợp</h3>
+  <table>
+    <tr><th>Mục đích</th><th>Surface</th></tr>
+    <tr><td>Continue session từ phone</td><td>Remote Control</td></tr>
+    <tr><td>Push từ Telegram/Discord/iMessage/webhook</td><td>Channels</td></tr>
+    <tr><td>Start local, continue mobile</td><td>Web / iOS app</td></tr>
+    <tr><td>Recurring schedule</td><td>Routines, Desktop scheduled tasks</td></tr>
+    <tr><td>PR review tự động</td><td>GitHub Actions, GitLab CI/CD</td></tr>
+    <tr><td>Bug report từ Slack → PR</td><td>Slack integration</td></tr>
+    <tr><td>Debug web live</td><td>Chrome integration</td></tr>
+    <tr><td>Custom agent</td><td>Agent SDK</td></tr>
+  </table>
+
+  <h3>22.5. Lệnh CLI hữu dụng (ví dụ chính thức)</h3>
+  <pre># Analyze recent logs
+tail -200 app.log | claude -p "Slack me if you see any anomalies"
+
+# Automate translation in CI
+claude -p "translate new strings into French and raise a PR for review"
+
+# Bulk security review
+git diff main --name-only | claude -p "review these changed files for security issues"</pre>
+
+  <h2 id="reduce-hallucination">23. Giảm hallucination (chính thức)</h2>
+  <p>Theo <code>platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations</code>:</p>
+
+  <h3>23.1. Chiến lược cơ bản</h3>
+  <ul>
+    <li><strong>Cho phép Claude nói "I don't know":</strong>
+      <pre>If you're unsure about any aspect or if the report lacks necessary information,
+say "I don't have enough information to confidently assess this."</pre>
+    </li>
+    <li><strong>Yêu cầu trích quote trực tiếp trước khi phân tích</strong> (tài liệu &gt;20k tokens):
+      <pre>1. Extract exact quotes from the policy most relevant to GDPR/CCPA compliance.
+   If you can't find relevant quotes, state "No relevant quotes found."
+2. Use the quotes to analyze the compliance of these policy sections.</pre>
+    </li>
+    <li><strong>Verify bằng citation</strong> — mọi claim phải có quote hỗ trợ; không tìm được thì xóa claim, đánh dấu <code>[]</code>.</li>
+  </ul>
+
+  <h3>23.2. Kỹ thuật nâng cao</h3>
+  <ul>
+    <li><strong>Chain-of-thought verification</strong>: yêu cầu giải thích từng bước trước khi đưa kết luận</li>
+    <li><strong>Best-of-N verification</strong>: chạy cùng prompt nhiều lần, so sánh — không nhất quán → có thể là hallucination</li>
+    <li><strong>Iterative refinement</strong>: dùng output làm input prompt sau, yêu cầu verify hoặc mở rộng</li>
+    <li><strong>External knowledge restriction</strong>: cấm dùng kiến thức tổng quát, chỉ dùng tài liệu cấp</li>
+  </ul>
+
+  <h2 id="consistency">24. Tăng tính nhất quán &amp; giữ nhân vật</h2>
+
+  <h3>24.1. Specify desired output format</h3>
+  <p>Định nghĩa chính xác format mong muốn (JSON/XML/template). Ví dụ chính thức yêu cầu key cụ thể:</p>
+  <pre>Analyze this feedback and output in JSON format with keys:
+"sentiment" (positive/negative/neutral),
+"key_issues" (list),
+"action_items" (list of dicts with "team" and "task").</pre>
+  <div class="note">Nếu cần JSON schema compliance bắt buộc — dùng <strong>Structured Outputs</strong>, không phải prompt engineering.</div>
+
+  <h3>24.2. Prefill response</h3>
+  <p>Điền sẵn vài ký tự đầu của lượt Assistant để ép format. <em>Không hỗ trợ trên Opus 4.8, 4.7, 4.6 và Sonnet 4.6</em> — dùng structured outputs thay thế.</p>
+
+  <h3>24.3. Constrain bằng ví dụ (few-shot)</h3>
+  <p>Cung cấp 1 mẫu hoàn chỉnh rồi yêu cầu Claude áp dụng cho item khác.</p>
+
+  <h3>24.4. Retrieval cho consistent context</h3>
+  <p>Ground response bằng knowledge base cố định (chatbot, IT support):</p>
+  <pre>&lt;response&gt;
+  &lt;kb_entry&gt;Knowledge base entry used&lt;/kb_entry&gt;
+  &lt;answer&gt;Your response&lt;/answer&gt;
+&lt;/response&gt;</pre>
+
+  <h3>24.5. Chain prompts</h3>
+  <p>Chia task phức tạp thành subtask nhỏ — mỗi subtask nhận trọn attention của Claude.</p>
+
+  <h3>24.6. Keep Claude in character</h3>
+  <ul>
+    <li>Dùng <strong>system prompt</strong> định nghĩa vai trò, tính cách, background chi tiết</li>
+    <li>Liệt kê <strong>kịch bản phổ biến</strong> + phản ứng kỳ vọng — "train" Claude xử lý mà không phá vai</li>
+    <li>Ví dụ rule:
+      <pre>- If asked about TechCo IP: "I cannot disclose TechCo's proprietary information."
+- If questioned on best practices: "Per ISO/IEC 25010, we prioritize..."
+- If unclear on a doc: "To ensure accuracy, please clarify section 3.2..."</pre>
+    </li>
+  </ul>
+
+  <h2 id="debug-vidu">25. Bộ ví dụ debug thực tế (mở rộng)</h2>
+  <p>Áp dụng các nguyên tắc §11 vào tình huống cụ thể. Mỗi ví dụ chia: <em>triệu chứng → cách prompt → kết quả</em>.</p>
+
+  <h3>25.1. Ví dụ: Python TypeError với full stack trace</h3>
+  <div class="bad"><strong>Triệu chứng:</strong>
+    <pre>Traceback (most recent call last):
+  File "app.py", line 42, in process_users
+    names = [u.name for u in users]
+TypeError: 'NoneType' object is not iterable</pre></div>
+  <p><strong>Prompt tốt:</strong></p>
+  <pre>&lt;error&gt;
+TypeError: 'NoneType' object is not iterable
+File "app.py", line 42, in process_users
+&lt;/error&gt;
+
+&lt;code file="app.py" lines="35-50"&gt;
+def process_users(users):
+    names = [u.name for u in users]   # line 42
+    return ", ".join(names)
+&lt;/code&gt;
+
+&lt;caller&gt;
+users = db.query("SELECT * FROM users WHERE active = 1")
+process_users(users)
+&lt;/caller&gt;
+
+Yêu cầu:
+1. Trích đoạn code có khả năng là nguyên nhân
+2. Liệt kê 3 hypothesis root cause kèm cách kiểm chứng
+3. Đề xuất fix theo nguyên tắc root cause, KHÔNG dùng try/except để che lỗi</pre>
+
+  <h3>25.2. Ví dụ: Intermittent test failure (flaky test)</h3>
+  <div class="bad"><strong>Triệu chứng:</strong> Test <code>test_order_total</code> fail ~20% lần chạy.</div>
+  <p><strong>Prompt:</strong></p>
+  <pre>Test này flaky — fail ~20% lần chạy trên CI, luôn pass trên máy local.
+
+&lt;test&gt;
+def test_order_total():
+    o = Order()
+    o.add(Item("A", 10))
+    o.add(Item("B", 20))
+    time.sleep(0.1)
+    assert o.total == 30
+&lt;/test&gt;
+
+&lt;Order.total&gt;
+@property
+def total(self):
+    return sum(i.price for i in self._items_cache or self._fetch_items())
+&lt;/Order.total&gt;
+
+Liệt kê các nguồn flakiness có thể (race condition, ordering,
+timezone, floating point, caching, network), xếp theo khả năng.
+Với mỗi nguyên nhân, đề xuất cách reproduce DETERMINISTIC.</pre>
+
+  <h3>25.3. Ví dụ: Performance — query chậm</h3>
+  <div class="bad"><strong>Triệu chứng:</strong> Endpoint <code>/dashboard</code> trả về 8s thay vì &lt;500ms.</div>
+  <p><strong>Prompt:</strong></p>
+  <pre>Endpoint /dashboard chậm 8s. Đây là log SQL trong 1 request:
+
+&lt;sql_log&gt;
+[8.2s] SELECT * FROM orders WHERE user_id = ?  -- chạy 247 lần
+[0.1s] SELECT * FROM users WHERE id = ?
+&lt;/sql_log&gt;
+
+&lt;code&gt;
+users = User.objects.all()
+for u in users:
+    orders = Order.objects.filter(user_id=u.id)   # ← suspect
+    u.order_count = orders.count()
+&lt;/code&gt;
+
+Đây có phải N+1 query không? Đề xuất fix dùng prefetch_related/
+annotate kèm code cụ thể, và ước tính độ phức tạp trước/sau.</pre>
+
+  <h3>25.4. Ví dụ: Logic error trong thuật toán</h3>
+  <div class="bad"><strong>Triệu chứng:</strong> Hàm <code>binary_search</code> trả về -1 cho phần tử có thật.</div>
+  <pre>def binary_search(arr, target):
+    lo, hi = 0, len(arr)
+    while lo &lt; hi:
+        mid = (lo + hi) // 2
+        if arr[mid] == target: return mid
+        elif arr[mid] &lt; target: lo = mid     # ← suspect: thiếu +1
+        else: hi = mid
+    return -1</pre>
+  <p><strong>Prompt:</strong></p>
+  <pre>Hàm trên trả -1 cho input arr=[1,3,5,7,9], target=7.
+
+Yêu cầu:
+1. Trace bước-by-bước với input đó, ghi giá trị lo/hi/mid mỗi vòng
+2. Chỉ ra dòng gây infinite loop hoặc miss
+3. Đưa ra fix nhỏ nhất + chứng minh chấm dứt (termination)
+4. Thêm 3 test case edge: empty, 1 phần tử, target không tồn tại</pre>
+
+  <h3>25.5. Ví dụ: CSS layout vỡ trên mobile</h3>
+  <div class="bad"><strong>Triệu chứng:</strong> Sidebar đè lên content trên màn hình &lt;768px.</div>
+  <p><strong>Prompt:</strong></p>
+  <pre>Sidebar đè lên content khi viewport &lt;768px. Đây là CSS hiện tại:
+
+&lt;css&gt;
+.layout { display: flex; }
+.sidebar { width: 280px; position: fixed; }
+.content { margin-left: 280px; }
+
+@media (max-width: 768px) {
+  .sidebar { width: 100%; }    /* ← suspect */
+}
+&lt;/css&gt;
+
+Mong đợi: trên mobile, sidebar collapse thành drawer ẩn,
+content full-width.
+
+Yêu cầu:
+1. Chỉ ra dòng/quy tắc bị thiếu
+2. Đưa ra giải pháp CSS-only (không JS) + giải pháp có toggle
+3. Liệt kê 2 edge case cần test (landscape, sticky header)</pre>
+
+  <h3>25.6. Ví dụ: Regex không khớp đúng</h3>
+  <p><strong>Prompt:</strong></p>
+  <pre>Cần regex match email VN dạng "name@domain.vn" nhưng KHÔNG match
+".vn" subdomain (vd "user@mail.vn.example.com" phải BỊ LOẠI).
+
+Hiện regex: ^[\w.+-]+@[\w-]+\.vn$
+- Match: "abc@gmail.vn" ✓
+- Sai: cũng match "abc@x.y.vn" (muốn loại nếu có dấu chấm thứ 2 trong domain)
+
+Yêu cầu:
+1. Phân tích vì sao regex hiện tại sai
+2. Đưa pattern đúng + explain từng group
+3. Cung cấp 8 test case: 4 phải match, 4 phải reject</pre>
+
+  <h3>25.7. Ví dụ: Race condition trong async code</h3>
+  <pre>async def update_counter(user_id):
+    c = await db.get_counter(user_id)
+    await db.set_counter(user_id, c + 1)</pre>
+  <p><strong>Prompt:</strong></p>
+  <pre>Counter bị mất update khi 2 request đồng thời tăng cùng user.
+Hiện tượng: gọi 100 lần song song chỉ tăng ~60.
+
+Yêu cầu:
+1. Vẽ timeline 2 task chạy interleaved, chỉ ra điểm race
+2. Đề xuất 3 fix: optimistic locking, pessimistic lock,
+   atomic increment ở DB level. So sánh trade-off.
+3. Viết test reproducer dùng asyncio.gather</pre>
+
+  <h3>25.8. Ví dụ: Memory leak Node.js</h3>
+  <p><strong>Prompt:</strong></p>
+  <pre>App Node.js heap tăng đều ~10MB/giờ, sau 12h OOM.
+Heap snapshot cho thấy 50k object EventEmitter chưa giải phóng.
+
+&lt;suspect_code&gt;
+function attachLogger(socket) {
+  socket.on('data', (chunk) =&gt; logger.log(chunk));
+}
+io.on('connection', attachLogger);
+&lt;/suspect_code&gt;
+
+Yêu cầu:
+1. Giải thích vì sao EventEmitter không được GC
+2. Chỉ ra listener thiếu cleanup
+3. Đưa fix dùng socket.on('close', ...) hoặc once()
+4. Cách verify bằng --inspect + heap diff</pre>
+
+  <h3>25.9. Ví dụ: API integration sai header</h3>
+  <div class="bad"><strong>Triệu chứng:</strong> Call Claude API trả 401 dù key đúng.</div>
+  <p><strong>Prompt:</strong></p>
+  <pre>Request curl trả 401:
+
+curl https://api.anthropic.com/v1/messages \
+  -H "Authorization: Bearer $KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -d '{"model":"claude-opus-4-8","max_tokens":10,
+       "messages":[{"role":"user","content":"hi"}]}'
+
+So với doc chính thức, tôi đang dùng sai gì?
+Liệt kê tất cả header bắt buộc và đặc biệt là sai khác giữa
+Authorization Bearer (OpenAI style) vs Anthropic style.</pre>
+  <div class="good"><strong>Kỳ vọng Claude trả:</strong> Anthropic dùng <code>x-api-key: $KEY</code> chứ không phải <code>Authorization: Bearer</code>. Đây là confusion thường gặp khi chuyển từ OpenAI SDK.</div>
+
+  <h3>25.10. Ví dụ: Debug Hook không kích hoạt</h3>
+  <div class="bad"><strong>Triệu chứng:</strong> Hook <code>PreToolUse</code> để chặn <code>rm -rf</code> không chạy.</div>
+  <p><strong>Prompt:</strong></p>
+  <pre>Hook không chạy. Cấu hình .claude/settings.json:
+
+{
+  "hooks": {
+    "preToolUse": [{
+      "matcher": "bash",
+      "hooks": [{"type":"command",
+                 "command":".claude/hooks/block-rm.sh"}]
+    }]
+  }
+}
+
+Liệt kê các nguyên nhân khả thi theo doc chính thức:
+1. Tên event sai case (preToolUse vs PreToolUse)?
+2. Matcher case-sensitive?
+3. Script chưa có quyền executable?
+4. Đường dẫn tương đối vs ${CLAUDE_PROJECT_DIR}?
+5. Settings.json đúng vị trí chưa?
+
+Chỉ ra lỗi cụ thể và sửa.</pre>
+  <div class="good"><strong>Root cause:</strong> Event name phải là <code>PreToolUse</code> (PascalCase), matcher phải là <code>Bash</code> (chữ hoa đầu, khớp tool name). Đây là 2 lỗi phổ biến.</div>
+
+  <h3>25.11. Ví dụ: Skill không kích hoạt (mở rộng từ §10.8)</h3>
+  <p>Xem §10.8 đầy đủ. Checklist nhanh:</p>
+  <ul>
+    <li><code>name</code> không có chữ "claude"/"anthropic"?</li>
+    <li><code>description</code> nói rõ <em>khi nào</em>?</li>
+    <li>Đã restart session?</li>
+    <li>Skill hiện trong <code>/skills</code>?</li>
+  </ul>
+
+  <h3>25.12. Ví dụ: Prompt cache hit rate = 0</h3>
+  <p><strong>Prompt:</strong></p>
+  <pre>Bật prompt caching trên Opus 4.8, system prompt 3000 tokens,
+chạy 10 request liên tiếp. Theo dõi usage:
+
+cache_creation_input_tokens: 3000 (tất cả requests)
+cache_read_input_tokens: 0 (tất cả requests)
+
+Tại sao không cache hit? Đây là cấu hình:
+
+system=[{"type":"text","text": SYSTEM_PROMPT},
+        {"type":"text","text": f"Request ID: {uuid4()}",
+         "cache_control":{"type":"ephemeral"}}]
+
+Chỉ ra lỗi vị trí cache_control theo doc chính thức về
+"place cache_control on last block that stays identical".</pre>
+  <div class="good"><strong>Root cause:</strong> <code>cache_control</code> đặt trên block thay đổi (chứa UUID mới mỗi request). Phải đặt trên block ổn định (block đầu chứa SYSTEM_PROMPT).</div>
+
+  <h3>25.13. Ví dụ: Tool use không được gọi</h3>
+  <p><strong>Prompt:</strong></p>
+  <pre>Đã định nghĩa tool get_weather, nhưng Claude không gọi mà tự bịa
+thời tiết. tool_choice đang là "auto" (mặc định).
+
+Theo doc chính thức:
+- "auto" → Claude tự quyết định
+- Để tăng dùng tool: prompt thêm "Use the tools to investigate before responding."
+
+Đề xuất 3 cách (theo mức nhẹ → mạnh):
+1. Sửa system prompt
+2. Đổi tool_choice thành "any"
+3. Đổi tool_choice thành {"type":"tool","name":"get_weather"}
+Chỉ ra trade-off mỗi cách (linh hoạt vs đảm bảo).</pre>
+
+  <h3>25.14. Ví dụ: Claude bịa thông tin (hallucination)</h3>
+  <p><strong>Prompt:</strong></p>
+  <pre>Claude trả lời rằng "GDPR Article 47 yêu cầu data residency
+trong EU" — nhưng tôi không tìm thấy điều này trong văn bản.
+
+Áp dụng 4 kỹ thuật giảm hallucination theo doc Anthropic:
+1. Cho phép "I don't know"
+2. Yêu cầu quote trực tiếp trước khi phân tích
+3. Verify bằng citation cho từng claim
+4. External knowledge restriction
+
+Viết lại prompt gốc với cả 4 kỹ thuật, dùng tài liệu sau:
+&lt;documents&gt;...&lt;/documents&gt;</pre>
+
+  <h3>25.15. Ví dụ: Citation trả lỗi 400</h3>
+  <p><strong>Prompt:</strong></p>
+  <pre>Bật citations + structured outputs cùng lúc → API trả 400.
+
+Theo doc: "Citations cannot be used together with Structured Outputs.
+If you enable citations on any user-provided document AND include
+output_config.format, the API will return a 400 error."
+
+Đề xuất 2 hướng:
+A. Dùng citations, lấy structured data bằng prompt thường + XML parse
+B. Dùng structured outputs, citations bằng cách yêu cầu quote trong field
+
+Chọn hướng nào nếu use case là "extract facts từ legal doc với nguồn"?</pre>
+
+  <h3>25.16. Ví dụ: Subagent spawn quá nhiều</h3>
+  <p><strong>Prompt:</strong></p>
+  <pre>Claude Opus 4.8 trên Claude Code spawn 8 subagent cho task
+"refactor 1 hàm 30 dòng". Tốn quá nhiều token.
+
+Theo doc Opus 4.8 best practices:
+"Claude Opus 4.8 tends to spawn fewer subagents by default.
+However, this behavior is steerable through prompting."
+
+Viết đoạn system prompt thêm vào CLAUDE.md để hạn chế:
+"Do not spawn a subagent for work you can complete directly
+in a single response (e.g. refactoring a function you can
+already see)."
+Có nên dùng effort=low thay vì xhigh cho task nhỏ?</pre>
+
+  <h3>25.17. Ví dụ: Streaming bị cắt giữa chừng</h3>
+  <p><strong>Prompt:</strong></p>
+  <pre>Stream với SDK Python, đôi khi text bị cắt và không có
+message_stop event. Reproduce ~5% requests.
+
+Code:
+with client.messages.stream(...) as stream:
+    for text in stream.text_stream:
+        print(text, end="", flush=True)
+
+Yêu cầu:
+1. Liệt kê các stop_reason có thể (end_turn, max_tokens,
+   stop_sequence, tool_use)
+2. Cách check stop_reason sau khi stream kết thúc
+3. Cách phát hiện network drop vs server-side stop
+4. Pattern retry với context giữ nguyên</pre>
+
+  <h3>25.18. Ví dụ: PDF không trích được text (scan)</h3>
+  <p>Đã trình bày trong §10.8 (debug Skill <code>pdf-invoice-extractor</code>) — root cause là PDF scan không có text layer, cần OCR.</p>
+
+  <h3>25.19. Ví dụ: Files API upload thành công nhưng Messages 404</h3>
+  <p><strong>Prompt:</strong></p>
+  <pre>POST /v1/files trả 200 với file_id.
+Dùng file_id trong /v1/messages → "File not found: file_xxx".
+
+Kiểm tra theo doc:
+1. Header anthropic-beta: files-api-2025-04-14 có ở CẢ HAI request?
+2. file_id từ API key cùng workspace?
+3. File chưa bị delete?
+4. Loại content block đúng với MIME (PDF→document, image→image)?
+
+Đề xuất script kiểm tra tự động trước khi gọi Messages.</pre>
+
+  <h3>25.20. Ví dụ: Batch API stuck "in_progress" quá lâu</h3>
+  <p><strong>Prompt:</strong></p>
+  <pre>Batch 5000 requests đã chạy 3 giờ, status vẫn "in_progress".
+Theo doc "most batches finish in less than 1 hour".
+
+Đề xuất kiểm tra:
+1. Cancel batch và resubmit nhỏ hơn?
+2. Có request nào blocking?
+3. Rate limit org hết hạn?
+4. Cách poll progress qua API
+5. Khi nào nên cancel vs đợi
+
+Doc chính thức nói gì về retry &amp; partial result?</pre>
+
+  <h3>25.21. Ví dụ: Docker container exit code 137</h3>
+  <div class="bad"><strong>Triệu chứng:</strong> Container chạy ~3 phút rồi exit với code 137, không có error log.</div>
+  <p><strong>Prompt:</strong></p>
+  <pre>Container Node.js exit code 137 sau ~3 phút. Không có exception log.
+docker stats cho thấy memory tăng đều đến ~512MB rồi container chết.
+
+&lt;dockerfile&gt;
+FROM node:20
+COPY . /app
+WORKDIR /app
+RUN npm ci
+CMD ["node","worker.js"]
+&lt;/dockerfile&gt;
+
+&lt;compose&gt;
+services:
+  worker:
+    build: .
+    mem_limit: 512m
+&lt;/compose&gt;
+
+Yêu cầu:
+1. Giải thích ý nghĩa exit code 137 (= 128 + 9 = SIGKILL)
+2. Ai gửi SIGKILL? (OOM killer của kernel vs Docker)
+3. Phân biệt OOMKilled vs app crash — check bằng lệnh nào?
+4. Đề xuất 3 hướng fix: tăng mem_limit, fix memory leak, dùng --memory-swap</pre>
+  <div class="good"><strong>Giải thích chốt:</strong> Exit 137 gần như luôn là OOMKilled. Verify bằng <code>docker inspect &lt;container&gt; | grep OOMKilled</code> — nếu <code>true</code>, đây là kernel OOM killer chứ không phải bug app. Fix root cause là tìm memory leak (heap snapshot), không phải chỉ tăng limit.</div>
+
+  <h3>25.22. Ví dụ: SQL trả sai kết quả (logic, không phải performance)</h3>
+  <div class="bad"><strong>Triệu chứng:</strong> Query thống kê doanh thu tháng 6 trả 1.2M, nhưng tổng từng order là 1.5M.</div>
+  <p><strong>Prompt:</strong></p>
+  <pre>&lt;query&gt;
+SELECT SUM(o.total) AS revenue
+FROM orders o
+LEFT JOIN refunds r ON r.order_id = o.id
+WHERE o.created_at BETWEEN '2026-06-01' AND '2026-06-30'
+  AND r.id IS NULL;
+&lt;/query&gt;
+
+Kỳ vọng: tổng doanh thu các order CHƯA bị refund trong tháng 6.
+Thực tế: kết quả thấp hơn 20%. Khi bỏ JOIN refunds → tăng lên gần
+đúng.
+
+Yêu cầu:
+1. Có phải LEFT JOIN + r.id IS NULL đang loại nhầm order không?
+2. Trường hợp 1 order có NHIỀU refund (partial refund) sẽ ra sao?
+3. Có order nào tháng 6 nhưng refund tháng 7 → vẫn bị loại?
+4. Viết lại query đúng semantically</pre>
+  <div class="good"><strong>Giải thích chốt:</strong> Vấn đề là semantic của "chưa refund". <code>r.id IS NULL</code> loại <em>mọi</em> order có bất kỳ refund nào (kể cả partial). Nếu nghiệp vụ là "doanh thu thuần" thì phải <code>SUM(o.total) - COALESCE(SUM(r.amount), 0)</code> hoặc dùng <code>NOT EXISTS</code> rõ ràng. Đây là lỗi <em>tư duy</em> chứ không phải syntax.</div>
+
+  <h3>25.23. Ví dụ: TypeScript "Type X is not assignable to Y"</h3>
+  <pre>// error TS2322: Type '(item: string | undefined) =&gt; string' is not
+// assignable to type '(item: string) =&gt; string'.
+const upper = (item: string | undefined): string =&gt; item?.toUpperCase() ?? "";
+const result: string[] = items.map(upper);  // items: string[]</pre>
+  <p><strong>Prompt:</strong></p>
+  <pre>Tại sao TS báo lỗi này dù logic chạy đúng runtime?
+
+Yêu cầu:
+1. Giải thích contravariance của tham số function trong TS
+2. Vì sao (a:string|undefined)=&gt;string KHÔNG assignable cho
+   (a:string)=&gt;string mặc dù "rộng hơn" (counter-intuitive)
+3. Đưa ra 2 cách fix: narrow signature, hoặc cast
+4. strict mode vs non-strict — flag nào ảnh hưởng?</pre>
+  <div class="good"><strong>Giải thích chốt:</strong> Đây là <em>function parameter bivariance</em>. Với <code>strictFunctionTypes: true</code>, TS check contravariance — function nhận tham số <em>rộng hơn</em> không assignable cho slot expect tham số <em>hẹp hơn</em>. Mặc dù phản trực giác, đây là an toàn type. Fix đúng: thu hẹp signature thành <code>(item: string) =&gt; string</code> và xử lý <code>undefined</code> bên ngoài map.</div>
+
+  <h3>25.24. Ví dụ: Webhook không nhận được</h3>
+  <div class="bad"><strong>Triệu chứng:</strong> Stripe gửi webhook nhưng endpoint app không thấy request nào.</div>
+  <p><strong>Prompt:</strong></p>
+  <pre>Stripe dashboard hiển thị webhook đã gửi (HTTP 200) cho endpoint
+https://api.myapp.com/webhooks/stripe nhưng log Nginx của tôi
+không thấy request nào trong 1 giờ qua.
+
+Đã thử:
+- curl POST trực tiếp endpoint từ máy ngoài → 200 OK, log Nginx có
+- Stripe CLI listen → nhận event bình thường
+
+Liệt kê tất cả khả năng theo thứ tự cần check:
+1. DNS — domain có resolve về đúng IP production không?
+2. CDN/WAF (Cloudflare?) có chặn theo User-Agent "Stripe/" không?
+3. Có proxy/load balancer nào ăn request trước khi tới Nginx?
+4. Stripe IP allowlist trong firewall?
+5. TLS — Stripe yêu cầu TLS 1.2+, cert chain có vấn đề?
+6. HTTP/2 vs HTTP/1.1 ảnh hưởng?
+
+Với mỗi mục, đưa lệnh kiểm chứng cụ thể.</pre>
+  <div class="good"><strong>Giải thích chốt:</strong> Khi webhook im lặng dù provider báo gửi thành công, lỗi gần như <em>luôn</em> ở tầng giữa (CDN/WAF/LB). Cách phân lớp đúng: kiểm tra logs theo thứ tự từ ngoài vào trong (edge → LB → app), tìm tầng đầu tiên KHÔNG thấy request. Stripe webhook 200 OK chỉ chứng tỏ TCP+TLS+ai-đó-trả-200, không có nghĩa app thực sự nhận.</div>
+
+  <h3>25.25. Ví dụ: Floating point precision</h3>
+  <pre>&gt;&gt;&gt; 0.1 + 0.2 == 0.3
+False
+&gt;&gt;&gt; 0.1 + 0.2
+0.30000000000000004</pre>
+  <p><strong>Prompt:</strong></p>
+  <pre>Test tính tiền: 19.99 + 0.01 != 20.00. Customer kiện app sai.
+
+&lt;code&gt;
+total = sum(item.price for item in cart)   # price là float
+if total &gt;= 20.00:
+    apply_free_shipping()
+&lt;/code&gt;
+
+Yêu cầu:
+1. Giải thích vì sao IEEE 754 không biểu diễn chính xác 0.1
+2. Tại sao điều này gây bug ở comparison "&gt;= 20.00"
+3. So sánh 3 giải pháp:
+   - Dùng decimal.Decimal (Python) hoặc BigDecimal (Java)
+   - Lưu money dưới dạng cent (integer)
+   - Dùng math.isclose() với tolerance
+4. Best practice industry cho money: nên dùng cái nào và vì sao?
+5. Migration plan: app hiện đang lưu float trong DB</pre>
+  <div class="good"><strong>Giải thích chốt:</strong> Money <strong>không bao giờ</strong> nên là float. Industry standard: lưu integer cent (vd 1999 thay vì 19.99) hoặc <code>DECIMAL(19,4)</code> trong DB. <code>math.isclose</code> chỉ dán băng cá nhân — vẫn sai khi tích lũy. Migration cần script convert có lock + reconcile.</div>
+
+  <h3>25.26. Ví dụ: Git merge conflict phức tạp</h3>
+  <div class="bad"><strong>Triệu chứng:</strong> Merge main vào feature branch, 47 file conflict, không rõ nên giữ bên nào.</div>
+  <p><strong>Prompt:</strong></p>
+  <pre>Branch feature/auth-v2 đứng yên 6 tuần. Merge main vào tạo 47
+conflicts. Một số file tôi không động đến nhưng vẫn conflict
+(do format/lint của team đã đổi trên main).
+
+Yêu cầu trợ giúp:
+1. Lệnh nào cho biết file conflict nào DO TÔI sửa thật sự
+   vs file chỉ conflict do format?
+   (gợi ý: git log --oneline main..HEAD -- &lt;file&gt;)
+2. Chiến lược an toàn để giải:
+   a. Abort merge, rebase từng commit lên main?
+   b. Resolve toàn bộ trong merge commit?
+   c. Cherry-pick subset?
+3. Nếu chọn rebase, làm sao tránh resolve cùng conflict nhiều lần?
+   (gợi ý: rerere)
+4. Không nên dùng "git checkout --theirs ." hoặc "--ours ." bừa.
+   Vì sao?</pre>
+  <div class="good"><strong>Giải thích chốt:</strong> Khi branch quá cũ, rebase tương tác (<code>git rebase -i main</code>) thường an toàn hơn merge — bạn xử lý từng commit nhỏ thay vì 1 conflict khổng lồ. Bật <code>rerere</code> (<code>git config rerere.enabled true</code>) để Git nhớ cách bạn đã resolve và tự áp dụng nếu gặp lại. Tuyệt đối tránh <code>--theirs/--ours .</code> toàn cục vì sẽ vứt code có chủ đích của một bên.</div>
+
+  <h3>25.27. Ví dụ: pytest fixture scope sai</h3>
+  <pre>@pytest.fixture
+def db():
+    conn = create_connection()
+    yield conn
+    conn.close()
+
+def test_user_create(db):
+    db.execute("INSERT INTO users VALUES (1, 'Alice')")
+    assert db.query("SELECT * FROM users").count() == 1
+
+def test_user_list(db):
+    assert db.query("SELECT * FROM users").count() == 0  # FAIL: count=1</pre>
+  <p><strong>Prompt:</strong></p>
+  <pre>Test thứ 2 fail vì thấy user còn từ test 1. Có vẻ DB không reset.
+
+Yêu cầu:
+1. Giải thích scope mặc định của @pytest.fixture (function-level)
+2. Vậy tại sao state vẫn leak giữa 2 test?
+   (hint: fixture tạo CONNECTION mới mỗi test, nhưng DB underlying
+    vẫn shared)
+3. So sánh 3 cách fix:
+   a. Truncate trong fixture
+   b. Dùng transaction rollback
+   c. SQLite :memory: per-test
+4. Trade-off speed vs isolation</pre>
+  <div class="good"><strong>Giải thích chốt:</strong> Đây là confusion giữa <em>scope của Python object</em> (connection) và <em>scope của state ngoài</em> (DB rows). Fixture function-scope chỉ tạo connection mới, không reset DB. Pattern chuẩn: bọc test trong transaction rồi rollback ở teardown — vừa nhanh vừa isolation tốt. SQLite <code>:memory:</code> tốt cho unit test nhưng có thể khác Postgres semantics.</div>
+
+  <h3>25.28. Ví dụ: JWT auth — "invalid signature"</h3>
+  <p><strong>Prompt:</strong></p>
+  <pre>JWT do auth service ký bằng RS256, gateway verify trả "invalid
+signature" cho mọi token. Cùng public key, cùng token, jwt.io
+verify được.
+
+Yêu cầu trace:
+1. So sánh public key bytes: gateway đang load đúng key chưa?
+   (PEM vs DER, có \n cuối không, có -----BEGIN----- không)
+2. Algorithm whitelist — có khi nào lib mặc định chỉ accept HS256?
+3. Token có bị modify đâu đó (proxy strip header, lowercase)?
+4. Clock skew giữa 2 service?
+5. Lệnh debug: dùng jose-jwt CLI verify offline
+
+Cách kiểm chứng từng giả thuyết bằng 1 lệnh duy nhất.</pre>
+  <div class="good"><strong>Giải thích chốt:</strong> "Invalid signature" có 3 nguyên nhân phổ biến: (1) key load sai format (đặc biệt khi đọc từ env var bị strip <code>\n</code>), (2) algorithm mismatch — nhiều lib mặc định không cho RS256 nếu không khai báo explicit, (3) header bị middleware modify. Verify offline bằng <code>jwt.io</code> chứng minh token + key hợp lệ → vấn đề chắc chắn ở phía gateway load/parse.</div>
+
+  <h3>25.29. Ví dụ Python: <code>asyncio</code> task im lặng "biến mất"</h3>
+  <div class="bad"><strong>Triệu chứng:</strong> Service xử lý 1000 message/giây, đôi khi vài task không hoàn thành, không có exception nào trong log. Restart thì chạy bình thường lại vài giờ.</div>
+  <pre>async def process(msg):
+    result = await call_api(msg)
+    await db.save(result)
+
+async def main():
+    while True:
+        msg = await queue.get()
+        asyncio.create_task(process(msg))   # fire-and-forget</pre>
+  <p><strong>Prompt:</strong></p>
+  <pre>&lt;symptom&gt;
+Một số task tạo bằng asyncio.create_task() không bao giờ hoàn thành,
+không có log, không có exception. Tỷ lệ ~0.3%/giờ. Không reproduce
+được local.
+&lt;/symptom&gt;
+
+&lt;code&gt;
+[paste đoạn main() ở trên]
+&lt;/code&gt;
+
+Yêu cầu (liệt kê TẤT CẢ giả thuyết, không tự lọc):
+1. asyncio.create_task() có giữ strong reference không?
+   (hint: docs Python 3.11+ ghi rõ event loop chỉ giữ weak ref)
+2. Nếu task bị GC giữa chừng, có log warning nào không?
+3. Exception trong task fire-and-forget đi đâu nếu không ai await?
+4. Cách fix chuẩn: tập hợp task vào set() để giữ reference,
+   hoặc dùng asyncio.TaskGroup (Python 3.11+)?
+5. Viết regression test reproduce bằng cách ép GC giữa create_task
+   và task hoàn thành.</pre>
+  <div class="good"><strong>Giải thích chốt:</strong> Đây là <em>bẫy nổi tiếng</em> của <code>asyncio.create_task</code> — event loop chỉ giữ <strong>weak reference</strong>, nên nếu bạn không lưu task vào đâu thì GC có thể thu hồi <em>trước khi task chạy xong</em>. Task biến mất im lặng, exception bị nuốt. Fix: <code>tasks: set = set(); t = asyncio.create_task(...); tasks.add(t); t.add_done_callback(tasks.discard)</code>. Hoặc dùng <code>async with asyncio.TaskGroup() as tg: tg.create_task(...)</code> để bảo đảm vòng đời.</div>
+
+  <h3>25.30. Ví dụ Android: ANR khi mở màn hình danh sách</h3>
+  <div class="bad"><strong>Triệu chứng:</strong> User báo app "đứng" 3-5 giây khi mở tab Orders. Logcat hiện <code>ANR in com.app.MainActivity</code>, traces.txt cho thấy main thread đang ở <code>SQLiteDatabase.query()</code>.</div>
+  <p><strong>Prompt:</strong></p>
+  <pre>&lt;stack&gt;
+"main" prio=5 tid=1 Native
+  at libcore.io.Linux.read(Native method)
+  at android.database.sqlite.SQLiteConnection.nativeExecuteForCursorWindow
+  at com.app.repo.OrderRepository.getAll(OrderRepository.kt:42)
+  at com.app.ui.OrdersFragment.onViewCreated(OrdersFragment.kt:58)
+&lt;/stack&gt;
+
+&lt;code&gt;
+// OrdersFragment.kt
+override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    val orders = orderRepo.getAll()       // 8000 rows, JOIN 3 bảng
+    adapter.submitList(orders)
+}
+&lt;/code&gt;
+
+Bối cảnh: Room database, ~8000 orders. Min SDK 24, target 34.
+
+Yêu cầu phân tích đầy đủ:
+1. Vì sao đây là ANR chứ không phải crash? Threshold bao nhiêu ms?
+2. Liệt kê 3 giải pháp theo mức độ refactor tăng dần:
+   a. Move query sang IO dispatcher (coroutine)
+   b. Dùng Paging 3 để load lazy
+   c. Dùng Flow + observe từ Room để auto-update
+3. So sánh trade-off: code complexity vs UX vs memory
+4. Với 8000 row, lựa chọn nào HỢP LÝ NHẤT? Vì sao Paging?
+5. Viết lại OrdersFragment dùng lifecycleScope + Dispatchers.IO
+   (cách tối thiểu, không refactor toàn bộ architecture)
+6. Làm sao phát hiện sớm vấn đề này — StrictMode config nào?</pre>
+  <div class="good"><strong>Giải thích chốt:</strong> Android ANR trigger khi main thread block &gt; <strong>5 giây</strong> (Activity) hoặc <strong>10 giây</strong> (Service). Mọi I/O (DB, network, file) <em>phải</em> off main thread. Fix tối thiểu: <code>viewLifecycleOwner.lifecycleScope.launch { val orders = withContext(Dispatchers.IO) { orderRepo.getAll() }; adapter.submitList(orders) }</code>. Phòng ngừa: bật <code>StrictMode.ThreadPolicy.Builder().detectDiskReads().penaltyLog()</code> trong debug build — sẽ log mọi disk read trên main thread <em>trước khi</em> nó thành ANR ở production.</div>
+
+  <h3>25.31. Ví dụ Agent Skill: skill <code>excel-report-builder</code> không trigger</h3>
+  <div class="bad"><strong>Triệu chứng:</strong> Đã tạo skill tại <code>~/.claude/skills/excel-report-builder/SKILL.md</code>, user hỏi "tạo báo cáo doanh thu Q2 dạng Excel" nhưng Claude trả lời text thường, không gọi skill.</div>
+  <pre># SKILL.md (file hiện tại)
+---
+name: Excel Report Builder
+description: Builds Excel files
+---
+
+Use this skill to create Excel reports.</pre>
+  <p><strong>Prompt:</strong></p>
+  <pre>&lt;problem&gt;
+Skill không được Claude trigger dù tôi yêu cầu rõ "tạo file Excel".
+Skill có trong /skills, không có lỗi load.
+&lt;/problem&gt;
+
+&lt;current_skill_md&gt;
+[paste nội dung SKILL.md ở trên]
+&lt;/current_skill_md&gt;
+
+Tham chiếu official: platform.claude.com/docs về Skill authoring.
+
+Yêu cầu kiểm tra theo checklist:
+1. Frontmatter `name`: có đúng định dạng (lowercase, kebab-case,
+   ≤ 64 char, match tên thư mục)?
+2. Frontmatter `description`: đây là TRƯỜNG QUYẾT ĐỊNH skill có
+   được kích hoạt hay không. Description hiện tại có:
+   - Nêu rõ INPUT (loại yêu cầu gì)?
+   - Nêu rõ OUTPUT (file .xlsx)?
+   - Có từ khoá người dùng thực sự sẽ gõ (báo cáo, Excel, xlsx,
+     spreadsheet)?
+3. Body có bullet được "Use when..." để model match intent không?
+4. Có ví dụ "User says X → use this skill" không?
+5. Viết lại SKILL.md hoàn chỉnh, frontmatter đúng chuẩn, description
+   ≤ 1024 ký tự nhưng đầy đủ trigger keywords.
+6. Cách debug nhanh: lệnh nào liệt kê skill đã load? Log nào cho
+   biết Claude đã match skill?</pre>
+  <div class="good"><strong>Giải thích chốt:</strong> Skill <strong>không trigger</strong> 95% là do <code>description</code> quá ngắn / không chứa keyword người dùng thực sự gõ. Claude chỉ thấy <code>name</code> + <code>description</code> ở level 1 (progressive disclosure) để quyết định load skill — body chỉ đọc <em>sau khi</em> đã match. Fix:
+    <pre>---
+name: excel-report-builder
+description: Tạo file Excel (.xlsx) báo cáo doanh thu, thống kê, tổng hợp dữ liệu dạng spreadsheet. Dùng khi user yêu cầu "báo cáo Excel", "xuất xlsx", "tạo spreadsheet", "bảng tính", hoặc cần workbook nhiều sheet với formula, chart, conditional formatting. Input: dữ liệu raw (CSV, JSON, SQL result) + yêu cầu định dạng. Output: file .xlsx hợp lệ mở được trong Excel/LibreOffice.
+---</pre>
+    Quy tắc: <em>"description nói cho Claude biết KHI NÀO dùng, không phải skill làm GÌ"</em>. Test bằng cách hỏi với nhiều biến thể ngôn ngữ (báo cáo Excel / xuất xlsx / tạo spreadsheet) — nếu cả 3 đều trigger, description đã đủ phủ keyword.</div>
+
+  <h3>25.32. Workflow debug tổng quát (rút gọn)</h3>
+  <div class="note">
+    <ol>
+      <li><strong>Mô tả triệu chứng + reproduce</strong> (paste error đầy đủ, version, OS)</li>
+      <li><strong>Bọc context bằng XML</strong> (<code>&lt;error&gt;</code>, <code>&lt;code&gt;</code>, <code>&lt;expected&gt;</code>, <code>&lt;actual&gt;</code>)</li>
+      <li><strong>Yêu cầu coverage</strong>: liệt kê tất cả hypothesis, không tự lọc</li>
+      <li><strong>Tăng effort</strong> cho bug khó (xhigh/max trên Opus 4.8)</li>
+      <li><strong>Bật adaptive thinking</strong> khi cần multi-step reasoning</li>
+      <li><strong>Yêu cầu quote trước phân tích</strong> trong long context</li>
+      <li><strong>Kiểm chứng từng hypothesis</strong> bằng test/log/repro</li>
+      <li><strong>Sửa root cause, không che triệu chứng</strong></li>
+      <li><strong>Viết regression test</strong></li>
+      <li><strong>Bảo vệ bằng Hook</strong> nếu chạy trên môi trường thật</li>
+    </ol>
+  </div>
+
+  <footer>
+    <strong>Nguồn tham khảo chính thức:</strong>
+    <ul>
+      <li><a href="https://claude.com/product/overview">claude.com/product/overview</a> – Tổng quan sản phẩm Claude</li>
+      <li><a href="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices">platform.claude.com – Prompting best practices</a></li>
+      <li><a href="https://platform.claude.com/docs/en/docs/build-with-claude/prompt-engineering/overview">platform.claude.com – Prompt engineering overview</a></li>
+      <li><a href="https://support.claude.com">support.claude.com</a> – Trung tâm hỗ trợ chính thức</li>
+      <li><a href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview">platform.claude.com – Agent Skills overview</a></li>
+      <li><a href="https://code.claude.com/docs/en/hooks">code.claude.com/docs/en/hooks</a> – Claude Code Hooks Reference</li>
+      <li><a href="https://support.claude.com/en/articles/11473015-retrieval-augmented-generation-rag-for-projects">support.claude.com – RAG for projects</a></li>
+      <li><a href="https://www.anthropic.com/news/contextual-retrieval">anthropic.com/news/contextual-retrieval</a> – Contextual Retrieval</li>
+      <li><a href="https://www.anthropic.com/news/building-safeguards-for-claude">anthropic.com/news/building-safeguards-for-claude</a> – Building safeguards (Guardrails)</li>
+      <li><a href="https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks">docs.anthropic.com – Mitigate jailbreaks &amp; prompt injection</a></li>
+      <li><a href="https://platform.claude.com/docs/en/docs/resources/glossary">platform.claude.com – Official Glossary</a></li>
+      <li><a href="https://platform.claude.com/docs/en/api/messages">platform.claude.com – Messages API</a></li>
+      <li><a href="https://platform.claude.com/docs/en/build-with-claude/tool-use/overview">platform.claude.com – Tool use overview</a></li>
+      <li><a href="https://platform.claude.com/docs/en/build-with-claude/streaming">platform.claude.com – Streaming messages</a></li>
+      <li><a href="https://platform.claude.com/docs/en/build-with-claude/vision">platform.claude.com – Vision</a></li>
+      <li><a href="https://platform.claude.com/docs/en/build-with-claude/pdf-support">platform.claude.com – PDF support</a></li>
+      <li><a href="https://platform.claude.com/docs/en/build-with-claude/files">platform.claude.com – Files API</a></li>
+      <li><a href="https://platform.claude.com/docs/en/build-with-claude/citations">platform.claude.com – Citations</a></li>
+      <li><a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching">platform.claude.com – Prompt caching</a></li>
+      <li><a href="https://platform.claude.com/docs/en/build-with-claude/batch-processing">platform.claude.com – Batch processing</a></li>
+      <li><a href="https://modelcontextprotocol.io/">modelcontextprotocol.io</a> – MCP standard</li>
+      <li><a href="https://platform.claude.com/docs/en/agents-and-tools/mcp-connector">platform.claude.com – MCP connector</a></li>
+      <li><a href="https://code.claude.com/docs/en/overview">code.claude.com/docs/en/overview</a> – Claude Code</li>
+      <li><a href="https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations">platform.claude.com – Reduce hallucinations</a></li>
+      <li><a href="https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/keep-claude-in-character">platform.claude.com – Increase output consistency</a></li>
+    </ul>
+    <p>Tài liệu này được biên soạn để hướng dẫn sử dụng. Mọi thông tin lấy từ tài liệu công khai của Anthropic; không có nội dung suy diễn ngoài nguồn.</p>
+  </footer>
+
+</div>
+</body>
+</html>
